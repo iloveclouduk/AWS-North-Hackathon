@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "IAM Probe Viewer",
+  "version": "0.1.0",
+  "description": "Calls the iam-probe GET /test endpoint and shows which AWS read permissions are allowed in the sandbox account.",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage"],
+  "optional_host_permissions": ["https://*.execute-api.us-west-2.amazonaws.com/*"]
+}

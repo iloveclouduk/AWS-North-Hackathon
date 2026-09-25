@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Minimal IAM read-permission probe. A single Lambda, exposed via
+  API Gateway GET /test, that attempts a small set of read-only AWS
+  API calls and reports which ones succeed vs. return AccessDenied
+  in this account.
+
+Globals:
+  Function:
+    Timeout: 15
+    MemorySize: 128
+    Runtime: python3.12
+
+Resources:
+  IamProbeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: iam-probe
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Policies:
+        - Statement:
+            - Sid: IamProbeReadOnly
+              Effect: Allow
+              Action:
+                - lambda:ListFunctions
+                - cloudwatch:GetMetricData
+                - dynamodb:ListTables
+                - dynamodb:DescribeTable
+              Resource: '*'
+      Events:
+        Probe:
+          Type: Api
+          Properties:
+            Path: /test
+            Method: get
+
+Outputs:
+  ApiEndpoint:
+    Description: Invoke URL for the GET /test endpoint
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/test"

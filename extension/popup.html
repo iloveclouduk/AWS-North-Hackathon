@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>IAM Probe</title>
+  <style>
+    body {
+      font: 13px -apple-system, sans-serif;
+      width: 380px;
+      padding: 10px;
+    }
+    input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px;
+      margin-bottom: 6px;
+    }
+    button {
+      padding: 4px 10px;
+      margin-bottom: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 4px;
+      border-bottom: 1px solid #ddd;
+      vertical-align: top;
+      font-size: 12px;
+    }
+    .allowed { color: #157a15; font-weight: bold; }
+    .denied { color: #b00020; font-weight: bold; }
+    #status { color: #666; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <input id="endpoint" type="text" placeholder="https://xxxx.execute-api.us-west-2.amazonaws.com/Prod/test" />
+  <button id="run">Run probe</button>
+  <div id="status"></div>
+  <table id="results"></table>
+  <script src="popup.js"></script>
+</body>
+</html>
