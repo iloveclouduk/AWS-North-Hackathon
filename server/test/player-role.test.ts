@@ -48,7 +48,10 @@ describe('player role template', () => {
     expect(template).not.toMatch(/PassRole/);
     // Trust needs both our role and the player's ExternalId.
     expect(template).toContain("'sts:ExternalId': !Ref ExternalId");
-    expect(template).toContain("'aws:PrincipalArn'");
+    expect(template).toContain("'aws:PrincipalArn': 'arn:aws:iam::__AWS_CITY_ACCOUNT_ID__:role/AWSCityTaskRole'");
+    // The trusted account can't be a parameter: a crafted setup link could otherwise trust anyone.
+    expect(template).not.toMatch(/Trusted\w*:\s*\n\s*Type:/);
+    expect(template).not.toMatch(/\$\{Trusted/);
     // Tiny instances with IMDSv2 only.
     expect(template).toMatch(/'ec2:InstanceType': \[t4g.nano, t4g.micro\]/);
     expect(template).toContain("'ec2:MetadataHttpTokens': required");

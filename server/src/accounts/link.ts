@@ -22,7 +22,6 @@ export const createAccountLinker = (deps: {
   accounts: AccountStore;
   templateUrl: string;
   selfAccountId: string;
-  taskRoleName: string;
   /** Test seam: credentials for a role. */
   credentialsFor?: (o: { roleArn: string; externalId: string; sub: string; region: string }) => AwsCredentialIdentityProvider;
   /** Test seam: GetCallerIdentity with those credentials. */
@@ -36,8 +35,7 @@ export const createAccountLinker = (deps: {
       templateURL: deps.templateUrl,
       stackName: 'AWSCity',
       param_ExternalId: externalId,
-      param_TrustedAccountId: deps.selfAccountId,
-      param_TrustedRoleName: deps.taskRoleName,
+      // No trust parameters: the published template has our account fixed in it.
     });
     return `https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/quickcreate?${params}`;
   };

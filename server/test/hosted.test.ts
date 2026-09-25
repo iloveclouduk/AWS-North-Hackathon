@@ -60,7 +60,6 @@ describe('account linking', () => {
       accounts: stores.accounts,
       templateUrl: 'https://templates.example/player-role/v1.yaml',
       selfAccountId: SELF,
-      taskRoleName: 'AWSCityTaskRole',
       credentialsFor: (o) => {
         lastArn = o.roleArn;
         return async () => ({ accessKeyId: 'x', secretAccessKey: 'y' });
@@ -75,7 +74,7 @@ describe('account linking', () => {
     const a = await linker.link('u1', 'eu-west-1');
     expect(a.url).toContain('https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/quickcreate?');
     expect(a.url).toContain(`param_ExternalId=${a.externalId}`);
-    expect(a.url).toContain(`param_TrustedAccountId=${SELF}`);
+    expect(a.url).not.toContain('param_Trusted'); // trust is fixed in the published template
     expect((await linker.link('u1', 'eu-west-1')).externalId).toBe(a.externalId);
     expect((await linker.link('u2', 'eu-west-1')).externalId).not.toBe(a.externalId);
     await expect(linker.link('u1', 'not a region')).rejects.toThrow(/region/);

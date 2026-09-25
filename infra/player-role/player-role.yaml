@@ -7,8 +7,9 @@
 #       DynamoDB tables named city-*, tagged managed-by=aws-city
 #       S3 buckets named aws-city-<your account id>-*
 #   - only in the region you installed it in; no IAM, no billing, no passing roles
-# Who can use it: only the AWS City service role (TrustedRoleName in TrustedAccountId), and only with
-# your personal ExternalId. Every change still needs your Approve in the game.
+# Who can use it: only the AWS City service role (AWSCityTaskRole in the AWS City account), and only with
+# your personal ExternalId. The trusted account is fixed in the published template (infra substitutes
+# __AWS_CITY_ACCOUNT_ID__ when it uploads it), so a setup link can't be edited to trust someone else. Every change still needs your Approve in the game.
 # Remove access any time: delete the "AWSCity" stack.
 AWSTemplateFormatVersion: '2010-09-09'
 Description: AWS City player role (least privilege, game-owned resources only). v1
@@ -21,14 +22,6 @@ Parameters:
     MaxLength: 128
     AllowedPattern: '[A-Za-z0-9_-]+'
     Description: Your personal AWS City id (filled in by the setup link).
-  TrustedAccountId:
-    Type: String
-    AllowedPattern: '\d{12}'
-    Description: The AWS City service account (filled in by the setup link).
-  TrustedRoleName:
-    Type: String
-    Default: AWSCityTaskRole
-    AllowedPattern: '[A-Za-z0-9+=,.@_-]+'
 
 Resources:
   PlayerRole:
@@ -43,11 +36,11 @@ Resources:
           - Effect: Allow
             # The account root + a PrincipalArn condition (not the role ARN as principal) keeps the trust
             # valid even if the service role is ever recreated.
-            Principal: { AWS: !Sub 'arn:aws:iam::${TrustedAccountId}:root' }
+            Principal: { AWS: 'arn:aws:iam::__AWS_CITY_ACCOUNT_ID__:root' }
             Action: sts:AssumeRole
             Condition:
               StringEquals: { 'sts:ExternalId': !Ref ExternalId }
-              ArnEquals: { 'aws:PrincipalArn': !Sub 'arn:aws:iam::${TrustedAccountId}:role/${TrustedRoleName}' }
+              ArnEquals: { 'aws:PrincipalArn': 'arn:aws:iam::__AWS_CITY_ACCOUNT_ID__:role/AWSCityTaskRole' }
       Tags:
         - { Key: managed-by, Value: aws-city }
       Policies:
