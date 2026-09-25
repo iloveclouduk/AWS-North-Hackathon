@@ -25,8 +25,11 @@ export interface AgentBackend {
   getProgress(): Promise<Progress | null>;
   putProgress(p: Progress): void;
 
-  /** Interactive sign-in (AgentCore only). */
+  /** Interactive sign-in (hosted server / AgentCore). Must be called from a user gesture. */
   signIn?(): Promise<void>;
+  signOut?(): Promise<void>;
+  /** Try connecting again now (after going offline). */
+  reconnect?(): void;
 }
 
 /** Tiny listener set used by all implementations. */

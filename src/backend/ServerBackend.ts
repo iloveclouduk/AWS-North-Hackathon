@@ -1,10 +1,13 @@
 import { Listeners, uid, type AgentBackend, type ConnectionStatus } from './AgentBackend';
-import { isServerEvent, type ClientCommand, type Progress, type ServerEvent } from './contract';
+import type { CognitoAuth } from './auth';
+import { bearerSubprotocols, isServerEvent, type ClientCommand, type Progress, type ServerEvent } from './contract';
 
 /**
- * The team's local Node server (server/): a real AWS account + Claude on Bedrock, running on loopback
- * because the workshop account blocks CloudFormation and IAM roles. Transport: WebSocket /ws + REST
- * (/progress, /screenshots). The server allowlists the extension by Origin (EXTENSION_ORIGIN).
+ * The AWS City server (server/): Claude on Bedrock + real AWS. Two deployments, same protocol:
+ *  - local: on loopback with the workshop profile; the extension is allowlisted by Origin.
+ *  - hosted: api.<domain> on ECS; players sign in with Cognito and the access token rides in the
+ *    WebSocket subprotocol (REST: Authorization: Bearer). Each player acts in their own linked account.
+ * Transport: WebSocket /ws + REST (/progress, /screenshots, /me).
  *
  * Deploys here are the server's guarded actions (EC2 t4g, DynamoDB, S3). Every write the agents want
  * to make arrives as deploy.preview and needs deploy.approve — see server/src/contract/approvals.ts.
@@ -12,7 +15,14 @@ import { isServerEvent, type ClientCommand, type Progress, type ServerEvent } fr
 export interface ServerConfig {
   wsUrl: string;
   apiUrl: string;
+  /** Hosted: Cognito sign-in. Absent for the local server. */
+  auth?: CognitoAuth;
 }
+
+/** Close codes from server/src/http.ts (CLOSE). */
+const CLOSE_REAUTH = 4401;
+const CLOSE_TOO_MANY = 4429;
+const CLOSE_RESTARTING = 1012;
 
 /** What the Deploy tab offers on this backend: prompts that ask the right agent to build it. */
 export const GUARDED_BLUEPRINTS = [
@@ -49,7 +59,7 @@ export class ServerBackend implements AgentBackend {
 
   connect() {
     this.closedByUser = false;
-    this.open();
+    void this.open();
   }
 
   disconnect() {
@@ -58,16 +68,57 @@ export class ServerBackend implements AgentBackend {
     this.ws?.close(1000);
   }
 
-  private open() {
+  reconnect() {
+    clearTimeout(this.reconnectTimer);
+    this.retry = 0;
+    this.closedByUser = false;
+    if (this.ws && this.ws.readyState <= WebSocket.OPEN) return;
+    void this.open();
+  }
+
+  async signIn() {
+    if (!this.cfg.auth) return;
+    await this.cfg.auth.signIn();
+    this.reconnect();
+  }
+
+  async signOut() {
+    if (!this.cfg.auth) return;
+    await this.cfg.auth.signOut();
+    this.closedByUser = true;
+    this.ws?.close(1000);
+    this.statuses.emit('signed-out');
+  }
+
+  private async token(): Promise<string | undefined> {
+    return this.cfg.auth?.token();
+  }
+
+  private async headers(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+    const t = await this.token();
+    return t ? { ...extra, authorization: `Bearer ${t}` } : extra;
+  }
+
+  private schedule(ms: number) {
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = setTimeout(() => void this.open(), ms);
+  }
+
+  private async open() {
     this.statuses.emit('connecting');
-    const ws = new WebSocket(this.cfg.wsUrl);
+    let protocols: string[] = [];
+    if (this.cfg.auth) {
+      const token = await this.token();
+      // Signing in needs a click (launchWebAuthFlow), so we wait for the player instead of popping a window.
+      if (!token) return this.statuses.emit('signed-out');
+      protocols = bearerSubprotocols(token);
+    }
+    const ws = new WebSocket(this.cfg.wsUrl, protocols);
     this.ws = ws;
     ws.onopen = () => {
       this.retry = 0;
       this.statuses.emit('connected');
       for (const cmd of this.queue.splice(0)) ws.send(JSON.stringify(cmd));
-      // The server holds the workshop credentials: the account is "linked" as soon as we're connected.
-      this.events.emit({ type: 'account.status', linked: true, message: 'Workshop AWS account (local server). Every change needs your approval.' });
     };
     ws.onmessage = (msg) => {
       try {
@@ -78,10 +129,19 @@ export class ServerBackend implements AgentBackend {
       }
     };
     ws.onerror = () => this.statuses.emit('error');
-    ws.onclose = () => {
+    ws.onclose = (ev) => {
+      if (this.ws !== ws) return;
       this.statuses.emit('disconnected');
       if (this.closedByUser) return;
-      this.reconnectTimer = setTimeout(() => this.open(), Math.min(30_000, 1000 * 2 ** this.retry++));
+      if (ev.code === CLOSE_TOO_MANY) {
+        this.events.emit({ type: 'error', message: 'AWS City is open in too many tabs. Close one and press Retry.' });
+        return;
+      }
+      // The server asks for a fresh token every few hours; the auth layer refreshes it silently.
+      if (ev.code === CLOSE_REAUTH) return this.schedule(200);
+      // A deploy is rolling: spread reconnects out so the new tasks aren't stampeded.
+      if (ev.code === CLOSE_RESTARTING) return this.schedule(1000 + Math.random() * 4000);
+      this.schedule(Math.min(30_000, 1000 * 2 ** this.retry++) + Math.random() * 500);
     };
   }
 
@@ -120,7 +180,7 @@ export class ServerBackend implements AgentBackend {
       }
       case 'account.link':
       case 'account.verify':
-        return this.events.emit({ type: 'account.status', requestId: cmd.requestId, linked: this.ws?.readyState === WebSocket.OPEN, message: 'The local server uses the workshop AWS profile.' });
+        return this.raw(cmd);
       case 'progress.get':
       case 'progress.put':
       case 'screenshot.presign':
@@ -134,24 +194,43 @@ export class ServerBackend implements AgentBackend {
   }
 
   async uploadScreenshot(dataUrl: string) {
-    const res = await fetch(this.url('/screenshots'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ contentType: 'image/jpeg' }) });
+    const res = await fetch(this.url('/screenshots'), { method: 'POST', headers: await this.headers({ 'content-type': 'application/json' }), body: JSON.stringify({ contentType: 'image/jpeg' }) });
     if (!res.ok) throw new Error(`POST /screenshots → ${res.status}`);
-    const { uploadUrl, screenshotKey } = (await res.json()) as { uploadUrl: string; screenshotKey: string };
+    const target = (await res.json()) as { uploadUrl: string; screenshotKey: string; method?: 'PUT' | 'POST'; fields?: Record<string, string> };
     const bytes = Uint8Array.from(atob(dataUrl.split(',')[1]), (c) => c.charCodeAt(0));
-    const put = await fetch(new URL(uploadUrl, this.cfg.apiUrl), { method: 'PUT', body: bytes, headers: { 'content-type': 'image/jpeg' } });
-    if (!put.ok) throw new Error(`screenshot upload failed: ${put.status}`);
-    return screenshotKey;
+    const blob = new Blob([bytes], { type: 'image/jpeg' });
+    let up: Response;
+    if (target.method === 'POST') {
+      // S3 presigned POST: the policy fields first, the file last.
+      const form = new FormData();
+      for (const [k, v] of Object.entries(target.fields ?? {})) form.append(k, v);
+      form.append('file', blob);
+      up = await fetch(target.uploadUrl, { method: 'POST', body: form });
+    } else {
+      up = await fetch(new URL(target.uploadUrl, this.cfg.apiUrl), { method: 'PUT', body: blob, headers: { 'content-type': 'image/jpeg' } });
+    }
+    if (!up.ok) throw new Error(`screenshot upload failed: ${up.status}`);
+    return target.screenshotKey;
   }
 
   async getProgress(): Promise<Progress | null> {
-    const res = await fetch(this.url('/progress'));
-    if (res.status === 404) return null;
+    const res = await fetch(this.url('/progress'), { headers: await this.headers() });
+    if (res.status === 404 || res.status === 401) return null;
     if (!res.ok) throw new Error(`GET /progress → ${res.status}`);
     return (await res.json()) as Progress;
   }
 
   putProgress(p: Progress) {
-    void fetch(this.url('/progress'), { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(p) }).catch((e) => console.warn('[server] putProgress', e));
+    void this.headers({ 'content-type': 'application/json' })
+      .then((headers) => fetch(this.url('/progress'), { method: 'PUT', headers, body: JSON.stringify(p) }))
+      .catch((e) => console.warn('[server] putProgress', e));
+  }
+
+  /** Deletes the player's data on the server (progress, account link, screenshots, sign-in). */
+  async deleteAccount() {
+    const res = await fetch(this.url('/me'), { method: 'DELETE', headers: await this.headers() });
+    if (!res.ok) throw new Error(`DELETE /me → ${res.status}`);
+    await this.signOut();
   }
 }
 

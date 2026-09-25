@@ -250,6 +250,15 @@ export const createHttpServer = (deps: Deps) => {
     socket.end(`HTTP/1.1 ${status} ${err instanceof Error ? err.message : 'Bad request'}\r\nConnection: close\r\n\r\n`);
   };
 
+  /** Slots taken by sockets that are open or still being set up (reserved before any await: no race past the caps). */
+  let slots = 0;
+  const release = (sub: string) => {
+    slots--;
+    const n = (perUser.get(sub) ?? 1) - 1;
+    if (n > 0) perUser.set(sub, n);
+    else perUser.delete(sub);
+  };
+
   server.on('upgrade', (req, socket, head) => {
     socket.on('error', () => socket.destroy());
     let url: URL;
@@ -257,29 +266,43 @@ export const createHttpServer = (deps: Deps) => {
       if (draining) throw new HttpError(503, 'Server restarting');
       url = guard(req);
       if (url.pathname !== '/ws') throw new HttpError(404, 'WebSocket endpoint is /ws');
-      if (sockets.size >= config.maxSockets) throw new HttpError(429, 'Too many connections');
+      if (slots >= config.maxSockets) throw new HttpError(429, 'Too many connections');
     } catch (err) {
       return reject(socket, err);
     }
+    slots++;
     void (async () => {
-      let principal: Principal;
+      let principal: Principal | undefined;
       let tenant: Tenant;
       try {
-        principal = await principalFor(req, url);
-        if ((perUser.get(principal.sub) ?? 0) >= config.maxSocketsPerUser) throw new HttpError(429, 'Too many open tabs');
+        principal = await principalFor(req, url).catch((err) => {
+          slots--;
+          throw err;
+        });
+        // Check and reserve in the same tick.
+        if ((perUser.get(principal.sub) ?? 0) >= config.maxSocketsPerUser) {
+          slots--;
+          principal = undefined;
+          throw new HttpError(429, 'Too many open tabs');
+        }
+        perUser.set(principal.sub, (perUser.get(principal.sub) ?? 0) + 1);
         tenant = await hub.acquire(principal);
       } catch (err) {
+        if (principal) release(principal.sub);
         if (!(err instanceof HttpError)) log.error('upgrade', { err: (err as Error).message });
         return reject(socket, err);
       }
-      if (socket.destroyed) return hub.release(principal);
-      wss.handleUpgrade(req, socket, head, (ws) => onSocket(ws, principal, tenant));
+      if (socket.destroyed) {
+        release(principal.sub);
+        return hub.release(principal);
+      }
+      const p = principal;
+      wss.handleUpgrade(req, socket, head, (ws) => onSocket(ws, p, tenant));
     })();
   });
 
   const onSocket = (ws: WebSocket, principal: Principal, tenant: Tenant) => {
     sockets.add(ws);
-    perUser.set(principal.sub, (perUser.get(principal.sub) ?? 0) + 1);
     let tasks = 0;
     let requests = 0;
     let alive = true;
@@ -300,9 +323,7 @@ export const createHttpServer = (deps: Deps) => {
     ws.on('pong', () => (alive = true));
     ws.on('close', () => {
       sockets.delete(ws);
-      const n = (perUser.get(principal.sub) ?? 1) - 1;
-      if (n > 0) perUser.set(principal.sub, n);
-      else perUser.delete(principal.sub);
+      release(principal.sub);
       clearInterval(heartbeat);
       clearTimeout(maxAge);
       unsubscribe();

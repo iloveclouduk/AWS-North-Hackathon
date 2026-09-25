@@ -20,6 +20,7 @@ async function sessionId() {
 /**
  * Picks the backend from env:
  *   WXT_BACKEND=aws        the team's local server (server/) — WXT_AWS_WS_URL + WXT_AWS_API_URL
+ *   WXT_BACKEND=hosted     the hosted server (infra/) — WXT_AWS_WS_URL + WXT_AWS_API_URL + Cognito sign-in
  *   WXT_BACKEND=agentcore  Strands swarm on AgentCore Runtime (branch parked/agentcore-backend)
  *   anything else          the in-browser mock
  */
@@ -29,6 +30,18 @@ export function createBackend(mock: MockOptions = {}): AgentBackend {
     if (env.WXT_AWS_WS_URL && env.WXT_AWS_API_URL) return new ServerBackend({ wsUrl: env.WXT_AWS_WS_URL, apiUrl: env.WXT_AWS_API_URL });
     console.warn('[backend] WXT_BACKEND=aws but WXT_AWS_WS_URL / WXT_AWS_API_URL are missing — using mock');
     return new MockBackend(mock);
+  }
+  if (env.WXT_BACKEND === 'hosted') {
+    const missing = ['WXT_AWS_WS_URL', 'WXT_AWS_API_URL', 'WXT_COGNITO_DOMAIN', 'WXT_COGNITO_CLIENT_ID'].filter((k) => !env[k as keyof ImportMetaEnv]);
+    if (missing.length) {
+      console.warn(`[backend] WXT_BACKEND=hosted but ${missing.join(', ')} missing — using mock`);
+      return new MockBackend(mock);
+    }
+    return new ServerBackend({
+      wsUrl: env.WXT_AWS_WS_URL!,
+      apiUrl: env.WXT_AWS_API_URL!,
+      auth: new CognitoAuth({ domain: env.WXT_COGNITO_DOMAIN!, clientId: env.WXT_COGNITO_CLIENT_ID! }),
+    });
   }
   if (env.WXT_BACKEND === 'agentcore') {
     const missing = ['WXT_AGENTCORE_REGION', 'WXT_AGENTCORE_RUNTIME_ARN', 'WXT_COGNITO_DOMAIN', 'WXT_COGNITO_CLIENT_ID'].filter(

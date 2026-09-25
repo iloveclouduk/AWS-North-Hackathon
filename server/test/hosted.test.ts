@@ -201,6 +201,19 @@ describe('hosted server: Cognito players and tenants', () => {
     ws!.close();
   });
 
+  it('per-player socket cap holds even when tabs connect at the same instant', async () => {
+    const all = await Promise.all(Array.from({ length: 8 }, () => open('jwt-alice')));
+    const opened = all.filter((r) => r.ws);
+    expect(opened.length).toBe(4);
+    expect(all.filter((r) => r.status === 429).length).toBe(4);
+    for (const r of opened) r.ws!.close();
+    await new Promise((r) => setTimeout(r, 100));
+    // Slots are given back on close.
+    const again = await open('jwt-alice');
+    expect(again.ws).toBeDefined();
+    again.ws!.close();
+  });
+
   it('REST progress is per player', async () => {
     const put = (jwt: string, xp: number) =>
       fetch(`http://127.0.0.1:${port}/progress`, {
