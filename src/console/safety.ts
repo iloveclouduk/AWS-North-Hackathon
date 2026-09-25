@@ -3,6 +3,7 @@
 // never typed or read, and only console pages are touched.
 import type { SnapshotItem } from './types';
 
+import { byIdFrom } from './dom';
 import { isRisky } from './risk';
 
 export { isRisky };
@@ -32,23 +33,32 @@ export function isConsoleUrl(raw: string): boolean {
 
 export type Verdict = { ok: true } | { ok: false; reason: 'risky' | 'sensitive' | 'missing' | 'disabled'; message: string };
 
-/** Every label a control carries — a page could name a Delete button "Next" in one place but not all. */
+/**
+ * Every label a control carries — a page could name a Delete button "Next" in one place but not all.
+ * Each signal is capped on its own (not the joined string), so a long Cloudscape class list can't push
+ * the visible text out of the check.
+ */
 export function riskSignals(el: Element): string {
   const h = el as HTMLElement;
+  const refs = (attr: string) => (el.getAttribute(attr) ?? '').split(/\s+/).map((id) => (id ? byIdFrom(el, id)?.textContent : ''));
   return [
     el.getAttribute('aria-label'),
+    ...refs('aria-labelledby'),
     el.getAttribute('title'),
     el.getAttribute('data-testid'),
     el.getAttribute('name'),
     el.getAttribute('value'),
-    el.getAttribute('class'),
     h.innerText ?? el.textContent,
+    el.closest('label')?.textContent,
+    // what a screen reader reads with it (Cloudscape puts option and tile descriptions here)
+    ...refs('aria-describedby'),
     el.closest('form')?.getAttribute('action'),
     el.closest('[role=dialog]')?.querySelector('h1,h2,h3')?.textContent,
+    el.getAttribute('class'),
   ]
     .filter(Boolean)
-    .join(' ')
-    .slice(0, 600);
+    .map((s) => s!.replace(/\s+/g, ' ').trim().slice(0, 300))
+    .join(' ');
 }
 
 /** Links that leave the AWS console are never followed by the agent. */
@@ -68,11 +78,26 @@ export function optionFor(el: Element, value: string): HTMLOptionElement | undef
   return [...el.options].find((o) => o.value === value || o.textContent?.trim().toLowerCase() === value.toLowerCase());
 }
 
+const DANGER_CLASS = /\b(danger|destructive|delete)\b/i;
+
+/**
+ * Phase two of a custom (Cloudscape) select: the option the agent is about to click, checked on all its
+ * own signals (text, description, aria-label, test id, class) plus the field it belongs to.
+ */
+export function mayChoose(option: Element, fieldName = ''): Verdict {
+  const label = (option.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  if (option.getAttribute('aria-disabled') === 'true' || option.hasAttribute('disabled'))
+    return { ok: false, reason: 'disabled', message: `“${label}” can’t be picked right now.` };
+  if (isRisky(riskSignals(option)) || isRisky(label, fieldName) || DANGER_CLASS.test(option.getAttribute('class') ?? '') || leavesConsole(option))
+    return { ok: false, reason: 'risky', message: `Choosing “${label}” can change something important — your turn to pick it.` };
+  return { ok: true };
+}
+
 /** Decide whether the agent may act on this element itself. */
 export function mayAct(item: SnapshotItem | undefined, action: string, el?: Element, value?: string): Verdict {
   if (!item) return { ok: false, reason: 'missing', message: 'I can’t find that on the page.' };
   if (el && (action === 'click' || action === 'select')) {
-    if (isRisky(riskSignals(el)) || /\b(danger|destructive|delete)\b/i.test(el.getAttribute('class') ?? ''))
+    if (isRisky(riskSignals(el)) || DANGER_CLASS.test(el.getAttribute('class') ?? ''))
       return { ok: false, reason: 'risky', message: `“${item.name}” looks like it can change or delete something important — your turn to click it.` };
     if (leavesConsole(el)) return { ok: false, reason: 'risky', message: 'That link leaves the AWS console — your turn if you want to follow it.' };
     // Check the option that will actually be chosen, not just the value sent: value="2" can label "Disable…".
