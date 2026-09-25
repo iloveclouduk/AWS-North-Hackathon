@@ -20,8 +20,10 @@ Habbo Hotel for learning AWS: a Chrome extension with a living isometric pixel c
   - 4 mini-games: S3 fishing, Shield Wall, Route 53 Dance Hall, Lambda Food Stall.
 - **Build for real.** The Deploy tab lets agents make real changes in AWS. **Nothing changes until
   you approve the preview.**
-- **A living city:** 6 districts × 6 services, citizens walking and chatting, day and night, and
-  chiptune (muted by default).
+- **A living city in the team's pixel style:**
+  - 6 districts × 6 services around **The Spheres**, the Console HQ.
+  - Citizens walking and chatting, greenery everywhere, and day and night.
+  - Soft sound effects: chat blips and chimes, with no music.
 
 ## Run it
 
@@ -75,5 +77,10 @@ server/           the team's local AWS backend (Node + Bedrock), with player app
 
 ## Credits
 
-Characters come from the team's Habbo-style pixel generator (`art/characters`). The city art is
-generated in the same style (`art/tiles`). Fonts and sounds are from [Kenney](https://kenney.nl), CC0.
+- **Characters:** the team's Habbo-style pixel generator (`art/characters`).
+- **City pack:** floors, walls, furniture and the data centre, imported pixel-for-pixel from the
+  team's `agentic-city` prototype (`art/pack`).
+- **Everything else:** generated in that exact style (`art/tiles`), including 36 landmarks × 4 tiers,
+  The Spheres, roads and parks.
+- **Fonts:** Nunito and Press Start 2P (OFL).
+- **Sounds:** [Kenney](https://kenney.nl), CC0.

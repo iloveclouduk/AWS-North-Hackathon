@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { createCharacterAnims, preloadIndexes, queueAssets } from '../assets';
-import { PIXEL_FONT } from '../SpeechBubble';
+import { PIXEL_FONT, TEXT_FONT } from '../SpeechBubble';
 
 /** Loads indexes, then every atlas/sheet/sound they list, then the pixel font, then starts the city. */
 export class BootScene extends Phaser.Scene {
@@ -21,7 +21,7 @@ export class BootScene extends Phaser.Scene {
     queueAssets(this);
     this.load.once('complete', async () => {
       createCharacterAnims(this);
-      await Promise.race([document.fonts.load(`16px ${PIXEL_FONT}`), new Promise((r) => setTimeout(r, 1500))]);
+      await Promise.race([Promise.all([document.fonts.load(`800 13px ${TEXT_FONT}`), document.fonts.load(`12px ${PIXEL_FONT}`)]), new Promise((r) => setTimeout(r, 1500))]);
       this.scene.start('city');
     });
     this.load.start();
