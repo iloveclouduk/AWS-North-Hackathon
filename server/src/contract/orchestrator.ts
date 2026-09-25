@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Llm } from '../agents/llm.js';
 import { agentSystemPrompt, CONCIERGE_PROMPT, lookoutPrompt } from '../agents/personas.js';
 import { type AgentRunner, snapshotForModel } from '../agents/runner.js';
+import type { Approvals } from './approvals.js';
 import type { WorldSnapshot } from '../state/model.js';
 import {
   type ChatAsk,
@@ -113,7 +114,7 @@ export const createOrchestrator = (deps: {
     return { agentId, steps: ['Taking a look at your request'], reply: `Sounds like a job for ${placeFor(agentId)?.agentName ?? agentId}!` };
   };
 
-  const submitTask = async (cmd: Omit<TaskSubmit, 'action'>, emit: Emit) => {
+  const submitTask = async (cmd: Omit<TaskSubmit, 'action'>, emit: Emit, approvals?: Approvals) => {
     const { taskId } = cmd;
     try {
       const p = await working(emit, 'concierge', 'bedrock', 'InvokeModel — routing your request', () => plan(cmd));
@@ -137,7 +138,9 @@ export const createOrchestrator = (deps: {
           emit({ type: 'task.step', taskId, index: Math.min(index, last), text: steps[Math.min(index, last)]!, status: 'running' });
           emit({ type: 'agent.state', agentId, state: 'working', service: api.split(':')[0], detail: `${api.split(':')[1] ?? api} — ${summary}` });
         },
+        approve: approvals ? (req) => approvals.request(taskId, req, emit) : undefined,
         onToolEnd: (call) => {
+          approvals?.reportResult(taskId, call, emit);
           emit({ type: 'agent.state', agentId, state: 'idle' });
           const i = Math.min(index, last);
           const ok = call.outcome === 'done';

@@ -43,6 +43,7 @@ Anything else (curl, tests) must send the printed token: `Authorization: Bearer 
 | --- | --- |
 | `task.submit` | Concierge (Bedrock) picks the agent and plan → `agent.message` ×2 → `task.plan` → ~4 s walk → the agent's tool loop. Each real AWS call is wrapped in `agent.state working/idle` and advances a `task.step` → `task.done` with XP (15, +5 per AWS write, 3 if it failed). |
 | `chat.ask` | The district's agent (keyword-matched, as in the mock) streams a Bedrock answer as `chat.answer` deltas, then `done:true`. |
+| `deploy.approve` / `deploy.reject` | The player's answer to a `deploy.preview` raised by an agent's write (v2). |
 | `page.classify` | Lookout (Bedrock vision on the uploaded screenshot, or URL/title) → `page.classified` with valid service ids only. |
 | `POST /screenshots` | Returns a **single-use, signed upload URL** on this server (a local stand-in for a presigned S3 PUT). Images are kept in memory for 10 minutes. |
 | `GET/PUT /progress` | `server/.data/progress.json`; the newest `updatedAt` wins. |
@@ -59,7 +60,7 @@ Tools are per agent: **ec2** can launch (`t4g.nano`/`t4g.micro` only), stop and 
 
 - Writes only touch resources the game created: tag `managed-by=aws-city` (tables need the tag, not just the name).
 - Limits: 3 live instances, 5 tables, 3 buckets. Writes are serialised, and just-created resources count before AWS lists them.
-- **Terminate/delete are refused**, because the contract has no approval event yet. Add one (e.g. `approval.request`/`approval.answer`) to enable them.
+- **Every write asks the player first** (contract v2): the agent's tool call becomes a `deploy.preview` in the city's Deploy tab, and runs only after `deploy.approve` (`src/contract/approvals.ts`). Policy is checked before asking and again after approval. Terminate/delete are therefore possible, but only with an explicit approval. Requests time out after 5 minutes, and closing the socket rejects them. Clients without v2 (no approval channel) keep the old behaviour: creates run, destructive actions are refused.
 - zod validation on every tool call and WebSocket frame. Extra fields are rejected; region and instance types are fixed.
 - The server listens on loopback only, checks the Host header (DNS-rebinding guard), and checks the Origin allowlist. It also enforces body and upload size limits, caps connections, tasks (2) and chat/classify requests (3) per socket, and never crashes on client resets.
 - Known limitation: if a socket closes mid-task, that task's remaining events are dropped (the frontend shows it as still running).

@@ -5,9 +5,19 @@ The frontend is complete against a mock backend; the AWS backend plugs in throug
 
 ## Decisions (each with the command that proves it)
 
+- **Backend in use: `server/`** (the team's local Node server). The workshop account denies
+  CloudFormation and `iam:CreateRole`, so there's no AgentCore or Lambda; the AgentCore/Strands
+  backend is parked on the `parked/agentcore-backend` branch. Proof: `cd server && npm test` (the
+  server imports `src/backend/contract.ts`, so contract drift breaks its build: `npx tsc --noEmit -p server`).
+- **Every AWS write needs the player's approval** (contract v2 `deploy.preview` → `deploy.approve`).
+  Proof: `server/test/approvals.test.ts`, `server/test/http.test.ts` ("player approvals").
 - **One seam to the backend.** Only `src/backend/` does network I/O. `contract.ts` is the source of
   truth; `docs/backend-contract.md` mirrors it. Proof: `npx vitest run tests/contract.test.ts`, and
   `grep -rn -e "fetch(" -e "WebSocket(" src | grep -v src/backend/` prints nothing.
+- **Content is data in `shared/`** (world, flashcards, puzzles, quests, templates). JSON imports need
+  `with { type: 'json' }` because the server runs as NodeNext ESM.
+- **Art is generated, not hand-placed:** `npm run art` (the team's character generator plus our tile
+  generator). Sprite names must be unique, and the generator fails on duplicates.
 - **Content is data.** Districts, services, metaphors and layout live in `src/world/`. Game and UI code
   never hard-code service ids (the exceptions are `bedrock`, the default router target, and the
   `s3` fishing game). Proof: `npx vitest run tests/taxonomy.test.ts` checks every service has a
@@ -20,8 +30,6 @@ The frontend is complete against a mock backend; the AWS backend plugs in throug
   discover landmarks.
 - **Surfaces.** The side panel (toolbar toggles it) and the full tab at `/city.html` run the same app.
   They sync progress through `chrome.storage.local`. The Lookout only works from the side panel.
-- **Art.** Kenney CC0 tiles and furniture (`scripts/assets.txt` lists every file used), plus
-  procedural pixel agents in `src/game/sprites.ts`. Kenney has no sit, type or fish frames.
 
 ## Commands
 

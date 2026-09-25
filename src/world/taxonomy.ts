@@ -1,7 +1,7 @@
 // Districts (AWS categories) → services, read from shared/world.json (shared with the Python backend).
 // Add a service there and it appears in the city. Nothing in game/ or ui/ hard-codes service ids.
 
-import world from '../../shared/world.json';
+import world from '../../shared/world.json' with { type: 'json' };
 
 export type DistrictId = 'storage' | 'compute' | 'database' | 'networking' | 'security' | 'aiml';
 

@@ -26,7 +26,7 @@ export function startRuntime(l: Layout) {
 
   backend = createBackend({ knownAgents: () => knownAgents(store().progress) });
   const kind = backend.kind;
-  store().setBackend(kind, 'connecting');
+  store().setBackend(kind, 'connecting', backend.deployMode ?? 'templates');
   backend.onStatus((s) => store().setBackend(kind, s));
   backend.onEvent((e) => {
     store().applyServerEvent(e);
@@ -38,7 +38,7 @@ export function startRuntime(l: Layout) {
   void initFocus();
   void initSettings();
 
-  store().log({ kind: 'system', text: `Welcome to AWS City! Backend: ${kind === 'mock' ? 'mock (offline demo)' : 'AWS'}.` });
+  store().log({ kind: 'system', text: `Welcome to AWS City! Backend: ${kind === 'mock' ? 'mock (offline demo)' : kind === 'server' ? 'local AWS server (workshop account)' : 'Bedrock AgentCore'}.` });
   store().log({ kind: 'message', from: 'concierge', to: 'user', text: 'Open any AWS Console page and I will build that part of town. Or just ask me to do something!' });
 }
 

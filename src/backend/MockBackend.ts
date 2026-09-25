@@ -1,6 +1,6 @@
 import { Listeners, type AgentBackend, type ConnectionStatus } from './AgentBackend';
 import type { ChatAsk, ClientCommand, DeployPlan, PageClassify, Progress, ServerEvent, TaskSubmit } from './contract';
-import templatesJson from '../../shared/templates.json';
+import templatesJson from '../../shared/templates.json' with { type: 'json' };
 import { SERVICES, matchText, serviceById, servicesIn, type DistrictId } from '@/world/taxonomy';
 import { placeFor } from '@/world/places';
 

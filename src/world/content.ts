@@ -1,8 +1,8 @@
 // Learning content (shared with the backend): flashcards, architecture puzzles, quests, deploy templates.
-import cardsJson from '../../shared/flashcards.json';
-import puzzlesJson from '../../shared/puzzles.json';
-import questsJson from '../../shared/quests.json';
-import templatesJson from '../../shared/templates.json';
+import cardsJson from '../../shared/flashcards.json' with { type: 'json' };
+import puzzlesJson from '../../shared/puzzles.json' with { type: 'json' };
+import questsJson from '../../shared/quests.json' with { type: 'json' };
+import templatesJson from '../../shared/templates.json' with { type: 'json' };
 
 export interface Flashcard {
   id: string;

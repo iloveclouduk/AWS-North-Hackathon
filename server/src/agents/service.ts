@@ -1,7 +1,7 @@
 import type { AwsClients } from '../aws.js';
 import { type Resource, resourceKey, type WorldSnapshot } from '../state/model.js';
 import type { Poller } from '../state/poller.js';
-import { type Action, parseAction, READ_ONLY } from './actions.js';
+import { type Action, DESTRUCTIVE, parseAction, READ_ONLY } from './actions.js';
 import { type ExecutionResult, executeAction } from './executor.js';
 import { checkAction, describeAction } from './policy.js';
 
@@ -12,11 +12,20 @@ export type SubmitOutcome =
   | { status: 'invalid'; error: string };
 
 /**
- * The frontend contract has no approval event, so actions that need the player's OK
- * (terminate/delete) are refused rather than run unattended.
+ * Without an approval channel (an older client), actions that need the player's OK (terminate/delete)
+ * are refused rather than run unattended. Contract v2 clients get deploy.preview → deploy.approve.
  */
 export const NEEDS_APPROVAL_REASON =
   "Demolishing needs the player's approval, and the city has no Approve button yet. Ask the player to do it in the AWS Console instead.";
+export const REJECTED_REASON = 'The player said no, so nothing was changed.';
+
+export interface ApprovalRequest {
+  action: Action;
+  summary: string;
+  destructive: boolean;
+}
+/** Asks the player (contract v2 deploy.preview); resolves true only on an explicit deploy.approve. */
+export type Approve = (req: ApprovalRequest) => Promise<boolean>;
 
 /**
  * The one path from "an agent wants to do X" to AWS: parse → policy → execute → re-poll.
@@ -47,10 +56,10 @@ export const createActionService = (deps: { clients: AwsClients; poller: Poller;
     justCreated.set(resourceKey(resource), { resource, until: Date.now() + 60_000 });
   };
 
-  const run = (action: Action) =>
+  const run = (action: Action, confirmed: boolean) =>
     serialised(async (): Promise<SubmitOutcome> => {
       const snapshot = withJustCreated(deps.poller.current() ?? (await deps.poller.refresh()));
-      const decision = checkAction(action, snapshot, { confirmed: false });
+      const decision = checkAction(action, snapshot, { confirmed });
       if (decision.verdict === 'deny') return { status: 'denied', reason: decision.reason };
       if (decision.verdict === 'confirm') return { status: 'denied', reason: NEEDS_APPROVAL_REASON };
 
@@ -65,11 +74,22 @@ export const createActionService = (deps: { clients: AwsClients; poller: Poller;
     });
 
   return {
-    /** Validates untrusted input (a model's tool call) and runs it through policy. */
-    submit(name: unknown, input: unknown): Promise<SubmitOutcome> {
+    /**
+     * Validates untrusted input (a model's tool call) and runs it through policy.
+     * With `approve`, every write is shown to the player first; policy is checked before asking
+     * (don't ask about things that would be denied) and again inside the write lock after approval.
+     */
+    async submit(name: unknown, input: unknown, opts: { approve?: Approve } = {}): Promise<SubmitOutcome> {
       const parsed = parseAction(name, input);
-      if (!parsed.ok) return Promise.resolve({ status: 'invalid', error: parsed.error });
-      return run(parsed.action);
+      if (!parsed.ok) return { status: 'invalid', error: parsed.error };
+      const action = parsed.action;
+      if (!opts.approve || READ_ONLY.has(action.type)) return run(action, false);
+      const snapshot = withJustCreated(deps.poller.current() ?? (await deps.poller.refresh()));
+      const pre = checkAction(action, snapshot, { confirmed: true });
+      if (pre.verdict === 'deny') return { status: 'denied', reason: pre.reason };
+      const ok = await opts.approve({ action, summary: describeAction(action), destructive: DESTRUCTIVE.has(action.type) });
+      if (!ok) return { status: 'denied', reason: REJECTED_REASON };
+      return run(action, true);
     },
     describe: (name: unknown, input: unknown) => {
       const parsed = parseAction(name, input);

@@ -3,7 +3,7 @@ import type { WorldSnapshot } from '../state/model.js';
 import { type ActionName, AWS_API, actionsForAgent, toolDefinitions } from './actions.js';
 import type { Llm } from './llm.js';
 import { agentSystemPrompt } from './personas.js';
-import type { ActionService, SubmitOutcome } from './service.js';
+import type { ActionService, Approve, SubmitOutcome } from './service.js';
 
 const MAX_TOOL_CALLS_PER_TURN = 5;
 const MAX_HISTORY_MESSAGES = 40;
@@ -28,6 +28,8 @@ export interface TurnHooks {
   onText?(text: string): void;
   onToolStart?(call: { name: string; api: string; summary: string }): void;
   onToolEnd?(call: ToolCallReport): void;
+  /** Ask the player before any write (contract v2). Omitted = legacy behaviour. */
+  approve?: Approve;
 }
 
 /** A compact, model-friendly view of the city (full meta is available through describe_resource). */
@@ -147,7 +149,7 @@ export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snap
           const known = allowed.has(use.name);
           hooks.onToolStart?.({ name: use.name, api: known ? AWS_API[use.name as ActionName] : use.name, summary: deps.actions.describe(use.name, use.input) });
           const outcome: SubmitOutcome = known
-            ? await deps.actions.submit(use.name, use.input)
+            ? await (hooks.approve ? deps.actions.submit(use.name, use.input, { approve: hooks.approve }) : deps.actions.submit(use.name, use.input))
             : { status: 'invalid', error: `"${use.name}" isn't one of this agent's tools.` };
           const report = { name: use.name, input: use.input, outcome: outcome.status, message: outcomeMessage(outcome) };
           toolCalls.push(report);

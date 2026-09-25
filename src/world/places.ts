@@ -1,4 +1,4 @@
-import world from '../../shared/world.json';
+import world from '../../shared/world.json' with { type: 'json' };
 
 // Every service is a themed place whose metaphor teaches what the service does.
 // Agent `activity` picks the working animation (see game/sprites.ts); `kind` picks the landmark art.

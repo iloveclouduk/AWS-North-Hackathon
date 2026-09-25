@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { decideDeploy, linkAccount, openUrl, planDeploy, signIn, teardownDeploy, verifyAccount } from '@/app/runtime';
 import { useCity } from '@/state/store';
+import { GUARDED_BLUEPRINTS } from '@/backend/ServerBackend';
 import { TEMPLATES } from '@/world/content';
 
 /**
@@ -14,6 +15,8 @@ export function DeployPanel() {
   const status = useCity((s) => s.backendStatus);
   const kind = useCity((s) => s.backendKind);
   const [role, setRole] = useState('');
+  const mode = useCity((s) => s.deployMode);
+  const blueprints = mode === 'guarded' ? GUARDED_BLUEPRINTS : TEMPLATES;
 
   return (
     <div className="deploy">
@@ -67,14 +70,15 @@ export function DeployPanel() {
       </div>
 
       <h4>Blueprints</h4>
-      {TEMPLATES.map((t) => (
+      {mode === 'guarded' && <p className="muted">The agents build these with guarded tools (only game-owned resources, small limits). You approve every change below.</p>}
+      {blueprints.map((t) => (
         <div key={t.id} className="tpl">
           <div>
             <b>{t.title}</b> <span className="muted">· {t.costNote}</span>
             <div className="muted">{t.summary}</div>
           </div>
           <button className="btn" disabled={!account.linked} onClick={() => planDeploy(t.id)} title={account.linked ? 'Preview the change set' : 'Link your account first'}>
-            Preview
+            {mode === 'guarded' ? 'Ask agent' : 'Preview'}
           </button>
         </div>
       ))}

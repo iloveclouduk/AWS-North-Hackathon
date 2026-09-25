@@ -7,7 +7,9 @@ export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'er
  * talks to the Strands swarm on AgentCore Runtime. Nothing outside src/backend/ may do network I/O.
  */
 export interface AgentBackend {
-  readonly kind: 'mock' | 'agentcore';
+  readonly kind: 'mock' | 'agentcore' | 'server';
+  /** 'templates' = curated CloudFormation into a linked account; 'guarded' = the local server's approved actions. */
+  readonly deployMode?: 'templates' | 'guarded';
   connect(): void;
   disconnect(): void;
   onEvent(cb: (e: ServerEvent) => void): () => void;

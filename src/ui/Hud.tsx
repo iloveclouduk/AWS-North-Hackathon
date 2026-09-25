@@ -34,7 +34,7 @@ export function Hud({ layout }: { layout: Layout }) {
         ⭐ {xp}
       </span>
       <span className={`dot ${status}`} title={`Backend: ${kind} · ${status}`}>
-        {kind === 'mock' ? 'mock' : 'aws'}
+        {kind === 'mock' ? 'mock' : kind === 'server' ? 'aws' : 'agentcore'}
       </span>
       <SoundToggle />
       {layout === 'panel' && (

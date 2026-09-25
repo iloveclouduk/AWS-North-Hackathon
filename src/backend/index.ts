@@ -4,6 +4,7 @@ import { uid } from './AgentBackend';
 import { AgentCoreBackend } from './AgentCoreBackend';
 import { CognitoAuth } from './auth';
 import { MockBackend, type MockOptions } from './MockBackend';
+import { ServerBackend } from './ServerBackend';
 
 const SESSION_KEY = 'agentcore.sessionId';
 
@@ -16,9 +17,19 @@ async function sessionId() {
   return id;
 }
 
-/** Picks the backend from env: WXT_BACKEND=agentcore uses the Strands swarm on AgentCore, else the mock. */
+/**
+ * Picks the backend from env:
+ *   WXT_BACKEND=aws        the team's local server (server/) — WXT_AWS_WS_URL + WXT_AWS_API_URL
+ *   WXT_BACKEND=agentcore  Strands swarm on AgentCore Runtime (branch parked/agentcore-backend)
+ *   anything else          the in-browser mock
+ */
 export function createBackend(mock: MockOptions = {}): AgentBackend {
   const env = import.meta.env;
+  if (env.WXT_BACKEND === 'aws') {
+    if (env.WXT_AWS_WS_URL && env.WXT_AWS_API_URL) return new ServerBackend({ wsUrl: env.WXT_AWS_WS_URL, apiUrl: env.WXT_AWS_API_URL });
+    console.warn('[backend] WXT_BACKEND=aws but WXT_AWS_WS_URL / WXT_AWS_API_URL are missing — using mock');
+    return new MockBackend(mock);
+  }
   if (env.WXT_BACKEND === 'agentcore') {
     const missing = ['WXT_AGENTCORE_REGION', 'WXT_AGENTCORE_RUNTIME_ARN', 'WXT_COGNITO_DOMAIN', 'WXT_COGNITO_CLIENT_ID'].filter(
       (k) => !env[k as keyof ImportMetaEnv],

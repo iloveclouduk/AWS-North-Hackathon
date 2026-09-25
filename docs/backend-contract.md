@@ -1,94 +1,57 @@
-# Backend contract (for the AWS team)
+# Backend contract v2
 
-The frontend is finished against this contract and runs today on an in-browser mock
-(`src/backend/MockBackend.ts`). Build the AWS side to emit the same events, set
-`WXT_BACKEND=aws` plus the two URLs in `.env.local`, and the city comes alive with no frontend changes.
+**Source of truth:** `src/backend/contract.ts`. If this doc and that file disagree, the file wins,
+so fix this doc. Both backends import or mirror that file:
+- `server/src/world.ts` re-exports it, so a contract change breaks the server build.
+- The parked AgentCore backend has a Python mirror.
 
-**Source of truth:** `src/backend/contract.ts`. If this doc and that file disagree, the file wins —
-fix this doc. `npm test` (see `tests/contract.test.ts`) proves the mock obeys the contract; copy those
-assertions for your Lambda tests.
+`npm test` checks the mock against the contract, and `cd server && npm test` checks the server.
 
-## Transport
+## Backends
 
-| What | AWS service | Notes |
+| `WXT_BACKEND` | Backend | Transport | Deploys |
+|---|---|---|---|
+| `mock` (default) | `src/backend/MockBackend.ts`, runs in the browser | none | Simulated curated templates |
+| `aws` | **`server/`**, the team's local Node server with a real account and Claude on Bedrock | WebSocket `/ws` + REST `/progress`, `/screenshots`; the Origin allowlist is `EXTENSION_ORIGIN` | **Guarded actions** (EC2 t4g, DynamoDB, S3); every write needs the player's approval |
+| `agentcore` | Strands swarm on Bedrock AgentCore Runtime (branch `parked/agentcore-backend`) | A single WebSocket. The Cognito JWT goes in `Sec-WebSocket-Protocol` and is never put in the URL. | Curated CloudFormation templates into the player's own account |
+
+The workshop account denies CloudFormation and `iam:CreateRole`, so `aws` is the backend in use.
+
+## Client → server
+
+| Command | Fields | Notes |
 |---|---|---|
-| Live events + commands | **API Gateway WebSocket API** | Route selection expression: `$request.body.action`. Routes: `task.submit`, `chat.ask`, `page.classify`, plus `$connect` / `$disconnect`. |
-| Auth | `$connect` Lambda authorizer | Browsers can't set headers on WebSocket upgrades, so the client sends `?token=<jwt>` (e.g. Cognito ID token). The token hook is `AwsBackendConfig.getAuthToken` in `src/backend/AwsBackend.ts`; it's unset for now. |
-| Progress + screenshots | **API Gateway HTTP API** | `GET/PUT /progress`, `POST /screenshots`. The client sends `Authorization: Bearer <jwt>` when a token exists. |
-| Screenshot storage | **S3** | `POST /screenshots` returns a presigned PUT URL; the client uploads the JPEG itself. |
-| Brains | **Bedrock** (Claude) | Routing the prompt → agent, step planning, Q&A answers, and screenshot vision (Lookout). |
-| State | **DynamoDB** | Connections table (connectionId ↔ user) and progress table (userId → Progress). |
+| `task.submit` | `taskId, prompt, context{url,title,serviceId,screenshotKey}, questId?` | The server rejects unknown fields; the adapter strips `questId`. |
+| `chat.ask` | `requestId, districtId, question, context` | |
+| `page.classify` | `requestId, context` (with `screenshotKey` or url/title) | |
+| `deploy.approve` / `deploy.reject` | `deployId` | The player's answer to a `deploy.preview`. Nothing changes in AWS without `deploy.approve`. |
+| `deploy.plan` | `requestId, templateId` | On `aws`, `ServerBackend` sends it to the matching agent as a prompt (`GUARDED_BLUEPRINTS`). |
+| `deploy.teardown` | `deployId` | On `aws`, it asks the agent to demolish what was built (that also needs approval). |
+| `progress.get/put`, `screenshot.presign`, `account.link/verify`, `quest.start` | | On `aws`, handled over REST or locally by `ServerBackend`. |
 
-A server frame may be one event or an array of events.
-
-## Client → server (WebSocket)
-
-```jsonc
-{ "action": "task.submit", "taskId": "uuid", "prompt": "Store my holiday photos cheaply",
-  "context": { "url": "https://…", "title": "…", "serviceId": "s3", "screenshotKey": "…" } }
-
-{ "action": "chat.ask", "requestId": "uuid", "districtId": "storage",
-  "question": "When should I use EFS?", "context": { … } }
-
-{ "action": "page.classify", "requestId": "uuid",
-  "context": { "url": "…", "title": "…", "screenshotKey": "screenshots/abc.jpg" } }
-```
-
-## Server → client (WebSocket)
+## Server → client
 
 | Event | What the city does |
 |---|---|
-| `task.plan {taskId, agentId, targetServiceId, steps[]}` | The Concierge dispatches the agent, which walks to its landmark while the camera follows. If the landmark is undiscovered, it gets discovered. |
-| `task.step {taskId, index, text, status}` | Speech bubble "Step i/n" plus a line in the activity feed. `status`: `pending`, `running`, `done` or `failed`. |
-| `agent.state {agentId, state, service?, detail?}` | **`working` = a real AWS call is running.** The agent plays its work animation (fishing, typing at a computer in the HQ…) and its name tag shows `detail`. Send `idle` when the call finishes. |
-| `agent.message {from, to, text}` | Speech bubble plus a ✉️ that flies from one agent to the other. `to` can be `"user"`. |
-| `task.done {taskId, ok, result, xp[]}` | Celebration. XP goes to landmarks, which can upgrade their tier. XP to an undiscovered service discovers it. |
-| `page.classified {requestId, url?, serviceIds[], summary}` | Lookout result; +3 XP to each service. |
-| `chat.answer {requestId, districtId, agentId, delta, done}` | Streams into the HQ chat. Send deltas with `done:false`, then one frame with `done:true`. |
-| `error {message, taskId?, requestId?}` | Shown in the feed; marks the task failed. |
+| `task.plan {taskId, agentId, targetServiceId, steps[]}` | The Concierge dispatches the agent, which walks to its landmark. |
+| `task.step {taskId, index, text, status}` | A bubble shows "Step i/n" and the feed updates. `skipped` means the agent remembers you know this step. |
+| `agent.state {agentId, state, service?, detail?}` | **`working` means a real AWS call is running.** The agent plays its work animation. |
+| `agent.message {from, to, text}` | A speech bubble appears and a data packet travels the roads between the two agents. |
+| `task.done {taskId, ok, result, xp[]}` | XP goes to landmarks: tiers go up, the city grows, and quests advance. |
+| `deploy.preview {deployId, taskId?, templateId, stackName, region, changes[], costNote?}` | The Deploy tab shows the change list with **Approve / Reject**. |
+| `deploy.status {deployId, status, message?, outputs?}` | `status` is one of `creating`, `complete`, `failed`, `rejected`, `deleting` or `deleted`. |
+| `agent.level {agentId, level, skill?}` | The agent gets faster and announces its new skill. |
+| `account.status`, `account.linkUrl` | These drive the Deploy tab's account section. |
+| `page.classified`, `chat.answer` (streamed), `screenshot.url`, `progress.state`, `error` | The same as in v1. |
 
 ### The one rule that makes it feel alive
 
-Wrap every AWS SDK call a Lambda makes on an agent's behalf:
+Send `agent.state working` right before every real AWS call made for an agent, and `idle` right after.
+Both backends follow it. The server never sends it for background polling.
 
-```ts
-await emit({ type: 'agent.state', agentId: 's3', state: 'working', service: 's3', detail: 'PutObject photos/1.jpg' });
-await s3.send(new PutObjectCommand(...));
-await emit({ type: 'agent.state', agentId: 's3', state: 'idle' });
-```
+### Approvals on `aws` (server)
 
-`emit` = `ApiGatewayManagementApi.postToConnection({ ConnectionId, Data: JSON.stringify(event) })`.
-
-Agent ids are service ids from `src/world/taxonomy.ts` (`s3`, `lambda`, `iam`, `dynamodb`, `route53`,
-`shield`, `bedrock`, …) plus `concierge` (router) and `lookout` (screenshot/vision). District ids:
-`storage`, `compute`, `database`, `networking`, `security`, `aiml`.
-
-## REST
-
-```
-GET  /progress            → 200 Progress | 404 (new user)
-PUT  /progress  Progress  → 204
-POST /screenshots {contentType:"image/jpeg", url?, title?} → { uploadUrl, screenshotKey }
-```
-
-```ts
-interface Progress {
-  version: 1;
-  landmarks: Record<string /* serviceId */, { discovered: boolean; xp: number }>;
-  updatedAt: string; // ISO; the newest copy wins between server and chrome.storage
-}
-```
-
-Tier thresholds (frontend-side, `src/world/places.ts`): 0 XP = construction site, 10 = Foundation,
-40 = Associate, 100 = Professional, 200 = Expert.
-
-## Suggested orchestration (one Lambda per route)
-
-1. `task.submit`: the Concierge Lambda calls Bedrock to pick `agentId` and write `steps[]`, emits
-   `agent.message` (concierge → user and concierge → agent), then `task.plan`.
-2. It gives the agent about 4 s to walk over, then runs the steps. For each step, emit `task.step running`,
-   do the real call wrapped in `agent.state`, and emit `task.step done`.
-3. Optionally hand off to another agent (e.g. S3 asks IAM for a role) with `agent.message` both ways.
-4. Emit `task.done` with XP.
-
-Mock timings to copy: `src/backend/MockBackend.ts` (`submitTask`, `ask`, `classifyPage`).
+1. An agent's write tool call is parsed, then checked by policy: it must be a game-owned resource and within the limits.
+2. `approvals.request` sends a `deploy.preview` (`server/src/contract/approvals.ts`).
+3. The player sends `deploy.approve`. The server sends `deploy.status creating`, re-checks policy inside the write lock, executes, then sends `deploy.status complete` or `failed`.
+4. Requests with no answer expire after 5 minutes, and closing the socket rejects all pending requests. Clients without v2 keep the old behaviour: creates run, and destructive actions are refused.

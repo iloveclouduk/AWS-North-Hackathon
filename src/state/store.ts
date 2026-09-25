@@ -4,6 +4,7 @@ import type { DeployChange, DeployStatusEvent, Progress, ServerEvent, StepStatus
 import { placeFor, SPECIAL_AGENTS, TIER_NAMES, tierForXp, type GameId } from '@/world/places';
 import { questById, serviceOfCard, type QuestStep } from '@/world/content';
 import { review, xpFor, type Grade } from '@/learning/srs';
+import { ACTION_BLUEPRINT, GUARDED_EQUIV } from '@/backend/ServerBackend';
 import { SERVICES, serviceById } from '@/world/taxonomy';
 import { bus } from './bus';
 import type { PageFocus } from './types';
@@ -73,7 +74,8 @@ export interface DeployView {
 export type SnapState = 'idle' | 'snapping' | 'needs-permission' | 'failed' | 'unavailable';
 
 export interface CityState {
-  backendKind: 'mock' | 'agentcore';
+  backendKind: 'mock' | 'agentcore' | 'server';
+  deployMode: 'templates' | 'guarded';
   backendStatus: ConnectionStatus;
   focus?: PageFocus;
   progress: Progress;
@@ -94,7 +96,7 @@ export interface CityState {
   agentLevels: Record<string, number>;
 
   // pure state transitions (no I/O — see app/runtime.ts for commands)
-  setBackend(kind: 'mock' | 'agentcore', status: ConnectionStatus): void;
+  setBackend(kind: 'mock' | 'agentcore' | 'server', status: ConnectionStatus, deployMode?: 'templates' | 'guarded'): void;
   setFocus(f: PageFocus): void;
   discover(serviceId: string): void;
   addXp(serviceId: string, amount: number): void;
@@ -138,6 +140,7 @@ export const knownAgents = (p: Progress) => ['concierge', 'lookout', ...SERVICES
 
 export const useCity = create<CityState>()((set, get) => ({
   backendKind: 'mock',
+  deployMode: 'templates',
   backendStatus: 'disconnected',
   progress: emptyProgress(),
   agents: {},
@@ -153,7 +156,7 @@ export const useCity = create<CityState>()((set, get) => ({
   deploys: {},
   agentLevels: {},
 
-  setBackend: (backendKind, backendStatus) => set({ backendKind, backendStatus }),
+  setBackend: (backendKind, backendStatus, deployMode) => set(deployMode ? { backendKind, backendStatus, deployMode } : { backendKind, backendStatus }),
 
   setFocus: (focus) => {
     set({ focus });
@@ -298,7 +301,7 @@ export const useCity = create<CityState>()((set, get) => ({
         s.log({ kind: 'system', text: `🏗️ ${d?.stackName ?? e.deployId}: ${e.status}${e.message ? ` — ${e.message}` : ''}` });
         if (e.status === 'complete') {
           s.toast('🚀', `${d?.stackName ?? 'Stack'} deployed to your AWS account!`);
-          if (d) get().questEvent((st) => st.kind === 'deploy' && st.templateId === d.templateId);
+          if (d) get().questEvent((st) => st.kind === 'deploy' && (st.templateId === d.templateId || GUARDED_EQUIV[st.templateId] === ACTION_BLUEPRINT[d.templateId]));
         }
         break;
       }
