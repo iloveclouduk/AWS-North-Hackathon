@@ -15,9 +15,16 @@ sw ??= await ctx.waitForEvent('serviceworker');
 const id = new URL(sw.url()).host;
 console.log(`AWS City loaded (extension id ${id}). Close the window to stop.`);
 
+// A safe practice page for the Console Copilot: this one console URL is served locally (a stand-in for the
+// S3 "Create bucket" page). Every other console URL is the real AWS console.
+const DEMO = 'https://us-west-2.console.aws.amazon.com/s3/aws-city-demo';
+const fs = await import('node:fs');
+await ctx.route(`${DEMO}*`, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: fs.readFileSync('tests/fixtures/s3-console.html', 'utf8') }));
 const [first] = ctx.pages();
-const docs = first ?? (await ctx.newPage());
-await docs.goto('https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html').catch(() => {});
+const demo = first ?? (await ctx.newPage());
+await demo.goto(DEMO).catch(() => {});
+const real = await ctx.newPage();
+await real.goto('https://console.aws.amazon.com/s3/home').catch(() => {});
 const city = await ctx.newPage();
 await city.goto(`chrome-extension://${id}/city.html`);
 city.on('pageerror', (e) => console.log('page error:', e.message));

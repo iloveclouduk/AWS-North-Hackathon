@@ -63,7 +63,7 @@ export function leavesConsole(el: Element): boolean {
 }
 
 /** Decide whether the agent may act on this element itself. */
-export function mayAct(item: SnapshotItem | undefined, action: string, el?: Element): Verdict {
+export function mayAct(item: SnapshotItem | undefined, action: string, el?: Element, value?: string): Verdict {
   if (!item) return { ok: false, reason: 'missing', message: 'I can’t find that on the page.' };
   if (el && (action === 'click' || action === 'select')) {
     if (isRisky(riskSignals(el)) || /\b(danger|destructive|delete)\b/i.test(el.getAttribute('class') ?? ''))
@@ -71,9 +71,13 @@ export function mayAct(item: SnapshotItem | undefined, action: string, el?: Elem
     if (leavesConsole(el)) return { ok: false, reason: 'risky', message: 'That link leaves the AWS console — your turn if you want to follow it.' };
   }
   if (el && action === 'type' && isSensitiveInput(el)) return { ok: false, reason: 'sensitive', message: 'That field holds a secret — please fill it in yourself.' };
+  // Typing is checked like clicking: delete dialogs ask you to type "delete"/the name to confirm, and
+  // the agent must never fill those in.
+  if (el && action === 'type' && (isRisky(riskSignals(el)) || isRisky(value ?? '') || /\b(confirm|to confirm)\b/i.test(riskSignals(el))))
+    return { ok: false, reason: 'risky', message: 'This field confirms something important — please type it yourself.' };
   if (item.disabled) return { ok: false, reason: 'disabled', message: `“${item.name}” is disabled right now.` };
   if (item.sensitive) return { ok: false, reason: 'sensitive', message: 'That field holds a secret — please fill it in yourself.' };
-  if ((action === 'click' || action === 'select') && isRisky(item.name, item.context)) {
+  if ((action === 'click' || action === 'select' || action === 'type') && (isRisky(item.name, item.context) || isRisky(value ?? ''))) {
     return { ok: false, reason: 'risky', message: `“${item.name}” can change or cost something important — your turn to click it.` };
   }
   return { ok: true };

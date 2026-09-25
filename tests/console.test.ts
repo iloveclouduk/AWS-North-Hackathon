@@ -127,3 +127,17 @@ describe('security hardening', () => {
     expect(findTarget(document, { name: 'Create bucket' })).toBeDefined(); // pointing may still find it
   });
 });
+
+describe('typing is risk-checked too', () => {
+  it('refuses to type into a delete-confirmation field or type a destructive value', () => {
+    document.body.innerHTML = `<div role="dialog"><h2>Delete bucket</h2>
+      <label for="c">To confirm deletion, enter the bucket name</label><input id="c" type="text" /></div>
+      <label for="n">Bucket name</label><input id="n" type="text" />`;
+    const items = takeSnapshot(document, { requireLayout: false }).items;
+    const it = (n: string) => items.find((i) => i.name.startsWith(n))!;
+    const el = (n: string) => findExact(document, { id: it(n).id, name: n })!;
+    expect(mayAct(it('To confirm'), 'type', el('To confirm'), 'my-bucket')).toMatchObject({ ok: false, reason: 'risky' });
+    expect(mayAct(it('Bucket name'), 'type', el('Bucket name'), 'permanently delete')).toMatchObject({ ok: false, reason: 'risky' });
+    expect(mayAct(it('Bucket name'), 'type', el('Bucket name'), 'aws-city-demo-1')).toEqual({ ok: true });
+  });
+});

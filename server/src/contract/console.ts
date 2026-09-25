@@ -72,6 +72,9 @@ interface Task {
 
 /** One Copilot per socket, one console task at a time. */
 export const MAX_CONSOLE_TASKS = 1;
+/** Model calls per socket per 10 minutes (stop→start loops can't run up the Bedrock bill). */
+export const MODEL_CALL_BUDGET = 60;
+const BUDGET_WINDOW_MS = 10 * 60_000;
 
 const describe = (s: PageSnapshot) =>
   [
@@ -90,8 +93,16 @@ const describe = (s: PageSnapshot) =>
  * Console Copilot (contract v2.1): Claude on Bedrock plans the learner's console task one visible step at a
  * time; the extension performs it (its safety rules win) and reports back with console.observe.
  */
-export const createConsoleCopilot = (deps: { llm: Llm }) => {
+export const createConsoleCopilot = (deps: { llm: Llm; now?: () => number }) => {
   const tasks = new Map<string, Task>();
+  const now = deps.now ?? Date.now;
+  let inFlight = 0;
+  const calls: number[] = [];
+  const overBudget = () => {
+    const t = now();
+    while (calls.length && t - calls[0]! > BUDGET_WINDOW_MS) calls.shift();
+    return calls.length >= MODEL_CALL_BUDGET;
+  };
 
   const finish = (taskId: string, ok: boolean, result: string, emit: Emit) => {
     const t = tasks.get(taskId);
@@ -105,9 +116,12 @@ export const createConsoleCopilot = (deps: { llm: Llm }) => {
     const t = tasks.get(taskId);
     if (!t) return;
     if (t.index >= MAX_STEPS) return finish(taskId, false, 'Step budget reached — stopping so nothing unexpected happens.', emit);
+    if (overBudget()) return finish(taskId, false, 'That’s a lot of console steps for now — take a short break and try again.', emit);
     emit({ type: 'agent.state', agentId: t.agentId, state: 'working', service: 'bedrock', detail: 'InvokeModel — next console step' });
     let step: z.infer<typeof Step> | undefined;
     t.thinking = true;
+    inFlight++;
+    calls.push(now());
     try {
       const msg = await deps.llm.create({
         max_tokens: 1024,
@@ -123,6 +137,7 @@ export const createConsoleCopilot = (deps: { llm: Llm }) => {
       console.error('[console]', err);
     } finally {
       t.thinking = false;
+      inFlight--;
     }
     if (!tasks.has(taskId)) return; // stopped while thinking
     if (!step) return finish(taskId, false, 'I couldn’t work out the next step on this page.', emit);
@@ -136,7 +151,8 @@ export const createConsoleCopilot = (deps: { llm: Llm }) => {
 
   return {
     start(cmd: Omit<ConsoleStart, 'action'>, emit: Emit) {
-      if (tasks.size >= MAX_CONSOLE_TASKS || tasks.has(cmd.taskId)) {
+      // A stopped task's model call may still be running: no new task until it has returned.
+      if (tasks.size >= MAX_CONSOLE_TASKS || tasks.has(cmd.taskId) || inFlight > 0) {
         emit({ type: 'error', message: 'A console task is already running — stop it first.', taskId: cmd.taskId });
         return;
       }
@@ -165,6 +181,9 @@ export const createConsoleCopilot = (deps: { llm: Llm }) => {
     },
     get active() {
       return tasks.size;
+    },
+    get inFlight() {
+      return inFlight;
     },
   };
 };

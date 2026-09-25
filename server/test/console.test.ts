@@ -63,4 +63,27 @@ describe('Console Copilot (contract v2.1)', () => {
     await Promise.all([cp.observe({ taskId: 'c4', index: 0, ok: true, snapshot }, emit), cp.observe({ taskId: 'c4', index: 0, ok: true, snapshot }, emit), cp.observe({ taskId: 'c4', index: 7, ok: true, snapshot }, emit)]);
     expect(calls).toHaveLength(2); // start + exactly one observe
   });
+
+  it('stop→start loops cannot overlap model calls, and a per-socket budget caps them', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const llm = {
+      model: 'test',
+      create: async () => {
+        await gate;
+        return step({ action: 'point', target: { id: 'e1', name: 'Create bucket' }, say: 'Look' });
+      },
+    } as never;
+    const cp = createConsoleCopilot({ llm });
+    const events: ServerEvent[] = [];
+    const emit = (e: ServerEvent) => events.push(e);
+    const first = cp.start({ taskId: 'a', goal: 'Create an S3 bucket', context: {}, snapshot }, emit);
+    cp.stop('a', emit);
+    cp.start({ taskId: 'b', goal: 'Create an S3 bucket', context: {}, snapshot }, emit);
+    expect(events.at(-1)).toMatchObject({ type: 'error', taskId: 'b' }); // refused while 'a' is still thinking
+    expect(cp.inFlight).toBe(1);
+    release();
+    await first;
+    expect(cp.inFlight).toBe(0);
+  });
 });

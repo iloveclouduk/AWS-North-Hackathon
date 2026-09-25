@@ -94,7 +94,7 @@ export default defineContentScript({
         await wait(READ_MS + 1200);
         return { ok: true, snapshot: takeSnapshot(document) };
       }
-      const verdict = mayAct(item, step.action, el);
+      const verdict = mayAct(item, step.action, el, step.value);
       if (!verdict.ok && verdict.reason === 'missing') {
         o.show(undefined, { agent, say: `I can’t find “${step.target?.name}” on this page.`, why: step.why });
         return { ok: false, note: 'not found', snapshot: snap };
