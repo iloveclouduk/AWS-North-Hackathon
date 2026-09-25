@@ -18,6 +18,10 @@ Habbo Hotel for learning AWS: a Chrome extension with a living isometric pixel c
   - An architecture builder scored on the 6 Well-Architected pillars.
   - 8 quest lines.
   - 4 mini-games: S3 fishing, Shield Wall, Route 53 Dance Hall, Lambda Food Stall.
+- **Console Copilot.** Tick 🖥️ in the side panel and ask, for example, "Create an S3 bucket". The agent
+  works **in your open AWS console tab**. It highlights each button, explains what it's doing and
+  why, then clicks or types for you. Risky controls (delete, IAM admin, billing…) are always your click.
+  Stop it any time with the Stop chip or Esc.
 - **Build for real.** The Deploy tab lets agents make real changes in AWS. **Nothing changes until
   you approve the preview.**
 - **A living city in the team's pixel style:**

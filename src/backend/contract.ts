@@ -14,7 +14,37 @@
 // the pixel agents visibly work.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const CONTRACT_VERSION = 2;
+export const CONTRACT_VERSION = 2.1;
+
+// ── Console Copilot shapes (also used by the content script in src/console/) ──
+export type ConsoleAction = 'click' | 'type' | 'select' | 'point' | 'done';
+
+/** One interactive thing on the console page, as the agent sees it (labels only — never secrets). */
+export interface SnapshotItem {
+  id: string;
+  role: string;
+  name: string;
+  /** Nearest heading/section label, to tell apart two "Create" buttons. */
+  context?: string;
+  /** Current value for non-sensitive inputs (truncated); omitted for secrets. */
+  value?: string;
+  checked?: boolean;
+  disabled?: boolean;
+  sensitive?: boolean;
+}
+
+export interface PageSnapshot {
+  url: string;
+  title: string;
+  heading?: string;
+  items: SnapshotItem[];
+}
+
+export interface ConsoleTarget {
+  id?: string;
+  role?: string;
+  name: string;
+}
 
 export type AgentId = string; // service id (e.g. 's3', 'lambda') or 'concierge' | 'lookout'
 export type DistrictId = string;
@@ -109,6 +139,33 @@ export interface DeployTeardown {
   deployId: string;
 }
 
+// ── Console Copilot (v2.1): agents act in the player's live AWS console, one visible step at a time ──
+
+/** Start a Copilot task on the player's console tab. `snapshot` = what's clickable on the page (labels only). */
+export interface ConsoleStart {
+  action: 'console.start';
+  taskId: string;
+  goal: string;
+  context: PageContext;
+  snapshot: PageSnapshot;
+}
+
+/** Result of the last console.step, plus a fresh snapshot of the page after it. */
+export interface ConsoleObserve {
+  action: 'console.observe';
+  taskId: string;
+  index: number;
+  ok: boolean;
+  /** e.g. "player did it", "not found", "refused: risky". */
+  note?: string;
+  snapshot: PageSnapshot;
+}
+
+export interface ConsoleStop {
+  action: 'console.stop';
+  taskId: string;
+}
+
 export type ClientCommand =
   | TaskSubmit
   | ChatAsk
@@ -121,7 +178,10 @@ export type ClientCommand =
   | QuestStart
   | DeployPlan
   | DeployDecision
-  | DeployTeardown;
+  | DeployTeardown
+  | ConsoleStart
+  | ConsoleObserve
+  | ConsoleStop;
 
 // ── Server → client ──────────────────────────────────────────────────────────
 
@@ -262,6 +322,24 @@ export interface AgentLevelEvent {
   skill?: string;
 }
 
+/**
+ * The agent's next move in the console. The extension shows it (highlight + bubble with say/why),
+ * performs it — unless it's risky, then the player does it — and replies with console.observe.
+ * `done` ends the task. The content script's safety rules win over `risk`.
+ */
+export interface ConsoleStepEvent {
+  type: 'console.step';
+  taskId: string;
+  index: number;
+  agentId: AgentId;
+  action: ConsoleAction;
+  target?: ConsoleTarget;
+  value?: string;
+  say: string;
+  why?: string;
+  risk: 'safe' | 'confirm';
+}
+
 export interface ErrorEvent {
   type: 'error';
   message: string;
@@ -284,6 +362,7 @@ export type ServerEvent =
   | DeployPreviewEvent
   | DeployStatusEvent
   | AgentLevelEvent
+  | ConsoleStepEvent
   | ErrorEvent;
 
 // ── Progress (stored by the backend per Cognito user) ─────────────────────────
@@ -329,6 +408,7 @@ export const SERVER_EVENT_TYPES: ServerEvent['type'][] = [
   'deploy.preview',
   'deploy.status',
   'agent.level',
+  'console.step',
   'error',
 ];
 

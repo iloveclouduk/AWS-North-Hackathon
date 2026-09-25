@@ -9,6 +9,7 @@ import { createOrchestrator } from './contract/orchestrator.js';
 import { createProgressStore } from './contract/progress.js';
 import { createUploadStore } from './contract/uploads.js';
 import { createHttpServer } from './http.js';
+import { createConsoleCopilot } from './contract/console.js';
 import { diffSnapshots } from './state/diff.js';
 import { createPoller } from './state/poller.js';
 
@@ -43,6 +44,7 @@ const actions = createActionService({ clients, poller, region: config.region });
 const runner = createAgentRunner({ llm, actions, snapshot });
 const uploads = createUploadStore(baseUrl);
 const orchestrator = createOrchestrator({ llm, runner, snapshot, uploads });
+const copilot = createConsoleCopilot({ llm });
 const progress = createProgressStore(fileURLToPath(new URL('../.data/progress.json', import.meta.url)));
 
 await poller.refresh();
@@ -54,6 +56,7 @@ const http = createHttpServer({
   orchestrator,
   uploads,
   progress,
+  copilot,
   welcome: () => (poller.current() ? welcomeEvents(poller.current()!) : []),
 });
 broadcast = http.broadcast;

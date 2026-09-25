@@ -1,0 +1,92 @@
+// @vitest-environment jsdom
+import { beforeEach, describe, expect, it } from 'vitest';
+import { findTarget, typeInto } from '@/console/act';
+import { isConsoleUrl, isRisky, mayAct } from '@/console/safety';
+import { takeSnapshot } from '@/console/snapshot';
+
+const S3_PAGE = `
+  <h1>Create bucket</h1>
+  <form>
+    <fieldset><legend>General configuration</legend>
+      <label for="name">Bucket name</label><input id="name" type="text" />
+      <label for="region">AWS Region</label>
+      <select id="region"><option value="us-west-2">US West (Oregon)</option><option value="eu-west-2">Europe (London)</option></select>
+    </fieldset>
+    <fieldset><legend>Block Public Access settings for this bucket</legend>
+      <label><input type="checkbox" id="bpa" checked /> Block all public access</label>
+    </fieldset>
+    <label for="pw">Password</label><input id="pw" type="password" value="hunter2" />
+    <input type="text" name="secretAccessKey" aria-label="Secret key" value="AKIA-SECRET" />
+    <button type="submit">Create bucket</button>
+    <button type="button">Delete bucket</button>
+    <button type="button" hidden>Hidden thing</button>
+  </form>`;
+
+beforeEach(() => {
+  document.body.innerHTML = S3_PAGE;
+});
+
+describe('console snapshot', () => {
+  it('lists visible controls by accessible name, with section context', () => {
+    const snap = takeSnapshot(document, { requireLayout: false });
+    const names = snap.items.map((i) => i.name);
+    expect(names).toEqual(expect.arrayContaining(['Bucket name', 'AWS Region', 'Block all public access', 'Create bucket', 'Delete bucket']));
+    expect(names).not.toContain('Hidden thing');
+    expect(snap.heading).toBe('Create bucket');
+    expect(snap.items.find((i) => i.name === 'Bucket name')?.context).toBe('General configuration');
+    expect(snap.items.find((i) => i.name === 'Block all public access')).toMatchObject({ role: 'checkbox', checked: true });
+  });
+
+  it('never reads secret values', () => {
+    const snap = takeSnapshot(document, { requireLayout: false });
+    const json = JSON.stringify(snap);
+    expect(json).not.toContain('hunter2');
+    expect(json).not.toContain('AKIA-SECRET');
+    expect(snap.items.find((i) => i.name === 'Password')).toMatchObject({ sensitive: true });
+    expect(snap.items.find((i) => i.name === 'Secret key')).toMatchObject({ sensitive: true });
+  });
+});
+
+describe('safety', () => {
+  it('flags destructive, public, IAM-admin, credential and billing controls as risky', () => {
+    for (const n of ['Delete bucket', 'Terminate instance', 'Empty', 'Attach policies', 'AdministratorAccess', 'Create access key', 'Billing preferences', 'Sign out'])
+      expect(isRisky(n), n).toBe(true);
+    for (const n of ['Create bucket', 'Next', 'Bucket name', 'Create table']) expect(isRisky(n), n).toBe(false);
+  });
+
+  it('mayAct refuses risky clicks and secret fields, allows safe ones', () => {
+    const items = takeSnapshot(document, { requireLayout: false }).items;
+    const by = (n: string) => items.find((i) => i.name === n);
+    expect(mayAct(by('Delete bucket'), 'click')).toMatchObject({ ok: false, reason: 'risky' });
+    expect(mayAct(by('Password'), 'type')).toMatchObject({ ok: false, reason: 'sensitive' });
+    expect(mayAct(by('Create bucket'), 'click')).toEqual({ ok: true });
+    expect(mayAct(undefined, 'click')).toMatchObject({ ok: false, reason: 'missing' });
+  });
+
+  it('only runs on real console pages, never sign-in or other sites', () => {
+    expect(isConsoleUrl('https://eu-west-2.console.aws.amazon.com/s3/bucket/create')).toBe(true);
+    expect(isConsoleUrl('https://signin.aws.amazon.com/oauth')).toBe(false);
+    expect(isConsoleUrl('https://console.aws.amazon.com.evil.com/')).toBe(false);
+    expect(isConsoleUrl('http://console.aws.amazon.com/')).toBe(false);
+  });
+});
+
+describe('acting on the page', () => {
+  it('finds targets by id or by name, and types so React forms notice', () => {
+    const snap = takeSnapshot(document, { requireLayout: false });
+    const nameItem = snap.items.find((i) => i.name === 'Bucket name')!;
+    const el = findTarget(document, { id: nameItem.id, name: 'x' })!;
+    const events: string[] = [];
+    el.addEventListener('input', () => events.push('input'));
+    el.addEventListener('change', () => events.push('change'));
+    typeInto(el, 'aws-city-demo-123');
+    expect((el as HTMLInputElement).value).toBe('aws-city-demo-123');
+    expect(events).toEqual(['input', 'change']);
+    expect(findTarget(document, { name: 'create bucket' })?.textContent).toBe('Create bucket');
+  });
+
+  it('refuses to type into secret fields', () => {
+    takeSnapshot(document, { requireLayout: false });
+    expect(() => typeInto(document.getElementById('pw')!, 'x')).toThrow(/secret/);
+  });
+});

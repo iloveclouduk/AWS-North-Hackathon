@@ -94,6 +94,9 @@ export interface CityState {
   account: AccountState;
   deploys: Record<string, DeployView>;
   agentLevels: Record<string, number>;
+  /** Console Copilot task running in the player's console tab, if any. */
+  copilotTaskId?: string;
+  setCopilot(taskId?: string): void;
 
   // pure state transitions (no I/O — see app/runtime.ts for commands)
   setBackend(kind: 'mock' | 'agentcore' | 'server', status: ConnectionStatus, deployMode?: 'templates' | 'guarded'): void;
@@ -305,6 +308,9 @@ export const useCity = create<CityState>()((set, get) => ({
         }
         break;
       }
+      case 'console.step':
+        s.log({ kind: 'step', from: e.agentId, text: `🖱️ ${e.say}${e.why ? ` — 💡 ${e.why}` : ''}`, taskId: e.taskId });
+        break;
       case 'screenshot.url':
       case 'progress.state':
         break;
@@ -344,6 +350,7 @@ export const useCity = create<CityState>()((set, get) => ({
     if (selected) get().questEvent((st) => st.kind === 'visit' && st.serviceId === selected);
   },
   setAutoSnap: (autoSnap) => set({ autoSnap }),
+  setCopilot: (copilotTaskId) => set({ copilotTaskId }),
   setSnap: (snap, lastSnapshot) => set(lastSnapshot ? { snap, lastSnapshot } : { snap }),
 
   reviewCard: (cardId, grade) => {

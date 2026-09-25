@@ -55,3 +55,26 @@ Both backends follow it. The server never sends it for background polling.
 2. `approvals.request` sends a `deploy.preview` (`server/src/contract/approvals.ts`).
 3. The player sends `deploy.approve`. The server sends `deploy.status creating`, re-checks policy inside the write lock, executes, then sends `deploy.status complete` or `failed`.
 4. Requests with no answer expire after 5 minutes, and closing the socket rejects all pending requests. Clients without v2 keep the old behaviour: creates run, and destructive actions are refused.
+
+## Console Copilot (v2.1)
+
+Agents act in the player's live, logged-in AWS console, one visible step at a time, and teach the *why* for each step.
+
+**Flow:**
+1. **The content script** (`src/entrypoints/console.content.ts`) sends a snapshot of the page's interactive elements. It includes id, role, accessible name, section and state. It sends labels only; it never reads secret fields.
+2. The runtime sends `console.start {taskId, goal, context, snapshot}`.
+3. The backend answers with `console.step {taskId, index, agentId, action, target{id,name}, value?, say, why, risk}`. The `action` is one of `click`, `type`, `select`, `point` or `done`.
+4. The page shows the step: an orange highlight plus the agent's bubble with what and why. It then performs the step and replies with `console.observe {taskId, index, ok, note?, snapshot}`.
+5. Steps repeat until `done`. The game shows each step in the agent's bubble and the feed.
+6. `console.stop {taskId}` stops the task. The player can also stop it from the Stop chip on the page, the Stop button in the city, or Esc.
+
+**Safety** (`src/console/safety.ts`, which runs in the page no matter what the backend says):
+- Risky controls are never clicked by the agent. The page turns them into a green "your turn" highlight that waits for the player's click. The server also sets `risk:'confirm'` on them.
+  - Risky means: delete, terminate, remove, empty, public access, IAM admin or access keys, billing, account settings, sign-out.
+- Nothing is typed into secret fields.
+- It runs only on `https://*.console.aws.amazon.com`, never on sign-in pages, and only during a Copilot task the player started.
+- There's a limit of 25 steps, and it stops after 3 failures.
+
+**Backends:**
+- The mock (`src/backend/consoleMock.ts`) has a scripted S3 "Create bucket" walkthrough driven by the live snapshot.
+- The server (`server/src/contract/console.ts`) uses Claude on Bedrock with the `next_console_step` tool, validated with zod, so it works on any console page.

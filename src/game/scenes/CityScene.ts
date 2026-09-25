@@ -466,6 +466,13 @@ export class CityScene extends Phaser.Scene {
           this.agents.get('builder')?.emote('jump', 1200);
         }
         break;
+      case 'console.step': {
+        const a = this.agents.get(e.agentId);
+        if (!a) return;
+        if (!this.following) this.follow(a);
+        a.say(`${e.say}${e.why ? `\n💡 ${e.why}` : ''}`, { caption: e.action === 'done' ? 'Done in your console' : 'In your console', tone: e.action === 'done' ? 'done' : 'step', holdMs: 8000 });
+        break;
+      }
       case 'agent.level':
         this.agents.get(e.agentId)?.say(`Level ${e.level}! ${e.skill ?? ''}`, { tone: 'done' });
         sfx('levelup', 0.4);

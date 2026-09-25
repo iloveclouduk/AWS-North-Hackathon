@@ -1,6 +1,7 @@
 import { Listeners, type AgentBackend, type ConnectionStatus } from './AgentBackend';
 import type { ChatAsk, ClientCommand, DeployPlan, PageClassify, Progress, ServerEvent, TaskSubmit } from './contract';
 import templatesJson from '../../shared/templates.json' with { type: 'json' };
+import { ConsoleMock } from './consoleMock';
 import { SERVICES, matchText, serviceById, servicesIn, type DistrictId } from '@/world/taxonomy';
 import { placeFor } from '@/world/places';
 
@@ -152,6 +153,7 @@ export class MockBackend implements AgentBackend {
   private jobs = new Map<string, number>();
   private deploys = new Map<string, string>();
   private account?: { accountId: string; region: string };
+  private copilot = new ConsoleMock((e) => this.emit(e));
 
   constructor(private opts: MockOptions = {}) {
     this.speed = opts.speed ?? 1;
@@ -319,6 +321,12 @@ export class MockBackend implements AgentBackend {
         return this.emit({ type: 'deploy.status', deployId: cmd.deployId, status: 'rejected', message: 'Nothing was created.' });
       case 'deploy.teardown':
         return void this.teardown(cmd.deployId);
+      case 'console.start':
+        return this.copilot.start(cmd.taskId, cmd.goal, cmd.snapshot, cmd.context.serviceId);
+      case 'console.observe':
+        return this.copilot.observe(cmd.taskId, cmd.ok, cmd.note, cmd.snapshot);
+      case 'console.stop':
+        return this.copilot.stop(cmd.taskId);
     }
   }
 

@@ -1,0 +1,44 @@
+// The Copilot's hard safety rules. They run in the content script, so they hold no matter what the
+// model (or a compromised backend) asks for: risky controls become a "your turn" prompt, secrets are
+// never typed or read, and only console pages are touched.
+import type { SnapshotItem } from './types';
+
+import { isRisky } from './risk';
+
+export { isRisky };
+
+const SENSITIVE_NAME = /(password|secret|token|access ?key|private ?key|credential|mfa|otp|card|cvv|iban)/i;
+
+/** Inputs whose value must never be read or typed by the agent. */
+export function isSensitiveInput(el: Element): boolean {
+  if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return false;
+  const type = (el.getAttribute('type') ?? '').toLowerCase();
+  if (type === 'password') return true;
+  const hint = [el.name, el.id, el.getAttribute('autocomplete'), el.getAttribute('aria-label'), el.placeholder].join(' ');
+  return SENSITIVE_NAME.test(hint);
+}
+
+/** Only real console pages — never sign-in, never other sites. */
+export function isConsoleUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== 'https:') return false;
+    if (/(^|\.)signin\.aws\.amazon\.com$/.test(u.hostname)) return false;
+    return u.hostname === 'console.aws.amazon.com' || u.hostname.endsWith('.console.aws.amazon.com');
+  } catch {
+    return false;
+  }
+}
+
+export type Verdict = { ok: true } | { ok: false; reason: 'risky' | 'sensitive' | 'missing' | 'disabled'; message: string };
+
+/** Decide whether the agent may act on this element itself. */
+export function mayAct(item: SnapshotItem | undefined, action: string): Verdict {
+  if (!item) return { ok: false, reason: 'missing', message: 'I can’t find that on the page.' };
+  if (item.disabled) return { ok: false, reason: 'disabled', message: `“${item.name}” is disabled right now.` };
+  if (item.sensitive) return { ok: false, reason: 'sensitive', message: 'That field holds a secret — please fill it in yourself.' };
+  if ((action === 'click' || action === 'select') && isRisky(item.name, item.context)) {
+    return { ok: false, reason: 'risky', message: `“${item.name}” can change or cost something important — your turn to click it.` };
+  }
+  return { ok: true };
+}

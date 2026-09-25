@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { Config } from './config.js';
 import type { Orchestrator } from './contract/orchestrator.js';
 import { createApprovals } from './contract/approvals.js';
+import { type ConsoleCopilot, Snapshot } from './contract/console.js';
 import type { ProgressStore } from './contract/progress.js';
 import { MAX_UPLOAD_BYTES, type UploadStore } from './contract/uploads.js';
 import type { Poller } from './state/poller.js';
@@ -29,6 +30,8 @@ export interface Deps {
   progress: ProgressStore;
   /** Events every newly connected socket should get first (e.g. the concierge's welcome). */
   welcome: () => ServerEvent[];
+  /** Console Copilot (v2.1); optional so older setups/tests keep working. */
+  copilot?: ConsoleCopilot;
 }
 
 // ── Client → server command validation (mirrors ClientCommand in src/backend/contract.ts) ──
@@ -43,6 +46,10 @@ const Command = z.discriminatedUnion('action', [
   // contract v2: the player's answer to a deploy.preview (approval of a guarded write)
   z.object({ action: z.literal('deploy.approve'), deployId: Id }),
   z.object({ action: z.literal('deploy.reject'), deployId: Id }),
+  // contract v2.1: Console Copilot
+  z.object({ action: z.literal('console.start'), taskId: Id, goal: z.string().min(1).max(500), context: Context.default({}), snapshot: Snapshot }),
+  z.object({ action: z.literal('console.observe'), taskId: Id, index: z.number().int().min(0).max(100), ok: z.boolean(), note: z.string().max(200).optional(), snapshot: Snapshot }),
+  z.object({ action: z.literal('console.stop'), taskId: Id }),
 ]);
 
 const safeEqual = (a: string, b: string) => {
@@ -217,6 +224,16 @@ export const createHttpServer = (deps: Deps) => {
           return;
         }
         const cmd = parsed.data;
+        if (cmd.action === 'console.start' || cmd.action === 'console.observe' || cmd.action === 'console.stop') {
+          const cp = deps.copilot;
+          if (!cp) return emit({ type: 'error', message: 'Console Copilot is not enabled on this server.', taskId: cmd.taskId });
+          if (cmd.action === 'console.start') {
+            if (cp.active >= MAX_TASKS_PER_SOCKET) return emit({ type: 'error', message: 'A console task is already running.', taskId: cmd.taskId });
+            void cp.start(cmd, emit);
+          } else if (cmd.action === 'console.observe') void cp.observe(cmd, emit);
+          else cp.stop(cmd.taskId, emit);
+          return;
+        }
         if (cmd.action === 'deploy.approve' || cmd.action === 'deploy.reject') {
           if (!approvals.answer(cmd.deployId, cmd.action === 'deploy.approve'))
             emit({ type: 'deploy.status', deployId: cmd.deployId, status: 'failed', message: 'That request expired or was already answered.' });

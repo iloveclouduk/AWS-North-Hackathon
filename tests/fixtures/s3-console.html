@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><title>S3 buckets | S3 | us-west-2</title>
+<style>
+ body{font:14px Arial,sans-serif;margin:0;background:#f2f3f3;color:#16191f}
+ header{background:#232f3e;color:#fff;padding:10px 16px;font-weight:bold}
+ main{padding:20px 32px}
+ .card{background:#fff;border:1px solid #d5dbdb;border-radius:8px;padding:18px;margin-bottom:16px;max-width:780px}
+ button{background:#ff9900;border:none;border-radius:16px;padding:6px 16px;font-weight:bold;cursor:pointer}
+ button.secondary{background:#fff;border:1px solid #545b64}
+ input[type=text]{width:320px;padding:6px;border:1px solid #879596;border-radius:4px}
+ label{display:block;margin:6px 0}
+ .ok{background:#e9f5e9;border-left:4px solid #1d8102;padding:10px}
+</style></head>
+<body>
+<header>aws · Amazon S3</header>
+<main id="app">
+  <div class="card"><h1>General purpose buckets (0)</h1>
+    <p>Buckets are containers for data stored in S3.</p>
+    <button class="secondary" type="button">Delete</button>
+    <button id="create" type="button">Create bucket</button>
+  </div>
+</main>
+<script>
+const app = document.getElementById('app');
+document.getElementById('create').addEventListener('click', () => {
+  app.innerHTML = `
+  <h1>Create bucket</h1>
+  <form id="f">
+    <fieldset class="card"><legend>General configuration</legend>
+      <label for="bn">Bucket name</label><input id="bn" type="text" placeholder="myawsbucket" />
+    </fieldset>
+    <fieldset class="card"><legend>Block Public Access settings for this bucket</legend>
+      <label><input type="checkbox" checked /> Block all public access</label>
+    </fieldset>
+    <fieldset class="card"><legend>Default encryption</legend>
+      <label><input type="radio" name="enc" checked /> Server-side encryption with Amazon S3 managed keys (SSE-S3)</label>
+      <label><input type="radio" name="enc" /> Server-side encryption with AWS Key Management Service keys (SSE-KMS)</label>
+    </fieldset>
+    <button type="submit">Create bucket</button>
+  </form>`;
+  document.getElementById('f').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('bn').value;
+    app.innerHTML = '<div class="card ok">Successfully created bucket "' + name + '"</div><div class="card"><h1>General purpose buckets (1)</h1><p id="bucket">' + name + '</p></div>';
+  });
+});
+</script>
+</body></html>

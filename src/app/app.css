@@ -806,3 +806,24 @@ select {
 .outputs a {
   color: #93c5fd;
 }
+
+/* Console Copilot */
+.chip.copilot {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 800;
+}
+.console-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  padding: 3px 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.console-toggle.on {
+  border-color: var(--accent);
+  background: rgba(255, 184, 77, 0.15);
+}

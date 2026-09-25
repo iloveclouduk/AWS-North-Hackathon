@@ -3,6 +3,8 @@
 
 import { browser } from 'wxt/browser';
 import { createBackend, type AgentBackend } from '@/backend';
+import type { ConsoleStepEvent, PageSnapshot } from '@/backend/contract';
+import { agentName } from '@/state/store';
 import { uid } from '@/backend/AgentBackend';
 import type { Progress } from '@/backend/contract';
 import { captureVisibleTab, hasCapturePermission, requestCapturePermission } from '@/capture/screenshot';
@@ -31,6 +33,10 @@ export function startRuntime(l: Layout) {
   backend.onEvent((e) => {
     store().applyServerEvent(e);
     bus.emit('server', e);
+    if (e.type === 'console.step') void relayConsoleStep(e);
+  });
+  browser.runtime.onMessage.addListener((msg: { type?: string }) => {
+    if (msg?.type === 'copilot.stopRequested') stopConsoleCopilot('You stopped the Copilot.');
   });
   backend.connect();
 
@@ -219,3 +225,67 @@ export function simulateFocus(url: string, title = url) {
   const m = matchUrl(url);
   handleFocus({ url, title, kind: m.kind, serviceId: m.serviceId });
 }
+
+// ── Console Copilot: the agent works in the player's live AWS console tab ──
+
+let copilot: { taskId: string; tabId: number } | undefined;
+const emptySnapshot = (): PageSnapshot => ({ url: '', title: '', items: [] });
+
+/** Start a Copilot task on the console tab the player is looking at (from the side panel). */
+export async function startConsoleCopilot(goal: string) {
+  const text = goal.trim();
+  if (!text || !backend) return;
+  const f = store().focus;
+  if (!f?.tabId || (f.kind !== 'console' && f.kind !== 'console-home')) {
+    store().log({ kind: 'message', from: 'concierge', to: 'user', text: 'Open an AWS Console tab first (I’ll wait) — then ask me again and I’ll do it right there.' });
+    openConsole(f?.serviceId ?? 's3');
+    return;
+  }
+  let snapshot: PageSnapshot;
+  try {
+    const res = (await browser.tabs.sendMessage(f.tabId, { type: 'copilot.snapshot' })) as { snapshot?: PageSnapshot } | undefined;
+    snapshot = res?.snapshot ?? emptySnapshot();
+  } catch {
+    store().log({ kind: 'message', from: 'concierge', to: 'user', text: 'I can’t reach that console tab yet — reload it once (so the Copilot can load) and try again.' });
+    return;
+  }
+  if (copilot) stopConsoleCopilot();
+  const taskId = uid();
+  copilot = { taskId, tabId: f.tabId };
+  store().setCopilot(taskId);
+  store().addTask(taskId, `🖥️ ${text}`);
+  backend.send({ action: 'console.start', taskId, goal: text, context: { url: f.url, title: f.title, serviceId: f.serviceId }, snapshot });
+}
+
+async function relayConsoleStep(step: ConsoleStepEvent) {
+  if (!copilot || step.taskId !== copilot.taskId || !backend) return;
+  const { tabId, taskId } = copilot;
+  let result: { ok: boolean; note?: string; snapshot?: PageSnapshot };
+  try {
+    result = (await browser.tabs.sendMessage(tabId, { type: 'copilot.step', step, agentName: agentName(step.agentId) })) ?? { ok: false, note: 'no answer from page' };
+  } catch {
+    result = { ok: false, note: 'console tab closed' };
+  }
+  if (step.action === 'done') {
+    copilot = undefined;
+    store().setCopilot(undefined);
+    return;
+  }
+  if (!copilot || copilot.taskId !== taskId) return; // stopped meanwhile
+  if (result.note === 'stopped by player' || result.note === 'console tab closed') {
+    stopConsoleCopilot(result.note === 'console tab closed' ? 'The console tab closed, so I stopped.' : undefined);
+    return;
+  }
+  backend.send({ action: 'console.observe', taskId, index: step.index, ok: result.ok, note: result.note, snapshot: result.snapshot ?? emptySnapshot() });
+}
+
+export function stopConsoleCopilot(message?: string) {
+  if (!copilot) return;
+  const { taskId, tabId } = copilot;
+  copilot = undefined;
+  store().setCopilot(undefined);
+  backend?.send({ action: 'console.stop', taskId });
+  void browser.tabs.sendMessage(tabId, { type: 'copilot.stop', message }).catch(() => {});
+  if (message) store().log({ kind: 'system', text: `🛑 ${message}` });
+}
+

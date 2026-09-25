@@ -104,6 +104,9 @@ export class ServerBackend implements AgentBackend {
       case 'page.classify':
       case 'deploy.approve':
       case 'deploy.reject':
+      case 'console.start':
+      case 'console.observe':
+      case 'console.stop':
         return this.raw(cmd);
       case 'deploy.plan': {
         const bp = GUARDED_BLUEPRINTS.find((b) => b.id === cmd.templateId) ?? GUARDED_BLUEPRINTS.find((b) => b.id === GUARDED_EQUIV[cmd.templateId]);
