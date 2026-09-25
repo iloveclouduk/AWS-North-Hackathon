@@ -1,0 +1,326 @@
+{
+  "version": 2,
+  "tiers": {
+    "names": ["Construction site", "Foundation", "Associate", "Professional", "Expert"],
+    "xp": [0, 10, 40, 100, 200],
+    "certifications": [
+      "",
+      "AWS Certified Cloud Practitioner · AI Practitioner",
+      "Solutions Architect / Developer / CloudOps Engineer – Associate",
+      "Solutions Architect / DevOps Engineer / Generative AI Developer – Professional",
+      "Specialty (Security · Advanced Networking)"
+    ]
+  },
+  "districts": [
+    { "id": "compute", "name": "Compute Quarter", "color": "#e8912d", "hq": "Compute HQ", "tagline": "Where work gets done — servers, containers and functions." },
+    { "id": "storage", "name": "Data Lake Shores", "color": "#3f9b4f", "hq": "Data Lake HQ", "tagline": "Store anything, then catalogue and query it where it lies." },
+    { "id": "database", "name": "Database Row", "color": "#3a6fd8", "hq": "Database HQ", "tagline": "The right database for every access pattern." },
+    { "id": "networking", "name": "Network Junction", "color": "#8b5cf6", "hq": "Networking HQ", "tagline": "Roads, addresses and messengers that connect it all." },
+    { "id": "security", "name": "Security Keep", "color": "#d64545", "hq": "Security HQ", "tagline": "Identity, encryption, defence and the eyes that watch." },
+    { "id": "aiml", "name": "AI Heights", "color": "#14b8a6", "hq": "AI HQ", "tagline": "Models, agents and machines that see and read." }
+  ],
+  "special": {
+    "concierge": { "name": "Connie the Concierge", "activity": "check", "color": "#f2c94c", "role": "Receives your requests at Console Plaza and dispatches the right agent." },
+    "lookout": { "name": "Luke the Lookout", "activity": "scan", "color": "#94a3b8", "role": "Snaps screenshots of the page you are on so the city can see it." },
+    "builder": { "name": "Cody the Builder", "activity": "hammer", "color": "#ff9900", "role": "Runs the CloudFormation Workshop: previews change sets and deploys approved stacks to your account." }
+  },
+  "services": [
+    {
+      "id": "ec2", "name": "Amazon EC2", "districtId": "compute", "consolePaths": ["ec2"], "docsPaths": ["AWSEC2", "ec2"],
+      "keywords": ["ec2", "instance", "server", "virtual machine", " vm ", "ami"],
+      "place": "EC2 Factory", "kind": "factory", "agentName": "Eddie the Engineer", "activity": "hammer",
+      "blurb": "Rent a machine by the second. Pick its size, boot it from an AMI, keep it running as long as you like.",
+      "teaches": ["Instances, AMIs and instance types", "Security groups, key pairs and EBS volumes", "Auto Scaling groups behind a load balancer", "Spot, Savings Plans, Graviton and placement groups"],
+      "tiers": ["You can launch an instance", "You pick the right instance family", "You build self-healing auto-scaling fleets", "You cut cost with Spot and Graviton at scale"]
+    },
+    {
+      "id": "lambda", "name": "AWS Lambda", "districtId": "compute", "consolePaths": ["lambda"], "docsPaths": ["lambda"],
+      "keywords": ["lambda", "function", "serverless", "trigger", "event", "run code", "code", "when a file"],
+      "place": "Lambda Food Stall", "kind": "stall", "agentName": "Lola the Chef", "activity": "cook",
+      "blurb": "The grill only fires up when an order arrives — you pay per dish, never for an idle kitchen.",
+      "teaches": ["Functions run on events, up to 15 minutes each", "Triggers: S3, API Gateway, SQS, EventBridge", "Memory, concurrency, cold starts and retries", "Event-driven architectures with destinations and layers"],
+      "tiers": ["You know serverless means no servers to manage", "You wire triggers from S3 and API Gateway", "You tune memory, concurrency and error handling", "You design event-driven systems"],
+      "game": "lambda"
+    },
+    {
+      "id": "ecs", "name": "Amazon ECS", "districtId": "compute", "consolePaths": ["ecs"], "docsPaths": ["AmazonECS"],
+      "keywords": ["ecs", "container", "docker", "task definition"],
+      "place": "ECS Shipping Docks", "kind": "dock", "agentName": "Captain Cass", "activity": "carry",
+      "blurb": "Containers stacked on ships — ECS decides which ship carries which box and keeps the fleet sailing.",
+      "teaches": ["Containers package an app with its dependencies", "Task definitions, services and clusters", "Service auto scaling, load balancing and deployments", "Capacity providers and blue/green deployments"],
+      "tiers": ["You know what a container is", "You run a service from a task definition", "You scale and roll out services safely", "You operate multi-service platforms"]
+    },
+    {
+      "id": "fargate", "name": "AWS Fargate", "districtId": "compute", "consolePaths": [], "docsPaths": ["AmazonECS/latest/developerguide/AWS_Fargate"],
+      "keywords": ["fargate", "serverless container"],
+      "place": "Fargate Ferry", "kind": "dock", "agentName": "Fern the Ferrywoman", "activity": "carry",
+      "blurb": "Hand over your container and hop off — the ferry supplies the boat, the fuel and the crew.",
+      "teaches": ["Serverless compute for containers", "Size tasks by vCPU and memory", "Networking with awsvpc and task IAM roles", "Fargate Spot and cost trade-offs vs EC2"],
+      "tiers": ["You know Fargate removes servers from containers", "You run ECS tasks on Fargate", "You secure tasks with roles and private subnets", "You mix Fargate and Fargate Spot for cost"]
+    },
+    {
+      "id": "eks", "name": "Amazon EKS", "districtId": "compute", "consolePaths": ["eks"], "docsPaths": ["eks"],
+      "keywords": ["eks", "kubernetes", "k8s", "pod", "helm"],
+      "place": "EKS Harbour Tower", "kind": "tower", "agentName": "Kube the Harbourmaster", "activity": "check",
+      "blurb": "The harbourmaster runs the Kubernetes control plane so your pods always find a berth.",
+      "teaches": ["Managed Kubernetes control plane", "Node groups, Fargate profiles and pods", "IAM roles for service accounts and add-ons", "Karpenter, upgrades and multi-cluster operations"],
+      "tiers": ["You know EKS is managed Kubernetes", "You deploy workloads to a cluster", "You secure and scale clusters", "You run Kubernetes fleets in production"]
+    },
+    {
+      "id": "beanstalk", "name": "AWS Elastic Beanstalk", "districtId": "compute", "consolePaths": ["elasticbeanstalk"], "docsPaths": ["elasticbeanstalk"],
+      "keywords": ["beanstalk", "elastic beanstalk", "paas", "upload my app"],
+      "place": "Beanstalk Garden", "kind": "garden", "agentName": "Jack the Gardener", "activity": "hammer",
+      "blurb": "Plant your code and Jack grows the whole stack — servers, load balancer, scaling — around it.",
+      "teaches": ["Upload code; Beanstalk provisions the stack", "Environments, platforms and versions", "Deployment policies: rolling, immutable, blue/green", "Customising with .ebextensions and platform hooks"],
+      "tiers": ["You deploy an app without touching servers", "You manage environments and versions", "You choose safe deployment policies", "You customise platforms deeply"]
+    },
+
+    {
+      "id": "s3", "name": "Amazon S3", "districtId": "storage", "consolePaths": ["s3"], "docsPaths": ["AmazonS3"],
+      "keywords": ["s3", "bucket", "object", "upload", "file", "photo", "image", "backup", "store", "storage", "data lake"],
+      "place": "S3 Lake", "kind": "lake", "agentName": "Sally the Angler", "activity": "fish",
+      "blurb": "Every fish is an object; every net is a bucket. It is also the foundation every AWS data lake is built on.",
+      "teaches": ["Objects live in buckets, addressed by key", "Storage classes trade price for access speed", "Lifecycle rules, versioning and bucket policies", "Replication, event notifications and data lake layouts"],
+      "tiers": ["You know what a bucket and an object are", "You pick the right storage class", "You design lifecycle and access policies", "You architect multi-region, event-driven data lakes"],
+      "game": "fishing"
+    },
+    {
+      "id": "ebs", "name": "Amazon EBS", "districtId": "storage", "consolePaths": ["ebs"], "docsPaths": ["ebs"],
+      "keywords": ["ebs", "volume", "block storage", "disk", "snapshot"],
+      "place": "EBS Lockers", "kind": "warehouse", "agentName": "Bex the Keeper", "activity": "carry",
+      "blurb": "A locker bolted to one server in one Availability Zone — fast, private, and it goes where the instance goes.",
+      "teaches": ["Block volumes attach to EC2 in one AZ", "gp3 vs io2 performance", "Snapshots are incremental and stored in S3", "Encryption, Multi-Attach and lifecycle automation"],
+      "tiers": ["You know a volume is a disk for EC2", "You size gp3 IOPS and throughput", "You automate snapshots", "You tune io2 for databases"]
+    },
+    {
+      "id": "efs", "name": "Amazon EFS", "districtId": "storage", "consolePaths": ["efs"], "docsPaths": ["efs"],
+      "keywords": ["efs", "file system", "nfs", "shared files"],
+      "place": "EFS Shared Well", "kind": "dome", "agentName": "Effie the Well-keeper", "activity": "carry",
+      "blurb": "One well, many buckets drawing from it at once — a file system shared by many servers across AZs.",
+      "teaches": ["Shared NFS storage across instances and AZs", "Elastic capacity, pay per GB used", "Storage classes and lifecycle to IA", "Access points and throughput modes"],
+      "tiers": ["You know EFS is shared files", "You mount it on several instances", "You use access points", "You tune throughput modes"]
+    },
+    {
+      "id": "glue", "name": "AWS Glue", "districtId": "storage", "consolePaths": ["glue"], "docsPaths": ["glue"],
+      "keywords": ["glue", "etl", "crawler", "data catalog", "catalog"],
+      "place": "Glue Workshop", "kind": "factory", "agentName": "Gus the Cataloguer", "activity": "file",
+      "blurb": "Gus crawls the lake, writes a label for every shelf, and turns raw data into tidy tables.",
+      "teaches": ["The Glue Data Catalog stores table metadata", "Crawlers discover schemas in S3", "Serverless Spark ETL jobs", "Data quality, job bookmarks and partitioning"],
+      "tiers": ["You know Glue catalogues and transforms data", "You crawl S3 into the Data Catalog", "You write ETL jobs", "You build governed pipelines"]
+    },
+    {
+      "id": "athena", "name": "Amazon Athena", "districtId": "storage", "consolePaths": ["athena"], "docsPaths": ["athena"],
+      "keywords": ["athena", "query s3", "sql on s3", "presto", "trino"],
+      "place": "Athena Lighthouse", "kind": "tower", "agentName": "Thea the Lightkeeper", "activity": "scan",
+      "blurb": "Shine a SQL beam across the lake and read the data right where it sits — pay only for what you scan.",
+      "teaches": ["Serverless SQL directly on S3", "Uses the Glue Data Catalog for tables", "Pay per data scanned — partition and compress", "Columnar formats (Parquet), CTAS and federated queries"],
+      "tiers": ["You know Athena queries S3 with SQL", "You query catalogued tables", "You cut cost with partitions and Parquet", "You design lake query layers"]
+    },
+    {
+      "id": "lakeformation", "name": "AWS Lake Formation", "districtId": "storage", "consolePaths": ["lakeformation"], "docsPaths": ["lake-formation"],
+      "keywords": ["lake formation", "lakeformation", "data governance", "column level", "data permissions"],
+      "place": "Lake Formation Gate", "kind": "wall", "agentName": "Lars the Warden", "activity": "check",
+      "blurb": "One gate for the whole lake: Lars decides who may see which tables, columns and rows.",
+      "teaches": ["Centrally govern a data lake on S3", "Grant table, column and row permissions", "Tag-based access control (LF-Tags)", "Cross-account sharing and data mesh"],
+      "tiers": ["You know Lake Formation governs lake access", "You grant table and column permissions", "You use LF-Tags at scale", "You share data across accounts"]
+    },
+
+    {
+      "id": "dynamodb", "name": "Amazon DynamoDB", "districtId": "database", "consolePaths": ["dynamodbv2", "dynamodb"], "docsPaths": ["amazondynamodb"],
+      "keywords": ["dynamodb", "dynamo", "nosql", "key-value", "partition key"],
+      "place": "DynamoDB Library", "kind": "building", "agentName": "Dyna the Librarian", "activity": "file",
+      "blurb": "Tell the librarian the exact card number and she returns it in milliseconds — at any scale.",
+      "teaches": ["Tables, items and primary keys", "Partition keys spread the load", "GSIs for other access patterns", "Single-table design, streams and global tables"],
+      "tiers": ["You know DynamoDB is serverless key-value", "You choose good partition keys", "You model access patterns with GSIs", "You do single-table design"]
+    },
+    {
+      "id": "rds", "name": "Amazon RDS", "districtId": "database", "consolePaths": ["rds"], "docsPaths": ["AmazonRDS"],
+      "keywords": ["rds", "postgres", "mysql", "relational", "sql database"],
+      "place": "RDS Records Hall", "kind": "building", "agentName": "Ray the Clerk", "activity": "type",
+      "blurb": "A tidy hall of ledgers with rows and columns — managed PostgreSQL, MySQL and friends.",
+      "teaches": ["Managed relational engines", "Multi-AZ for high availability", "Read replicas scale reads", "Backups, PITR and Performance Insights"],
+      "tiers": ["You know RDS runs SQL databases for you", "You enable Multi-AZ and backups", "You scale with read replicas", "You tune performance"]
+    },
+    {
+      "id": "aurora", "name": "Amazon Aurora", "districtId": "database", "consolePaths": ["rds/aurora"], "docsPaths": ["AmazonRDS/latest/AuroraUserGuide"],
+      "keywords": ["aurora", "serverless v2", "global database"],
+      "place": "Aurora Observatory", "kind": "dome", "agentName": "Rory the Astronomer", "activity": "think",
+      "blurb": "Same stars as RDS, a bigger telescope — storage that grows itself, six copies across three AZs.",
+      "teaches": ["MySQL and PostgreSQL compatible", "Six copies of data across three AZs", "Aurora Serverless v2 scales in fine steps", "Global Database for multi-region"],
+      "tiers": ["You know Aurora is cloud-native SQL", "You use reader endpoints", "You run Serverless v2", "You design Global Database failover"]
+    },
+    {
+      "id": "elasticache", "name": "Amazon ElastiCache", "districtId": "database", "consolePaths": ["elasticache"], "docsPaths": ["AmazonElastiCache"],
+      "keywords": ["elasticache", "redis", "valkey", "memcached", "cache in memory"],
+      "place": "ElastiCache Café", "kind": "stall", "agentName": "Cara the Barista", "activity": "cook",
+      "blurb": "Your regulars' orders are already on the counter — answers served from memory in microseconds.",
+      "teaches": ["In-memory caching with Valkey, Redis OSS or Memcached", "Cache-aside and write-through patterns", "Replication, cluster mode and failover", "Session stores, leaderboards and pub/sub"],
+      "tiers": ["You know caching speeds up reads", "You add a cache in front of a database", "You design eviction and TTLs", "You run clustered caches at scale"]
+    },
+    {
+      "id": "redshift", "name": "Amazon Redshift", "districtId": "database", "consolePaths": ["redshiftv2", "redshift"], "docsPaths": ["redshift"],
+      "keywords": ["redshift", "data warehouse", "warehouse", "olap", "analytics"],
+      "place": "Redshift Warehouse", "kind": "warehouse", "agentName": "Reggie the Analyst", "activity": "type",
+      "blurb": "A giant warehouse where billions of rows are stacked in columns so big questions come back fast.",
+      "teaches": ["Columnar data warehouse for analytics", "Serverless or provisioned clusters", "Spectrum queries S3 in place", "Distribution and sort keys, materialized views"],
+      "tiers": ["You know a warehouse is for analytics", "You load and query data", "You query the lake with Spectrum", "You tune distribution and workload management"]
+    },
+    {
+      "id": "neptune", "name": "Amazon Neptune", "districtId": "database", "consolePaths": ["neptune"], "docsPaths": ["neptune"],
+      "keywords": ["neptune", "graph database", "graph", "gremlin", "sparql", "opencypher"],
+      "place": "Neptune Web", "kind": "garden", "agentName": "Nep the Weaver", "activity": "think",
+      "blurb": "Nep weaves who-knows-whom into a web you can walk — perfect for relationships and recommendations.",
+      "teaches": ["Graph databases store nodes and edges", "Gremlin, openCypher and SPARQL", "Fraud detection and knowledge graphs", "Neptune Analytics and GraphRAG"],
+      "tiers": ["You know when data is a graph", "You query with openCypher or Gremlin", "You model knowledge graphs", "You combine graphs with GenAI"]
+    },
+
+    {
+      "id": "vpc", "name": "Amazon VPC", "districtId": "networking", "consolePaths": ["vpc", "vpcconsole"], "docsPaths": ["vpc"],
+      "keywords": ["vpc", "subnet", "network", "security group", "nat", "private network"],
+      "place": "VPC Walled Garden", "kind": "garden", "agentName": "Vic the Gardener", "activity": "hammer",
+      "blurb": "Your own walled garden in the cloud — you decide the paths, the gates and who gets in.",
+      "teaches": ["CIDR blocks and subnets across AZs", "Public vs private subnets, internet and NAT gateways", "Security groups (stateful) vs NACLs (stateless)", "Peering, Transit Gateway and VPC endpoints"],
+      "tiers": ["You know a VPC is your private network", "You build public and private subnets", "You secure with security groups and NACLs", "You connect VPCs at scale"]
+    },
+    {
+      "id": "route53", "name": "Amazon Route 53", "districtId": "networking", "consolePaths": ["route53"], "docsPaths": ["Route53"],
+      "keywords": ["route 53", "route53", "dns", "domain", "hosted zone", "record"],
+      "place": "Route 53 Dance Hall", "kind": "building", "agentName": "Ruby the Dance Caller", "activity": "dance",
+      "blurb": "Every dancer asks \"who is my partner?\" — Ruby calls out the address. That is DNS.",
+      "teaches": ["DNS turns names into IP addresses", "Hosted zones, record types and alias records", "Routing policies: weighted, latency, failover", "Health checks and private hosted zones"],
+      "tiers": ["You know what DNS does", "You create records in a hosted zone", "You use routing policies", "You design multi-region failover"],
+      "game": "route53"
+    },
+    {
+      "id": "cloudfront", "name": "Amazon CloudFront", "districtId": "networking", "consolePaths": ["cloudfront"], "docsPaths": ["AmazonCloudFront"],
+      "keywords": ["cloudfront", "cdn", "edge", "distribution", "website fast"],
+      "place": "CloudFront Post Office", "kind": "building", "agentName": "Cleo the Courier", "activity": "carry",
+      "blurb": "Copies of your parcels wait in post offices worldwide, so every delivery is local.",
+      "teaches": ["Edge locations cache content near users", "Origins: S3, load balancers, custom", "Cache behaviours, TTLs and invalidations", "Origin access control, signed URLs and edge functions"],
+      "tiers": ["You know a CDN caches near users", "You front an S3 website with CloudFront", "You tune cache behaviours", "You run logic at the edge"]
+    },
+    {
+      "id": "apigateway", "name": "Amazon API Gateway", "districtId": "networking", "consolePaths": ["apigateway"], "docsPaths": ["apigateway"],
+      "keywords": ["api gateway", "apigateway", "rest api", "http api", "websocket api", "endpoint"],
+      "place": "API Gateway Station", "kind": "station", "agentName": "Gabe the Stationmaster", "activity": "check",
+      "blurb": "Every request buys a ticket here; Gabe checks it, throttles the crowd and sends it to the right train.",
+      "teaches": ["Front door for APIs: REST, HTTP and WebSocket", "Integrations with Lambda and HTTP backends", "Authorizers, throttling and usage plans", "Stages, caching and custom domains"],
+      "tiers": ["You know API Gateway fronts your APIs", "You connect routes to Lambda", "You secure and throttle APIs", "You run multi-stage, multi-region APIs"]
+    },
+    {
+      "id": "sqs", "name": "Amazon SQS & SNS", "districtId": "networking", "consolePaths": ["sqs", "sns"], "docsPaths": ["AWSSimpleQueueService", "sns"],
+      "keywords": ["sqs", "sns", "queue", "decouple", "pub/sub", "fan out", "notification"],
+      "place": "Queue & Bell Tower", "kind": "tower", "agentName": "Quinn the Postmaster", "activity": "carry",
+      "blurb": "Letters wait patiently in Quinn's queue (SQS) until someone is ready; the bell (SNS) tells everyone at once.",
+      "teaches": ["SQS queues decouple producers from consumers", "SNS topics fan one message out to many", "Standard vs FIFO, visibility timeout, DLQs", "Fan-out: SNS → many SQS queues"],
+      "tiers": ["You know queues decouple services", "You pick Standard vs FIFO", "You handle retries with dead-letter queues", "You design fan-out architectures"]
+    },
+    {
+      "id": "eventbridge", "name": "Amazon EventBridge", "districtId": "networking", "consolePaths": ["events"], "docsPaths": ["eventbridge"],
+      "keywords": ["eventbridge", "event bus", "schedule", "cron", "event rule"],
+      "place": "EventBridge Crossing", "kind": "station", "agentName": "Eve the Signaller", "activity": "check",
+      "blurb": "Eve watches every event roll by and flips the right signals so it reaches exactly the listeners who care.",
+      "teaches": ["Event buses route events with rules", "AWS, SaaS and custom event sources", "Scheduler for cron and one-off jobs", "Pipes, archive and replay"],
+      "tiers": ["You know events can trigger work", "You write rules with event patterns", "You schedule and pipe events", "You build event-driven platforms"]
+    },
+
+    {
+      "id": "iam", "name": "AWS IAM", "districtId": "security", "consolePaths": ["iam", "iamv2"], "docsPaths": ["IAM"],
+      "keywords": ["iam", "role", "policy", "permission", "access", "least privilege"],
+      "place": "IAM Gatehouse", "kind": "tower", "agentName": "Ivy the Gatekeeper", "activity": "check",
+      "blurb": "Nobody passes without a badge. Ivy checks who you are and exactly what you are allowed to do.",
+      "teaches": ["Users, groups, roles and policies", "Least privilege and explicit deny", "Roles for services and cross-account access", "Permission boundaries, SCPs and access analysis"],
+      "tiers": ["You know identity vs permission", "You write least-privilege policies", "You use roles everywhere", "You govern with SCPs and boundaries"]
+    },
+    {
+      "id": "cognito", "name": "Amazon Cognito", "districtId": "security", "consolePaths": ["cognito"], "docsPaths": ["cognito"],
+      "keywords": ["cognito", "sign in", "sign-in", "login", "user pool", "authentication", "sign up"],
+      "place": "Cognito Passport Office", "kind": "building", "agentName": "Coco the Clerk", "activity": "type",
+      "blurb": "Coco issues passports to your app's users — sign-up, sign-in and the tokens that prove who they are.",
+      "teaches": ["User pools handle sign-up and sign-in", "JWT tokens: ID, access and refresh", "Hosted UI, OAuth 2.0 and social login", "Identity pools for temporary AWS credentials"],
+      "tiers": ["You know Cognito signs users in", "You add a user pool to an app", "You secure APIs with JWTs", "You federate identities at scale"]
+    },
+    {
+      "id": "kms", "name": "AWS KMS", "districtId": "security", "consolePaths": ["kms"], "docsPaths": ["kms"],
+      "keywords": ["kms", " key ", "encrypt", "encryption"],
+      "place": "KMS Vault", "kind": "building", "agentName": "Kit the Locksmith", "activity": "lock",
+      "blurb": "The master keys never leave the vault — Kit lends out data keys to lock and unlock your data.",
+      "teaches": ["Managed encryption keys", "Envelope encryption with data keys", "Key policies and grants", "Rotation and multi-region keys"],
+      "tiers": ["You know KMS holds encryption keys", "You encrypt S3 and EBS with KMS", "You write key policies", "You design envelope encryption"]
+    },
+    {
+      "id": "shield", "name": "AWS Shield & WAF", "districtId": "security", "consolePaths": ["wafv2/shield", "wafv2", "shield"], "docsPaths": ["waf"],
+      "keywords": ["shield", "ddos", "attack", "waf", "firewall", "protect"],
+      "place": "Shield Wall", "kind": "wall", "agentName": "Sir Shieldon", "activity": "guard",
+      "blurb": "When a storm of arrows (DDoS) hits, the wall takes it; the WAF archers pick off the sneaky ones.",
+      "teaches": ["DDoS attacks flood your application", "Shield Standard is automatic and free", "WAF rules block SQL injection, bots and bad IPs", "Shield Advanced response team and cost protection"],
+      "tiers": ["You know what a DDoS attack is", "You add WAF managed rules", "You combine Shield, WAF and CloudFront", "You plan DDoS-resilient architectures"],
+      "game": "shield"
+    },
+    {
+      "id": "guardduty", "name": "Amazon GuardDuty", "districtId": "security", "consolePaths": ["guardduty"], "docsPaths": ["guardduty"],
+      "keywords": ["guardduty", "threat", "threat detection", "suspicious", "malware"],
+      "place": "GuardDuty Watchtower", "kind": "tower", "agentName": "Gwen the Sentinel", "activity": "scan",
+      "blurb": "Gwen never sleeps: she reads the city's logs and shouts the moment something looks suspicious.",
+      "teaches": ["Managed threat detection, one click to enable", "Analyses CloudTrail, VPC Flow Logs and DNS logs", "Findings with severity and remediation", "Malware protection and multi-account setup"],
+      "tiers": ["You know GuardDuty detects threats", "You triage findings", "You automate responses with EventBridge", "You run org-wide detection"]
+    },
+    {
+      "id": "cloudwatch", "name": "CloudWatch & CloudTrail", "districtId": "security", "consolePaths": ["cloudwatch", "cloudtrail"], "docsPaths": ["AmazonCloudWatch", "awscloudtrail"],
+      "keywords": ["cloudwatch", "cloudtrail", "metric", "alarm", "logs", "monitor", "audit", "who made"],
+      "place": "Clocktower Observatory", "kind": "tower", "agentName": "Watt the Watchmaker", "activity": "scan",
+      "blurb": "The clock counts every heartbeat (CloudWatch metrics) and the ledger records every API call (CloudTrail).",
+      "teaches": ["Metrics, logs and alarms", "CloudTrail records who called which API", "Dashboards, Logs Insights and anomaly detection", "Organization trails, X-Ray and observability"],
+      "tiers": ["You know monitoring vs auditing", "You set alarms on metrics", "You investigate with Logs Insights", "You build org-wide observability"]
+    },
+
+    {
+      "id": "bedrock", "name": "Amazon Bedrock", "districtId": "aiml", "consolePaths": ["bedrock"], "docsPaths": ["bedrock"],
+      "keywords": ["bedrock", "llm", "claude", "generative", "genai", "foundation model", "rag", "knowledge base", "guardrail"],
+      "place": "Bedrock Oracle", "kind": "tower", "agentName": "Bede the Oracle", "activity": "think",
+      "blurb": "Ask the oracle anything — one API to many foundation models, grounded in your own knowledge.",
+      "teaches": ["Foundation models, tokens and prompts via one API", "Knowledge Bases (RAG) ground answers in your data", "Guardrails, evaluation and prompt management", "Distillation, prompt caching and intelligent prompt routing"],
+      "tiers": ["You know what a foundation model is", "You call models and build RAG", "You add guardrails and evaluate models", "You optimise cost and quality in production"]
+    },
+    {
+      "id": "agentcore", "name": "Amazon Bedrock AgentCore", "districtId": "aiml", "consolePaths": ["bedrock-agentcore"], "docsPaths": ["bedrock-agentcore"],
+      "keywords": ["agentcore", "agent core", "agent runtime", "harness", "ai agent", "strands", "mcp"],
+      "place": "AgentCore Academy", "kind": "building", "agentName": "Ace the Headmaster", "activity": "type",
+      "blurb": "Where agents live and learn: Ace gives each one a runtime, memory, tools and an ID badge. This city runs here!",
+      "teaches": ["Runtime hosts agents in isolated sessions", "Memory: short-term and long-term strategies", "Gateway turns APIs into MCP tools; Identity handles auth", "Harness, Policy, Observability and Evaluations"],
+      "tiers": ["You know what an AI agent is", "You deploy an agent to Runtime", "You add Memory, Gateway and Identity", "You run governed, observable agent fleets"]
+    },
+    {
+      "id": "sagemaker", "name": "Amazon SageMaker AI", "districtId": "aiml", "consolePaths": ["sagemaker"], "docsPaths": ["sagemaker"],
+      "keywords": ["sagemaker", "train", "training", "notebook", "machine learning", " ml "],
+      "place": "SageMaker Workshop", "kind": "factory", "agentName": "Sage the Tinkerer", "activity": "hammer",
+      "blurb": "Where models are built by hand — gather data, train, tune and deploy your own.",
+      "teaches": ["Notebooks and training jobs", "Built-in algorithms and bring-your-own containers", "Endpoints for real-time and batch inference", "Pipelines, Model Registry and MLOps"],
+      "tiers": ["You know ML needs training data", "You run a training job", "You deploy an endpoint", "You automate MLOps pipelines"]
+    },
+    {
+      "id": "q", "name": "Amazon Q", "districtId": "aiml", "consolePaths": ["amazonq"], "docsPaths": ["amazonq"],
+      "keywords": ["amazon q", "q developer", "q business", "assistant", "coding assistant"],
+      "place": "Q Help Desk", "kind": "stall", "agentName": "Quill the Helper", "activity": "type",
+      "blurb": "Quill answers questions about your code, your AWS account and your company docs — right where you work.",
+      "teaches": ["Generative AI assistant for work", "Q Developer: code, tests, console help", "Q Business: answers from company data", "Permissions-aware answers and plugins"],
+      "tiers": ["You know Amazon Q is an AI assistant", "You use Q Developer in your IDE", "You connect Q Business to data", "You roll Q out safely"]
+    },
+    {
+      "id": "rekognition", "name": "Amazon Rekognition", "districtId": "aiml", "consolePaths": ["rekognition"], "docsPaths": ["rekognition"],
+      "keywords": ["rekognition", "face", "vision", "detect labels", "recognise", "recognize", "moderation"],
+      "place": "Rekognition Gallery", "kind": "building", "agentName": "Rex the Curator", "activity": "scan",
+      "blurb": "Rex looks at every picture and tells you what is in it — objects, faces, text and unsafe content.",
+      "teaches": ["Label detection in images and video", "Face detection and comparison", "Content moderation", "Custom Labels and responsible use"],
+      "tiers": ["You know computer vision basics", "You detect labels in S3 images", "You analyse video", "You train Custom Labels"]
+    },
+    {
+      "id": "textract", "name": "Amazon Textract", "districtId": "aiml", "consolePaths": ["textract"], "docsPaths": ["textract"],
+      "keywords": ["textract", "ocr", "extract text", "forms", "invoice", "document"],
+      "place": "Textract Scriptorium", "kind": "building", "agentName": "Tex the Scribe", "activity": "file",
+      "blurb": "Tex reads scanned pages and copies out the text, tables and form fields — no typing needed.",
+      "teaches": ["Extract printed and handwritten text", "Tables and key-value forms", "Queries and specialised APIs (invoices, IDs)", "Async jobs and human review"],
+      "tiers": ["You know OCR basics", "You extract forms and tables", "You process documents asynchronously", "You build document pipelines"]
+    }
+  ]
+}

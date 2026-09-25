@@ -3,6 +3,7 @@
 
 import { browser } from 'wxt/browser';
 import { createBackend, type AgentBackend } from '@/backend';
+import { uid } from '@/backend/AgentBackend';
 import type { Progress } from '@/backend/contract';
 import { captureVisibleTab, hasCapturePermission, requestCapturePermission } from '@/capture/screenshot';
 import { bus } from '@/state/bus';
@@ -16,7 +17,6 @@ let backend: AgentBackend | undefined;
 let layout: Layout = 'panel';
 let started = false;
 
-const uid = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
 const store = () => useCity.getState();
 
 export function startRuntime(l: Layout) {
@@ -60,7 +60,7 @@ async function initProgress() {
     if (s.progress === prev.progress) return;
     void browser.storage.local.set({ [PROGRESS_STORAGE_KEY]: s.progress });
     clearTimeout(putTimer);
-    putTimer = setTimeout(() => backend!.putProgress(s.progress).catch((e) => console.warn('[runtime] putProgress failed', e)), 1500);
+    putTimer = setTimeout(() => backend!.putProgress(s.progress), 1500);
   });
 
   // Side panel and full-city tab run separately; keep them in sync.
@@ -106,7 +106,7 @@ export function submitPrompt(prompt: string) {
   const taskId = uid();
   const f = store().focus;
   store().addTask(taskId, text);
-  backend.submitTask({ taskId, prompt: text, context: { url: f?.url, title: f?.title, serviceId: f?.serviceId, screenshotKey: lastScreenshotKey } });
+  backend.send({ action: 'task.submit', taskId, prompt: text, context: { url: f?.url, title: f?.title, serviceId: f?.serviceId, screenshotKey: lastScreenshotKey } });
 }
 
 export function askDistrict(districtId: string, question: string) {
@@ -115,7 +115,7 @@ export function askDistrict(districtId: string, question: string) {
   const requestId = uid();
   const f = store().focus;
   store().addUserChat(districtId, requestId, q);
-  backend.ask({ requestId, districtId, question: q, context: { url: f?.url, title: f?.title, serviceId: f?.serviceId } });
+  backend.send({ action: 'chat.ask', requestId, districtId, question: q, context: { url: f?.url, title: f?.title, serviceId: f?.serviceId } });
 }
 
 let lastScreenshotKey: string | undefined;
@@ -143,8 +143,8 @@ export async function snap() {
     return;
   }
   try {
-    lastScreenshotKey = await backend.uploadScreenshot(shot.dataUrl, { url: f?.url, title: f?.title });
-    backend.classifyPage({ requestId: uid(), context: { url: f?.url, title: f?.title, serviceId: f?.serviceId, screenshotKey: lastScreenshotKey } });
+    lastScreenshotKey = await backend.uploadScreenshot(shot.dataUrl);
+    backend.send({ action: 'page.classify', requestId: uid(), context: { url: f?.url, title: f?.title, serviceId: f?.serviceId, screenshotKey: lastScreenshotKey } });
     store().setSnap('idle', shot.dataUrl);
     bus.emit('snap', { phase: 'done' });
   } catch (err) {
@@ -165,6 +165,44 @@ export function setAutoSnap(on: boolean) {
   store().setAutoSnap(on);
   void browser.storage.local.set({ [SETTINGS_STORAGE_KEY]: { autoSnap: on } });
   if (on) void hasCapturePermission().then((has) => !has && store().log({ kind: 'message', from: 'lookout', to: 'user', text: 'Auto-snap is on. Press my camera once so Chrome lets me see pages.' }));
+}
+
+// ── Account linking + real deploys (curated templates, change-set approval) ──
+
+export function signIn() {
+  void backend?.signIn?.().catch((e) => store().log({ kind: 'system', text: `⚠️ Sign-in failed: ${String(e)}` }));
+}
+
+export function linkAccount(region = 'us-west-2') {
+  backend?.send({ action: 'account.link', requestId: uid(), region });
+}
+
+export function verifyAccount(roleArn: string) {
+  if (!/^arn:aws:iam::\d{12}:role\/.+/.test(roleArn.trim())) {
+    store().log({ kind: 'system', text: '⚠️ That does not look like a role ARN (arn:aws:iam::123456789012:role/…).' });
+    return;
+  }
+  backend?.send({ action: 'account.verify', requestId: uid(), roleArn: roleArn.trim() });
+}
+
+export function planDeploy(templateId: string, taskId?: string) {
+  backend?.send({ action: 'deploy.plan', requestId: uid(), templateId, taskId });
+}
+
+export function decideDeploy(deployId: string, approve: boolean) {
+  backend?.send({ action: approve ? 'deploy.approve' : 'deploy.reject', deployId });
+}
+
+export function teardownDeploy(deployId: string) {
+  backend?.send({ action: 'deploy.teardown', deployId });
+}
+
+export function startQuest(questId: string) {
+  backend?.send({ action: 'quest.start', questId, taskId: uid() });
+}
+
+export function openUrl(url: string) {
+  void browser.tabs.create({ url });
 }
 
 export function openFullCity() {

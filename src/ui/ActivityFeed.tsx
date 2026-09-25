@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { bus } from '@/state/bus';
 import { agentName, useCity, type FeedItem, type TaskView } from '@/state/store';
 
-const STEP_ICON = { pending: '○', running: '▶', done: '✓', failed: '✗' } as const;
+const STEP_ICON = { pending: '○', running: '▶', done: '✓', failed: '✗', skipped: '⤼' } as const;
 
 function TaskCard({ task }: { task: TaskView }) {
   return (

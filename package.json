@@ -13,7 +13,8 @@
     "postinstall": "wxt prepare",
     "assets": "bash scripts/fetch-assets.sh",
     "smoke": "wxt build && node scripts/smoke.mjs",
-    "check": "tsc --noEmit && vitest run"
+    "check": "tsc --noEmit && vitest run",
+    "open": "wxt build && node scripts/open.mjs"
   },
   "dependencies": {
     "phaser": "^4.2.1",

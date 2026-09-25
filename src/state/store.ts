@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { ConnectionStatus } from '@/backend/AgentBackend';
-import type { Progress, ServerEvent, StepStatus } from '@/backend/contract';
+import type { DeployChange, DeployStatusEvent, Progress, ServerEvent, StepStatus } from '@/backend/contract';
 import { placeFor, SPECIAL_AGENTS, TIER_NAMES, tierForXp } from '@/world/places';
 import { SERVICES, serviceById } from '@/world/taxonomy';
 import { bus } from './bus';
@@ -47,10 +47,31 @@ export interface AgentStatus {
   detail?: string;
 }
 
+export interface AccountState {
+  linked: boolean;
+  accountId?: string;
+  region?: string;
+  linkUrl?: string;
+  externalId?: string;
+  message?: string;
+}
+
+export interface DeployView {
+  deployId: string;
+  templateId: string;
+  stackName: string;
+  region: string;
+  changes: DeployChange[];
+  costNote?: string;
+  status: 'preview' | DeployStatusEvent['status'];
+  outputs?: Record<string, string>;
+  message?: string;
+}
+
 export type SnapState = 'idle' | 'snapping' | 'needs-permission' | 'failed' | 'unavailable';
 
 export interface CityState {
-  backendKind: 'mock' | 'aws';
+  backendKind: 'mock' | 'agentcore';
   backendStatus: ConnectionStatus;
   focus?: PageFocus;
   progress: Progress;
@@ -66,9 +87,12 @@ export interface CityState {
   lastClassified?: { serviceIds: string[]; summary: string };
   snap: SnapState;
   lastSnapshot?: string;
+  account: AccountState;
+  deploys: Record<string, DeployView>;
+  agentLevels: Record<string, number>;
 
   // pure state transitions (no I/O — see app/runtime.ts for commands)
-  setBackend(kind: 'mock' | 'aws', status: ConnectionStatus): void;
+  setBackend(kind: 'mock' | 'agentcore', status: ConnectionStatus): void;
   setFocus(f: PageFocus): void;
   discover(serviceId: string): void;
   addXp(serviceId: string, amount: number): void;
@@ -116,6 +140,9 @@ export const useCity = create<CityState>()((set, get) => ({
   view: { name: 'city' },
   autoSnap: false,
   snap: 'idle',
+  account: { linked: false },
+  deploys: {},
+  agentLevels: {},
 
   setBackend: (backendKind, backendStatus) => set({ backendKind, backendStatus }),
 
@@ -235,6 +262,35 @@ export const useCity = create<CityState>()((set, get) => ({
         if (e.done) get().addXp(e.agentId, 5);
         break;
       }
+      case 'agent.level':
+        set({ agentLevels: { ...s.agentLevels, [e.agentId]: e.level } });
+        s.toast('🧠', `${agentName(e.agentId)} reached level ${e.level}${e.skill ? `: ${e.skill}` : ''}`);
+        break;
+      case 'account.linkUrl':
+        set({ account: { ...s.account, linkUrl: e.url, externalId: e.externalId } });
+        break;
+      case 'account.status':
+        set({ account: { ...s.account, linked: e.linked, accountId: e.accountId, region: e.region, message: e.message } });
+        if (e.linked) s.toast('🔗', `AWS account ${e.accountId} linked — agents can now deploy for you (with your approval).`);
+        break;
+      case 'deploy.preview':
+        set({
+          deploys: {
+            ...s.deploys,
+            [e.deployId]: { deployId: e.deployId, templateId: e.templateId, stackName: e.stackName, region: e.region, changes: e.changes, costNote: e.costNote, status: 'preview' },
+          },
+        });
+        break;
+      case 'deploy.status': {
+        const d = s.deploys[e.deployId];
+        if (d) set({ deploys: { ...s.deploys, [e.deployId]: { ...d, status: e.status, outputs: e.outputs ?? d.outputs, message: e.message } } });
+        s.log({ kind: 'system', text: `🏗️ ${d?.stackName ?? e.deployId}: ${e.status}${e.message ? ` — ${e.message}` : ''}` });
+        if (e.status === 'complete') s.toast('🚀', `${d?.stackName ?? 'Stack'} deployed to your AWS account!`);
+        break;
+      }
+      case 'screenshot.url':
+      case 'progress.state':
+        break;
       case 'error':
         s.log({ kind: 'system', text: `⚠️ ${e.message}` });
         if (e.taskId && s.tasks[e.taskId]) set({ tasks: { ...s.tasks, [e.taskId]: { ...s.tasks[e.taskId], status: 'failed' } } });
