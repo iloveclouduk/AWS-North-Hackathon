@@ -48,6 +48,15 @@ cp .env.example .env.local   # set WXT_BACKEND=aws, WXT_AWS_WS_URL, WXT_AWS_API_
 The contract is in **[docs/backend-contract.md](docs/backend-contract.md)**
 (source: `src/backend/contract.ts`).
 
+**Local AWS backend (`server/`).** It implements this contract against a real AWS account and Claude on
+Amazon Bedrock. It runs on your machine, because the workshop account blocks CloudFormation and IAM
+roles, so API Gateway + Lambda can't be deployed there. Setup, guardrails and details are in
+[`server/README.md`](server/README.md).
+
+```bash
+cd server && npm install && npm start      # prints the .env.local values to use
+```
+
 ## Where things live
 
 ```
