@@ -1,19 +1,34 @@
 :root {
-  --bg: #0f1a2b;
-  --panel: #16233a;
-  --panel-2: #1d2d49;
-  --line: #2c3f63;
-  --ink: #e8eefc;
-  --muted: #93a4c3;
-  --accent: #ff9900;
-  --good: #22c55e;
-  --warn: #f59e0b;
-  --bad: #ef4444;
-  --radius: 8px;
-  font-family: 'Trebuchet MS', Verdana, system-ui, sans-serif;
+  /* the agentic-city prototype's palette */
+  --bg: #140d1f;
+  --panel: #241a37;
+  --panel-2: #2d2144;
+  --panel-3: #1b1329;
+  --line: #4a3768;
+  --ink: #f5efe6;
+  --muted: #b6a7d9;
+  --accent: #ffb84d;
+  --accent-ink: #4a2e07;
+  --good: #6fe3a3;
+  --warn: #ffd166;
+  --bad: #ff6b6b;
+  --radius: 10px;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 13px;
   color: var(--ink);
   background: var(--bg);
+}
+
+@font-face {
+  font-family: 'Nunito';
+  src: url('/assets/fonts/Nunito.ttf') format('truetype');
+  font-weight: 200 1000;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('/assets/fonts/PressStart2P.ttf') format('truetype');
+  font-display: block;
 }
 
 * {
@@ -25,6 +40,10 @@ body,
   margin: 0;
   height: 100%;
   overflow: hidden;
+}
+body {
+  background: var(--bg);
+  background-image: radial-gradient(circle at 20% 10%, #2a1f42 0%, transparent 45%), radial-gradient(circle at 85% 85%, #201636 0%, transparent 50%);
 }
 button {
   font: inherit;
@@ -61,7 +80,12 @@ code {
   grid-area: stage;
   position: relative;
   min-height: 0;
-  border-bottom: 2px solid #000;
+  margin: 8px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0d0816;
+  box-shadow: 0 0 0 1px #000 inset;
 }
 .side {
   grid-area: side;
@@ -69,7 +93,7 @@ code {
   flex-direction: column;
   min-height: 0;
   background: var(--panel);
-  border-left: 2px solid #000;
+  border-left: 1px solid var(--line);
 }
 .game {
   position: absolute;
@@ -84,13 +108,33 @@ code {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
-  background: linear-gradient(#24344f, #1a2740);
-  border-bottom: 2px solid #000;
-  box-shadow: inset 0 -1px 0 #3b5178;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.hud .dots {
+  display: flex;
+  gap: 6px;
+  margin-right: 4px;
+}
+.hud .dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: block;
+}
+.hud .dots i:nth-child(1) { background: #ff6b6b; }
+.hud .dots i:nth-child(2) { background: #ffd166; }
+.hud .dots i:nth-child(3) { background: #6fe3a3; }
+.logo b {
+  font-family: 'Press Start 2P', 'Nunito', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.5px;
 }
 .logo {
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-right: auto;
   white-space: nowrap;
 }
@@ -99,10 +143,12 @@ code {
   font-weight: bold;
 }
 .stat {
-  background: #0c1526;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border: none;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: var(--muted);
   white-space: nowrap;
 }
 .dot {
@@ -111,7 +157,7 @@ code {
   letter-spacing: 0.05em;
   padding: 2px 6px 2px 16px;
   border-radius: 10px;
-  background: #0c1526;
+  background: var(--panel-3);
   position: relative;
 }
 .dot::before {
@@ -139,29 +185,35 @@ code {
 
 /* ── buttons ── */
 .btn {
-  background: linear-gradient(#3a4f78, #2a3b5c);
-  border: 2px solid #000;
-  border-radius: 6px;
-  padding: 5px 10px;
-  box-shadow: inset 0 1px 0 #5a74a6;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 11px;
   white-space: nowrap;
+  font-weight: 700;
 }
 .btn:hover:not(:disabled) {
-  filter: brightness(1.15);
+  border-color: var(--accent);
+  color: #fff;
 }
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
 }
 .btn.primary {
-  background: linear-gradient(#ffb340, #e68a00);
-  color: #1b1200;
-  font-weight: bold;
-  box-shadow: inset 0 1px 0 #ffd699;
+  background: rgba(255, 184, 77, 0.15);
+  border-color: rgba(255, 184, 77, 0.45);
+  color: var(--accent);
+  font-weight: 800;
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 .btn.warn {
-  background: linear-gradient(#fbbf24, #d97706);
-  color: #1b1200;
+  background: rgba(255, 107, 107, 0.15);
+  border-color: rgba(255, 107, 107, 0.5);
+  color: #ffb3b3;
 }
 .btn.back {
   margin-right: 4px;
@@ -170,7 +222,7 @@ code {
 /* ── tabs ── */
 .tabs {
   display: flex;
-  border-bottom: 2px solid #000;
+  border-bottom: 1px solid var(--line);
   background: var(--panel-2);
 }
 .tabs button {
@@ -182,7 +234,7 @@ code {
   border-bottom: 3px solid transparent;
 }
 .tabs button.on {
-  color: var(--ink);
+  color: var(--accent);
   border-bottom-color: var(--accent);
   background: var(--panel);
 }
@@ -209,8 +261,10 @@ code {
   padding: 0;
 }
 .line {
-  padding: 4px 6px;
-  border-bottom: 1px solid #22314f;
+  padding: 5px 8px;
+  margin-bottom: 3px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.22);
   line-height: 1.35;
 }
 .line.msg,
@@ -219,10 +273,10 @@ code {
   cursor: pointer;
 }
 .line:hover {
-  background: #1f3050;
+  background: var(--panel-2);
 }
 .line.user {
-  color: #fde68a;
+  color: var(--accent);
 }
 .line.sys {
   color: #a7f3d0;
@@ -232,7 +286,7 @@ code {
   color: #fef9c3;
 }
 .task {
-  background: #0c1526;
+  background: var(--panel-3);
   border: 2px solid var(--line);
   border-radius: var(--radius);
   padding: 8px;
@@ -288,7 +342,7 @@ code {
 }
 .nav-district {
   border-left: 4px solid;
-  background: #0c1526;
+  background: var(--panel-3);
   border-radius: 6px;
   padding: 4px 6px 6px;
 }
@@ -302,7 +356,7 @@ code {
   width: 100%;
   text-align: left;
   background: var(--panel-2);
-  border: 1px solid #000;
+  border: 1px solid var(--line);
   border-radius: 4px;
   padding: 5px 7px;
   margin-top: 3px;
@@ -324,7 +378,7 @@ code {
 
 /* ── landmark card ── */
 .card {
-  background: #0c1526;
+  background: var(--panel-3);
   border: 2px solid var(--line);
   border-left-width: 6px;
   border-radius: var(--radius);
@@ -339,8 +393,8 @@ code {
 }
 .tier .bar {
   height: 10px;
-  background: #22314f;
-  border: 1px solid #000;
+  background: var(--line);
+  border: 1px solid var(--line);
   border-radius: 5px;
   overflow: hidden;
   margin: 4px 0;
@@ -379,7 +433,7 @@ code {
 
 /* ── prompt ── */
 .prompt {
-  border-top: 2px solid #000;
+  border-top: 1px solid var(--line);
   padding: 6px 8px 8px;
   background: var(--panel-2);
 }
@@ -392,7 +446,7 @@ code {
 }
 .chip {
   flex: none;
-  background: #0c1526;
+  background: var(--panel-3);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 3px 9px;
@@ -411,11 +465,16 @@ code {
 .prompt-row input:not([type='checkbox']) {
   flex: 1;
   min-width: 0;
-  background: #fff;
-  color: #111;
-  border: 2px solid #000;
-  border-radius: 6px;
-  padding: 6px 8px;
+  background: var(--panel-3);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font: inherit;
+}
+.prompt-row input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 .lookout {
   display: flex;
@@ -450,7 +509,7 @@ code {
   max-width: 88%;
   padding: 7px 10px;
   border-radius: 10px;
-  border: 2px solid #000;
+  border: 1px solid var(--line);
   line-height: 1.4;
 }
 .bubble.user {
@@ -487,12 +546,12 @@ code {
 }
 .toast {
   pointer-events: auto;
-  background: #fffbeb;
-  color: #1b1200;
-  border: 2px solid #000;
-  border-radius: 8px;
-  padding: 7px 10px;
-  box-shadow: 0 3px 0 #000;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   font-weight: bold;
   text-align: left;
   animation: pop 0.25s ease-out;
@@ -542,9 +601,9 @@ code {
 }
 select {
   width: 100%;
-  background: #0c1526;
+  background: var(--panel-3);
   color: var(--ink);
-  border: 2px solid #000;
+  border: 1px solid var(--line);
   border-radius: 6px;
   padding: 5px;
   font: inherit;
@@ -627,7 +686,7 @@ select {
   padding: 8px;
   border: 2px dashed var(--line);
   border-radius: 8px;
-  background: #0c1526;
+  background: var(--panel-3);
 }
 .svc {
   background: var(--panel-2);
@@ -638,13 +697,13 @@ select {
   font-size: 12px;
 }
 .svc.on {
-  background: #1e3a5f;
+  background: #3a2a58;
 }
 .result {
   border: 2px solid;
   border-radius: 8px;
   padding: 8px;
-  background: #0c1526;
+  background: var(--panel-3);
 }
 .result.pass {
   border-color: var(--good);
@@ -663,7 +722,7 @@ select {
 }
 .pillar .bar {
   height: 7px;
-  background: #22314f;
+  background: var(--line);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -680,7 +739,7 @@ select {
   gap: 8px;
 }
 .quest {
-  background: #0c1526;
+  background: var(--panel-3);
   border: 2px solid var(--line);
   border-left-width: 6px;
   border-radius: 8px;
@@ -714,7 +773,7 @@ select {
   gap: 8px;
   justify-content: space-between;
   align-items: center;
-  background: #0c1526;
+  background: var(--panel-3);
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 6px 8px;
@@ -727,7 +786,7 @@ select {
 }
 .changes td {
   padding: 2px 4px;
-  border-bottom: 1px solid #22314f;
+  border-bottom: 1px solid var(--line);
 }
 .chg.Add {
   color: var(--good);

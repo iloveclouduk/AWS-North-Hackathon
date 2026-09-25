@@ -22,10 +22,15 @@ export function Hud({ layout }: { layout: Layout }) {
         </button>
       ) : (
         <span className="logo">
-          🏙️ <b>AWS City</b>
+          <span className="dots">
+            <i />
+            <i />
+            <i />
+          </span>
+          <b>AWS City</b>
         </span>
       )}
-      {view.name === 'interior' && <span className="where">{districtById(view.districtId)?.hq}</span>}
+      {view.name === 'interior' && <span className="where">{view.districtId === 'spheres' ? 'The Spheres' : districtById(view.districtId)?.hq}</span>}
       {view.name === 'game' && <span className="where">Mini-game</span>}
       <span className="stat" title="Landmarks discovered">
         🏛️ {discovered}/{SERVICES.length}

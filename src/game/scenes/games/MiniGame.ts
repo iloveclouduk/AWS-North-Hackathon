@@ -2,9 +2,9 @@ import Phaser from 'phaser';
 import { useCity } from '@/state/store';
 import type { GameId } from '@/world/places';
 import { sfx } from '../../audio';
-import { PIXEL_FONT } from '../../SpeechBubble';
+import { TEXT_FONT } from '../../SpeechBubble';
 
-export const TXT = (size = 16, color = '#ffffff'): Phaser.Types.GameObjects.Text.TextStyle => ({ fontFamily: PIXEL_FONT, fontSize: `${size}px`, color });
+export const TXT = (size = 16, color = '#ffffff'): Phaser.Types.GameObjects.Text.TextStyle => ({ fontFamily: TEXT_FONT, fontSize: `${Math.round(size * 0.85)}px`, fontStyle: '800', color });
 
 /** Shared chrome for mini-games: title, HUD, timer, end screen with the lesson, XP + best score. */
 export abstract class MiniGame extends Phaser.Scene {
@@ -32,7 +32,7 @@ export abstract class MiniGame extends Phaser.Scene {
     this.score = 0;
     this.over = false;
     this.timeLeft = this.duration;
-    this.cameras.main.setBackgroundColor('#0f1a2b').setRoundPixels(true);
+    this.cameras.main.setBackgroundColor('#140d1f').setRoundPixels(true);
     this.setup();
     this.add.text(10, 8, this.title, TXT(16, '#fde047')).setDepth(100);
     this.hud = this.add.text(this.scale.width - 10, 8, '', TXT(16)).setOrigin(1, 0).setDepth(100);

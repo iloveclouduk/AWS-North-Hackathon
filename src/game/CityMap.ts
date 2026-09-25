@@ -65,7 +65,12 @@ export class CityMap {
       return x % m === 1 || x % m === m - 1 ? 'zebraY' : 'roadX';
     }
     const plot = plotAt(t);
-    if (plot === 'square') return 'plazaStone';
+    if (plot === 'square') {
+      // a green ring around the square, stone paths inside
+      const r = TOWN_SQUARE.rect;
+      const edge = x === r.x || y === r.y || x === r.x + r.w - 1 || y === r.y + r.h - 1;
+      return edge ? `grass${Math.floor(hash(x, y) * 3)}` : 'plazaStone';
+    }
     if (this.sidewalk.has(key(x, y))) return 'sidewalk';
     if (plot?.startsWith('future')) return 'sand';
     const d = plot as DistrictId;
@@ -132,17 +137,17 @@ export class CityMap {
     for (const k of this.sidewalk) {
       const x = k % GRID;
       const y = Math.floor(k / GRID);
-      if ((x + 2 * y) % 11 !== 0 || plotAt({ x, y }) === 'square') continue;
+      if ((x + 2 * y) % 17 !== 0 || plotAt({ x, y }) === 'square') continue;
       this.placeProp('lamp', { x, y });
       const c = toScreen(CITY_ISO, x, y);
-      const glow = addSprite(this.scene, 'glow', c.x, c.y - 44).setDepth(70_002).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+      const glow = addSprite(this.scene, 'glow', c.x, c.y - 50).setDepth(70_002).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
       this.lamps.push({ glow });
     }
     // Town square: fountain, benches, flowers, trees, bins.
     this.fountain = this.placeProp('fountain0', FOUNTAIN);
     for (const b of BENCHES) this.placeProp('benchX', b, false); // citizens sit on them
     const r = TOWN_SQUARE.rect;
-    for (const [dx, dy, name] of [[0, 0, 'tree0'], [r.w - 1, 0, 'tree1'], [0, r.h - 1, 'tree2'], [r.w - 1, r.h - 1, 'tree0'], [5, 5, 'flowers'], [7, 5, 'flowers'], [5, 7, 'flowers'], [9, 6, 'bin']] as const)
+    for (const [dx, dy, name] of [[0, 0, 'tree0'], [r.w - 1, 0, 'tree1'], [0, r.h - 1, 'tree1'], [r.w - 1, r.h - 1, 'tree0'], [3, 1, 'flowers'], [8, 1, 'flowers'], [4, 7, 'flowers'], [9, 5, 'tree1'], [10, 8, 'bin'], [5, 10, 'plant'], [7, 10, 'plant'], [0, 5, 'tree0'], [11, 5, 'pine'], [5, 0, 'awsSign']] as const)
       this.placeProp(name, { x: r.x + dx, y: r.y + dy });
   }
 
@@ -157,7 +162,7 @@ export class CityMap {
           if (this.footprintOf.has(k) || this.sidewalk.has(k) || LANDMARKS.some((l) => l.workSpot.x === x && l.workSpot.y === y)) continue;
           if (LANDMARKS.some((l) => inRect({ x, y: y - 1 }, l.footprint))) continue; // keep the row in front of buildings clear
           const h = hash(x, y, 7);
-          const want = open ? (h < 0.1 ? ['tree0', 'tree1', 'tree2', 'pine'][Math.floor(h * 40)] : h > 0.95 ? 'flowers' : undefined) : h < 0.06 ? 'bush' : undefined;
+          const want = open ? (h < 0.14 ? ['tree0', 'tree1', 'pine', 'tree1'][Math.floor(h * 28.5)] : h > 0.94 ? 'flowers' : undefined) : h < 0.06 ? 'bush' : undefined;
           const cur = this.props.get(k);
           if (cur && cur.frame.name === want) continue;
           if (cur) {

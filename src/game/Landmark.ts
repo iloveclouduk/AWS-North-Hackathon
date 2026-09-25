@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import type { Rect } from '@/world/layout';
 import { addSprite, hasSprite } from './assets';
 import { cornerScreen, entityDepth, toScreen, type Iso } from './iso';
-import { PIXEL_FONT } from './SpeechBubble';
+import { crisp, TEXT_FONT } from './SpeechBubble';
 
 export interface LandmarkSpec {
   id: string;
@@ -39,16 +39,19 @@ export class Landmark {
     }
     const stars = spec.showStars && spec.tier >= 1 ? ` ${'★'.repeat(spec.tier)}${'☆'.repeat(4 - spec.tier)}` : '';
     const topY = this.img.getTopCenter().y ?? n.y;
-    this.sign = scene.add
-      .text(n.x + ((f.w - f.h) * iso.halfW) / 2, topY - 2, (spec.tier === 0 ? '🚧 ' : '') + spec.label + stars, {
-        fontFamily: PIXEL_FONT,
-        fontSize: '16px',
-        color: '#ffffff',
-        backgroundColor: '#161622d9',
-        padding: { x: 4, y: 0 },
-      })
-      .setOrigin(0.5, 1)
-      .setDepth(40_000);
+    this.sign = crisp(
+      scene.add
+        .text(n.x + ((f.w - f.h) * iso.halfW) / 2, topY - 2, (spec.tier === 0 ? '🚧 ' : '') + spec.label + stars, {
+          fontFamily: TEXT_FONT,
+          fontSize: '11px',
+          fontStyle: '800',
+          color: '#fff8ec',
+          backgroundColor: '#140d1fd9',
+          padding: { x: 5, y: 2 },
+        })
+        .setOrigin(0.5, 1)
+        .setDepth(40_000),
+    );
   }
 
   onClick(fn: () => void) {

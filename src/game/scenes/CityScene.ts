@@ -10,7 +10,7 @@ import {
 import { placeFor, TIER_NAMES } from '@/world/places';
 import { DISTRICTS, districtById, servicesIn, serviceById, type DistrictId } from '@/world/taxonomy';
 import { Agent, type AgentWorld } from '../Agent';
-import { sfx } from '../audio';
+import { blip, chime, click, sfx } from '../audio';
 import { castFor, workAnimFor } from '../cast';
 import { CityMap } from '../CityMap';
 import { Citizens } from '../Citizens';
@@ -18,7 +18,7 @@ import { DayNight } from '../DayNight';
 import { CITY_ISO, cornerScreen, toScreen, toTile } from '../iso';
 import { Landmark, type LandmarkSpec } from '../Landmark';
 import { Packets } from '../Packets';
-import { PIXEL_FONT } from '../SpeechBubble';
+import { crisp, TEXT_FONT } from '../SpeechBubble';
 
 const LOOKOUT_HOME: Rect = { x: TOWN_SQUARE.rect.x + 8, y: TOWN_SQUARE.rect.y + 1, w: 4, h: 4 };
 const KEYS = { W: [0, -1], UP: [0, -1], S: [0, 1], DOWN: [0, 1], A: [-1, 0], LEFT: [-1, 0], D: [1, 0], RIGHT: [1, 0] } as const;
@@ -67,6 +67,7 @@ export class CityScene extends Phaser.Scene {
     this.spawnAgent('builder', landmarkLayout('workshop')!.workSpot, TOWN_SQUARE.rect, landmarkLayout('workshop')!.workSpot);
     this.player = new Agent(this, this.world, { id: 'player', name: 'Kai (you)', tile: PLAYER_SPAWN, home: TOWN_SQUARE.rect, speed: 3, wanders: false, showTag: true });
     this.player.sprite.disableInteractive();
+    this.player.onSpeak = (a) => blip(a.id);
     this.player.onStep = () => {
       this.stepCount++;
       if (this.stepCount % 2 === 0) sfx(`step${this.stepCount % 3}` as 'step0', 0.15);
@@ -100,7 +101,8 @@ export class CityScene extends Phaser.Scene {
 
   override update(time: number, dt: number) {
     const cam = this.cameras.main;
-    const ui = cam.zoom >= 1 ? 1 : Math.round(1 / cam.zoom);
+    // Text keeps one on-screen size at every zoom (it's rendered crisp, see SpeechBubble.crisp).
+    const ui = 1 / cam.zoom;
     const levels = useCity.getState().agentLevels;
     for (const [id, a] of this.agents) {
       a.speedBoost = 1 + 0.15 * ((levels[id] ?? 1) - 1);
@@ -135,7 +137,7 @@ export class CityScene extends Phaser.Scene {
   }
 
   private specFor(l: LandmarkLayout, p: Progress): LandmarkSpec {
-    if (l.id === 'plaza') return { id: l.id, sprite: 'plaza', footprint: l.footprint, label: 'Console Plaza', tier: 1, showStars: false };
+    if (l.id === 'plaza') return { id: l.id, sprite: 'spheres', footprint: l.footprint, label: 'The Spheres · Console HQ', tier: 1, showStars: false };
     if (l.id === 'lookout') return { id: l.id, sprite: 'lookout', footprint: l.footprint, label: 'Lookout', tier: 1, showStars: false };
     if (l.id === 'workshop') return { id: l.id, sprite: 'workshop', footprint: l.footprint, label: 'CloudFormation Workshop', tier: 1, showStars: false };
     const d = districtById(l.districtId!)!;
@@ -186,10 +188,12 @@ export class CityScene extends Phaser.Scene {
       const c = toScreen(CITY_ISO, w.rect.x + (w.rect.w - 1) / 2, w.rect.y + (w.rect.h - 1) / 2);
       this.plotSigns.set(
         id,
-        this.add
-          .text(c.x, c.y, w.text, { fontFamily: PIXEL_FONT, fontSize: '16px', align: 'center', color: '#fef3c7', backgroundColor: '#161622bb', padding: { x: 6, y: 2 } })
-          .setOrigin(0.5)
-          .setDepth(9_600),
+        crisp(
+          this.add
+            .text(c.x, c.y, w.text, { fontFamily: TEXT_FONT, fontSize: '13px', fontStyle: '800', align: 'center', color: '#ffe6a8', backgroundColor: '#140d1fcc', padding: { x: 8, y: 4 } })
+            .setOrigin(0.5)
+            .setDepth(9_600),
+        ),
       );
     }
   }
@@ -207,6 +211,7 @@ export class CityScene extends Phaser.Scene {
       workDir: c.activity === 'fish' ? 'NE' : 'SE',
     });
     a.onClick(() => this.talkTo(id, a));
+    a.onSpeak = (ag) => blip(ag.id);
     this.agents.set(id, a);
     return a;
   }
@@ -218,7 +223,7 @@ export class CityScene extends Phaser.Scene {
     a.emote('hi', 1400);
     const place = placeFor(id);
     a.say(place ? `Hi! I'm ${a.name}. ${place.blurb}` : `Hi! I'm ${a.name}.`);
-    sfx('pop', 0.3);
+    click();
   }
 
   // ── camera & input ───────────────────────────────────────────────────────
@@ -227,7 +232,7 @@ export class CityScene extends Phaser.Scene {
     const cam = this.cameras.main;
     const w = GRID * CITY_ISO.halfW;
     cam.setBounds(-w - 300, -400, 2 * w + 600, 2 * GRID * CITY_ISO.halfH + 700);
-    cam.setZoom(1);
+    cam.setZoom(2);
     const c = toScreen(CITY_ISO, TOWN_SQUARE.rect.x + 6, TOWN_SQUARE.rect.y + 6);
     cam.centerOn(c.x, c.y);
   }
@@ -251,7 +256,7 @@ export class CityScene extends Phaser.Scene {
       if (this.world.walkable(t.x, t.y)) this.player.goTo(t);
     });
     // Integer-ish zoom steps keep pixels crisp.
-    const steps = [0.5, 1, 2, 3];
+    const steps = [1, 2, 3, 4];
     this.input.on('wheel', (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
       const cam = this.cameras.main;
       const nearest = steps.reduce((a, b) => (Math.abs(b - cam.zoom) < Math.abs(a - cam.zoom) ? b : a));
@@ -333,10 +338,10 @@ export class CityScene extends Phaser.Scene {
 
   private onLandmarkClick(id: string) {
     this.select(id);
-    sfx('click', 0.3);
+    click();
     const l = landmarkLayout(id)!;
-    if (id.startsWith('hq:')) {
-      const districtId = l.districtId!;
+    if (id.startsWith('hq:') || id === 'plaza') {
+      const districtId = id === 'plaza' ? 'spheres' : l.districtId!;
       this.player.goTo(l.workSpot, () => {
         sfx('door', 0.5);
         this.player.emote('open_door', 900, 'NE');
@@ -425,7 +430,7 @@ export class CityScene extends Phaser.Scene {
         if (!a) return;
         a.setDetail(e.state === 'working' ? e.detail : undefined);
         a.setWorking(e.state === 'working');
-        if (e.state === 'working') sfx('work', 0.08);
+        if (e.state === 'working') sfx('work', 0.05);
         break;
       }
       case 'agent.message': {
@@ -448,7 +453,7 @@ export class CityScene extends Phaser.Scene {
         a.pin(false);
         if (e.ok) {
           a.emote('jump', 1000);
-          sfx('correct', 0.4);
+          chime();
           this.burst(t.agentId);
         }
         if (this.following === a) this.time.delayedCall(2500, () => this.following === a && (this.cameras.main.stopFollow(), (this.following = undefined)));
@@ -532,8 +537,11 @@ export class CityScene extends Phaser.Scene {
   private floatText(id: string, text: string) {
     const c = this.anchorFor(id);
     if (!c) return;
-    const t = this.add.text(c.x, c.y - 30, text, { fontFamily: PIXEL_FONT, fontSize: '16px', color: '#fde047', stroke: '#161622', strokeThickness: 4 }).setOrigin(0.5).setDepth(58_000);
-    this.tweens.add({ targets: t, y: c.y - 90, alpha: 0, duration: 1600, ease: 'Cubic.easeOut', onComplete: () => t.destroy() });
+    const t = crisp(this.add.text(c.x, c.y - 24, text, { fontFamily: TEXT_FONT, fontSize: '14px', fontStyle: '900', color: '#ffb84d', stroke: '#140d1f', strokeThickness: 4 }))
+      .setOrigin(0.5)
+      .setScale(1 / this.cameras.main.zoom)
+      .setDepth(58_000);
+    this.tweens.add({ targets: t, y: c.y - 60, alpha: 0, duration: 1600, ease: 'Cubic.easeOut', onComplete: () => t.destroy() });
   }
 
   private burst(id: string) {

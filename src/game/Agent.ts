@@ -3,7 +3,7 @@ import type { Rect, Tile } from '@/world/layout';
 import { FRAME_H, FRAME_W, hasAnim, PIVOT, type Dir } from './assets';
 import { dirFor, entityDepth, toScreen, type Iso } from './iso';
 import { findPath } from './pathfinding';
-import { PIXEL_FONT, SpeechBubble, type SayOptions } from './SpeechBubble';
+import { crisp, SpeechBubble, TEXT_FONT, type SayOptions } from './SpeechBubble';
 
 /** What a walker needs to know about the world it walks in. */
 export interface AgentWorld {
@@ -46,7 +46,7 @@ export class Agent {
   readonly id: string;
   readonly name: string;
   readonly sprite: Phaser.GameObjects.Sprite;
-  readonly bubble: SpeechBubble;
+  private bubbles: [SpeechBubble, SpeechBubble];
   private shadow: Phaser.GameObjects.Ellipse;
   private tag: Phaser.GameObjects.Text;
   private busy: Phaser.GameObjects.Rectangle;
@@ -79,15 +79,17 @@ export class Agent {
     this.gx = cfg.tile.x;
     this.gy = cfg.tile.y;
 
-    this.shadow = scene.add.ellipse(0, 0, 22, 8, 0x000000, 0.25);
+    this.shadow = scene.add.ellipse(0, 0, 20, 7, 0x000000, 0.28);
     this.sprite = scene.add.sprite(0, 0, `char:${this.sheet}`, 0).setOrigin(PIVOT.x / FRAME_W, PIVOT.y / FRAME_H);
     this.sprite.setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 1 });
     this.busy = scene.add.rectangle(0, 0, 5, 5, 0x22c55e).setStrokeStyle(1, 0x14532d).setVisible(false);
-    this.tag = scene.add
-      .text(0, 0, cfg.name, { fontFamily: PIXEL_FONT, fontSize: '16px', color: '#ffffff', backgroundColor: '#161622cc', padding: { x: 3, y: 0 } })
-      .setOrigin(0.5, 0)
-      .setVisible(!!cfg.showTag);
-    this.bubble = new SpeechBubble(scene);
+    this.tag = crisp(
+      scene.add
+        .text(0, 0, cfg.name, { fontFamily: TEXT_FONT, fontSize: '11px', fontStyle: '800', color: '#ffffff', backgroundColor: '#140d1fdd', padding: { x: 5, y: 2 } })
+        .setOrigin(0.5, 0)
+        .setVisible(!!cfg.showTag),
+    );
+    this.bubbles = [new SpeechBubble(scene), new SpeechBubble(scene)];
 
     this.sprite.on('pointerover', () => this.tag.setVisible(true));
     this.sprite.on('pointerout', () => this.tag.setVisible(!!cfg.showTag || this.mode === 'working'));
@@ -119,8 +121,25 @@ export class Agent {
     this.sprite.play(key);
   }
 
+  /** Called on every line spoken (the scene plays a chat blip). */
+  onSpeak?: (agent: Agent) => void;
+
+  /** Short speaker name for bubbles: "Sally the Angler" → "Sally". */
+  get shortName() {
+    return this.name.split(' the ')[0].replace(' (you)', '');
+  }
+
+  /** Newest line at the bottom; the previous one drifts up and fades — never overlapping. */
   say(text: string, opts?: SayOptions) {
-    this.bubble.say(text, opts);
+    const [cur, prev] = this.bubbles;
+    if (cur.showing) {
+      prev.hide(true);
+      this.bubbles = [prev, cur];
+    }
+    this.bubbles[0].say(text, this.shortName, opts);
+    if (this.bubbles[1].showing) this.scene.time.delayedCall(2500, () => this.bubbles[1].hide());
+    this.onSpeak?.(this);
+    this.sync();
   }
 
   /** Walk to a tile; `onArrive` fires when there (or immediately if unreachable). */
@@ -178,7 +197,7 @@ export class Agent {
   setUiScale(s: number) {
     if (s === this.uiScale) return;
     this.uiScale = s;
-    this.bubble.setScale(s);
+    for (const b of this.bubbles) b.setScale(s);
     this.tag.setScale(s);
   }
 
@@ -227,7 +246,7 @@ export class Agent {
   }
 
   destroy() {
-    for (const o of [this.sprite, this.shadow, this.tag, this.busy, this.bubble]) o.destroy();
+    for (const o of [this.sprite, this.shadow, this.tag, this.busy, ...this.bubbles]) o.destroy();
   }
 
   update(time: number, dtMs: number) {
@@ -308,9 +327,11 @@ export class Agent {
     const d = entityDepth(y);
     this.shadow.setPosition(x, y).setDepth(d - 1);
     this.sprite.setPosition(Math.round(x), Math.round(y)).setDepth(d);
-    const top = y - 50;
-    this.busy.setPosition(x + 10, top).setDepth(d + 1);
-    this.tag.setPosition(x, y + 4).setDepth(50_000);
-    this.bubble.setPosition(x, top - 4).setDepth(60_000);
+    const top = y - 58;
+    this.busy.setPosition(x + 10, top + 6).setDepth(d + 1);
+    this.tag.setPosition(x, y + 3).setDepth(50_000);
+    const [cur, prev] = this.bubbles;
+    cur.setPosition(x, top).setDepth(60_001);
+    prev.setPosition(x, top - cur.boxH * this.uiScale).setDepth(60_000);
   }
 }

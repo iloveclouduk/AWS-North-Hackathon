@@ -82,6 +82,10 @@ await shot('08-interior-working');
 await wait(5000);
 await shot('09-interior-answer');
 
+await city(() => window.awsCity.useCity.getState().setView({ name: 'interior', districtId: 'spheres' }));
+await wait(2500);
+await shot('09b-spheres-interior');
+
 await city(() => window.awsCity.useCity.getState().setView({ name: 'game', game: 'fishing' }));
 await wait(1500);
 await shot('10-fishing');

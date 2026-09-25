@@ -1,11 +1,11 @@
-// 2:1 isometric projection on the Habbo 64×32 tile (matches art/tiles/generate_tiles.py).
+// 2:1 isometric projection on the team pack's 32×16 tile (matches art/tiles/generate_tiles.py).
 
 export interface Iso {
   halfW: number;
   halfH: number;
 }
 
-export const CITY_ISO: Iso = { halfW: 32, halfH: 16 };
+export const CITY_ISO: Iso = { halfW: 16, halfH: 8 };
 export const ROOM_ISO: Iso = CITY_ISO;
 
 /** Screen position of the centre of tile (gx, gy). Fractional values give points inside tiles. */

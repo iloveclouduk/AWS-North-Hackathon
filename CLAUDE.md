@@ -16,8 +16,12 @@ The frontend is complete against a mock backend; the AWS backend plugs in throug
   `grep -rn -e "fetch(" -e "WebSocket(" src | grep -v src/backend/` prints nothing.
 - **Content is data in `shared/`** (world, flashcards, puzzles, quests, templates). JSON imports need
   `with { type: 'json' }` because the server runs as NodeNext ESM.
-- **Art is generated, not hand-placed:** `npm run art` (the team's character generator plus our tile
-  generator). Sprite names must be unique, and the generator fails on duplicates.
+- **Art is generated, not hand-placed:** `npm run art` imports the team pack from
+  `agentic-city/index.html`, then runs the character generator and the tile generator. The grid is
+  **32×16**, the pack's exact scale. Sprite names must be unique, and the generator fails on duplicates.
+- **Text is crisp in a pixelArt world:** use `crisp()` from `src/game/SpeechBubble.ts` (LINEAR filter
+  plus DPR resolution) and counter-scale by `1/zoom`. Camera zoom stays on integers.
+- **Sound:** SFX only, no music; on by default and soft. The toggle persists in localStorage (`src/game/audio.ts`).
 - **Content is data.** Districts, services, metaphors and layout live in `src/world/`. Game and UI code
   never hard-code service ids (the exceptions are `bedrock`, the default router target, and the
   `s3` fishing game). Proof: `npx vitest run tests/taxonomy.test.ts` checks every service has a

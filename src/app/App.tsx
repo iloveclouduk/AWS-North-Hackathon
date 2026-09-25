@@ -42,7 +42,7 @@ export function App({ layout }: { layout: Layout }) {
         <Toasts />
       </div>
       <aside className="side">
-        {view.name === 'interior' ? (
+        {view.name === 'interior' && view.districtId !== 'spheres' ? (
           <ChatPanel districtId={view.districtId} />
         ) : (
           <>

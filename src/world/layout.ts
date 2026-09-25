@@ -80,7 +80,8 @@ export const FUTURE_PLOTS: PlotLayout[] = FUTURE_CELLS.map(([cx, cy], i) => ({
 function buildLandmarks(): LandmarkLayout[] {
   const out: LandmarkLayout[] = [];
   const sq = TOWN_SQUARE.rect;
-  const plaza = offset(sq, { x: 4, y: 1, w: 4, h: 2 });
+  // The Spheres (Console HQ) in the middle of the square; the Concierge works at its front door.
+  const plaza = offset(sq, { x: 4, y: 2, w: 4, h: 4 });
   out.push({ id: 'plaza', footprint: plaza, workSpot: frontOf(plaza) });
   const lookout = offset(sq, { x: 10, y: 1, w: 1, h: 1 });
   out.push({ id: 'lookout', footprint: lookout, workSpot: { x: lookout.x, y: lookout.y + 1 } });
@@ -104,13 +105,13 @@ function buildLandmarks(): LandmarkLayout[] {
 export const LANDMARKS: LandmarkLayout[] = buildLandmarks();
 export const landmarkLayout = (id: string) => LANDMARKS.find((l) => l.id === id);
 
-export const FOUNTAIN: Tile = { x: TOWN_SQUARE.rect.x + 6, y: TOWN_SQUARE.rect.y + 6 };
+export const FOUNTAIN: Tile = { x: TOWN_SQUARE.rect.x + 8, y: TOWN_SQUARE.rect.y + 8 };
 export const PLAYER_SPAWN: Tile = { x: TOWN_SQUARE.rect.x + 6, y: TOWN_SQUARE.rect.y + 9 };
 /** Benches in the square (citizens sit here). */
 export const BENCHES: Tile[] = [
-  { x: TOWN_SQUARE.rect.x + 8, y: TOWN_SQUARE.rect.y + 5 },
-  { x: TOWN_SQUARE.rect.x + 8, y: TOWN_SQUARE.rect.y + 7 },
-  { x: TOWN_SQUARE.rect.x + 5, y: TOWN_SQUARE.rect.y + 4 },
+  { x: TOWN_SQUARE.rect.x + 9, y: TOWN_SQUARE.rect.y + 7 },
+  { x: TOWN_SQUARE.rect.x + 9, y: TOWN_SQUARE.rect.y + 9 },
+  { x: TOWN_SQUARE.rect.x + 4, y: TOWN_SQUARE.rect.y + 9 },
 ];
 
 export const inRect = (t: Tile, r: Rect) => t.x >= r.x && t.x < r.x + r.w && t.y >= r.y && t.y < r.y + r.h;
