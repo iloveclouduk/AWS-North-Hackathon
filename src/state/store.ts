@@ -1,0 +1,272 @@
+import { create } from 'zustand';
+import type { ConnectionStatus } from '@/backend/AgentBackend';
+import type { Progress, ServerEvent, StepStatus } from '@/backend/contract';
+import { placeFor, SPECIAL_AGENTS, TIER_NAMES, tierForXp } from '@/world/places';
+import { SERVICES, serviceById } from '@/world/taxonomy';
+import { bus } from './bus';
+import type { PageFocus } from './types';
+
+export interface FeedItem {
+  id: number;
+  at: number;
+  kind: 'message' | 'step' | 'state' | 'system' | 'user';
+  from?: string;
+  to?: string;
+  text: string;
+  taskId?: string;
+}
+
+export interface TaskView {
+  taskId: string;
+  prompt: string;
+  agentId?: string;
+  steps: { text: string; status: StepStatus }[];
+  status: 'routing' | 'running' | 'done' | 'failed';
+  result?: string;
+}
+
+export interface ChatMsg {
+  id: string;
+  role: 'user' | 'agent';
+  agentId?: string;
+  text: string;
+  pending?: boolean;
+}
+
+export interface Toast {
+  id: number;
+  icon: string;
+  text: string;
+}
+
+export type View = { name: 'city' } | { name: 'interior'; districtId: string } | { name: 'fishing' };
+
+export interface AgentStatus {
+  state: 'idle' | 'working';
+  service?: string;
+  detail?: string;
+}
+
+export type SnapState = 'idle' | 'snapping' | 'needs-permission' | 'failed' | 'unavailable';
+
+export interface CityState {
+  backendKind: 'mock' | 'aws';
+  backendStatus: ConnectionStatus;
+  focus?: PageFocus;
+  progress: Progress;
+  agents: Record<string, AgentStatus>;
+  tasks: Record<string, TaskView>;
+  taskOrder: string[];
+  feed: FeedItem[];
+  chats: Record<string, ChatMsg[]>;
+  toasts: Toast[];
+  view: View;
+  selected?: string;
+  autoSnap: boolean;
+  lastClassified?: { serviceIds: string[]; summary: string };
+  snap: SnapState;
+  lastSnapshot?: string;
+
+  // pure state transitions (no I/O — see app/runtime.ts for commands)
+  setBackend(kind: 'mock' | 'aws', status: ConnectionStatus): void;
+  setFocus(f: PageFocus): void;
+  discover(serviceId: string): void;
+  addXp(serviceId: string, amount: number): void;
+  loadProgress(p: Progress): void;
+  applyServerEvent(e: ServerEvent): void;
+  addTask(taskId: string, prompt: string): void;
+  addUserChat(districtId: string, requestId: string, text: string): void;
+  log(item: Omit<FeedItem, 'id' | 'at'>): void;
+  toast(icon: string, text: string): void;
+  dismissToast(id: number): void;
+  setView(v: View): void;
+  select(id?: string): void;
+  setAutoSnap(on: boolean): void;
+  setSnap(s: SnapState, snapshot?: string): void;
+}
+
+let nextId = 1;
+const FEED_MAX = 120;
+const VISIT_XP_COOLDOWN_MS = 60_000;
+const lastVisitXp = new Map<string, number>();
+
+export const emptyProgress = (): Progress => ({ version: 1, landmarks: {}, updatedAt: new Date(0).toISOString() });
+
+export const agentName = (id: string) =>
+  id === 'user' ? 'You' : (placeFor(id)?.agentName ?? (SPECIAL_AGENTS as Record<string, { name: string }>)[id]?.name ?? id);
+
+export const isDiscovered = (p: Progress, serviceId: string) => !!p.landmarks[serviceId]?.discovered;
+export const tierOf = (p: Progress, serviceId: string) => {
+  const l = p.landmarks[serviceId];
+  return l?.discovered ? tierForXp(l.xp) : -1;
+};
+/** Agents present in the city: specials + agents of discovered landmarks. */
+export const knownAgents = (p: Progress) => ['concierge', 'lookout', ...SERVICES.filter((s) => isDiscovered(p, s.id)).map((s) => s.id)];
+
+export const useCity = create<CityState>()((set, get) => ({
+  backendKind: 'mock',
+  backendStatus: 'disconnected',
+  progress: emptyProgress(),
+  agents: {},
+  tasks: {},
+  taskOrder: [],
+  feed: [],
+  chats: {},
+  toasts: [],
+  view: { name: 'city' },
+  autoSnap: false,
+  snap: 'idle',
+
+  setBackend: (backendKind, backendStatus) => set({ backendKind, backendStatus }),
+
+  setFocus: (focus) => {
+    set({ focus });
+    const id = focus.serviceId;
+    if (!id) return;
+    if (!isDiscovered(get().progress, id)) {
+      get().discover(id);
+      return;
+    }
+    const now = Date.now();
+    if (now - (lastVisitXp.get(id) ?? 0) > VISIT_XP_COOLDOWN_MS) {
+      lastVisitXp.set(id, now);
+      get().addXp(id, 2);
+    }
+  },
+
+  discover: (serviceId) => {
+    const { progress } = get();
+    if (isDiscovered(progress, serviceId) || !serviceById(serviceId)) return;
+    set({
+      progress: {
+        ...progress,
+        landmarks: { ...progress.landmarks, [serviceId]: { discovered: true, xp: progress.landmarks[serviceId]?.xp ?? 0 } },
+        updatedAt: new Date().toISOString(),
+      },
+    });
+    const p = placeFor(serviceId);
+    get().toast('🚧', `New landmark discovered: ${p?.place}! Construction has started.`);
+    get().log({ kind: 'system', text: `${p?.place} discovered — ${p?.agentName} moved into town.` });
+    bus.emit('discovered', { serviceId });
+  },
+
+  addXp: (serviceId, amount) => {
+    if (!serviceById(serviceId) || amount <= 0) return;
+    if (!isDiscovered(get().progress, serviceId)) get().discover(serviceId);
+    const { progress } = get();
+    const before = progress.landmarks[serviceId];
+    const xp = (before?.xp ?? 0) + amount;
+    set({
+      progress: {
+        ...progress,
+        landmarks: { ...progress.landmarks, [serviceId]: { discovered: true, xp } },
+        updatedAt: new Date().toISOString(),
+      },
+    });
+    bus.emit('xpGained', { serviceId, amount });
+    const oldTier = tierForXp(before?.xp ?? 0);
+    const newTier = tierForXp(xp);
+    if (newTier > oldTier) {
+      const p = placeFor(serviceId);
+      get().toast('⭐', `${p?.place} upgraded to ${TIER_NAMES[newTier]}!`);
+      get().log({ kind: 'system', text: `${p?.place} is now ${TIER_NAMES[newTier]}: ${p?.tiers[newTier - 1]}.` });
+      bus.emit('tierUp', { serviceId, tier: newTier });
+    }
+  },
+
+  loadProgress: (p) => set({ progress: p }),
+
+  applyServerEvent: (e) => {
+    const s = get();
+    switch (e.type) {
+      case 'task.plan': {
+        const t = s.tasks[e.taskId];
+        set({
+          tasks: {
+            ...s.tasks,
+            [e.taskId]: {
+              taskId: e.taskId,
+              prompt: t?.prompt ?? '',
+              agentId: e.agentId,
+              steps: e.steps.map((text) => ({ text, status: 'pending' as StepStatus })),
+              status: 'running',
+            },
+          },
+        });
+        // An agent can't work at a landmark the city hasn't built yet — discovering it is part of the story.
+        if (serviceById(e.targetServiceId)) get().discover(e.targetServiceId);
+        s.log({ kind: 'system', from: e.agentId, text: `${agentName(e.agentId)} took the job (${e.steps.length} steps).`, taskId: e.taskId });
+        break;
+      }
+      case 'task.step': {
+        const t = s.tasks[e.taskId];
+        if (t) {
+          const steps = [...t.steps];
+          steps[e.index] = { text: e.text, status: e.status };
+          set({ tasks: { ...s.tasks, [e.taskId]: { ...t, steps } } });
+        }
+        if (e.status === 'running') s.log({ kind: 'step', from: t?.agentId, text: e.text, taskId: e.taskId });
+        break;
+      }
+      case 'agent.state':
+        set({ agents: { ...s.agents, [e.agentId]: { state: e.state, service: e.service, detail: e.detail } } });
+        if (e.state === 'working' && e.detail) s.log({ kind: 'state', from: e.agentId, text: e.detail });
+        break;
+      case 'agent.message':
+        s.log({ kind: 'message', from: e.from, to: e.to, text: e.text });
+        break;
+      case 'task.done': {
+        const t = s.tasks[e.taskId];
+        if (t) set({ tasks: { ...s.tasks, [e.taskId]: { ...t, status: e.ok ? 'done' : 'failed', result: e.result } } });
+        for (const x of e.xp) get().addXp(x.serviceId, x.amount);
+        break;
+      }
+      case 'page.classified':
+        set({ lastClassified: { serviceIds: e.serviceIds, summary: e.summary } });
+        for (const id of e.serviceIds) get().addXp(id, 3);
+        break;
+      case 'chat.answer': {
+        const list = [...(s.chats[e.districtId] ?? [])];
+        const id = `a-${e.requestId}`;
+        const i = list.findIndex((m) => m.id === id);
+        if (i === -1) list.push({ id, role: 'agent', agentId: e.agentId, text: e.delta, pending: !e.done });
+        else list[i] = { ...list[i], text: list[i].text + e.delta, pending: !e.done };
+        set({ chats: { ...s.chats, [e.districtId]: list } });
+        if (e.done) get().addXp(e.agentId, 5);
+        break;
+      }
+      case 'error':
+        s.log({ kind: 'system', text: `⚠️ ${e.message}` });
+        if (e.taskId && s.tasks[e.taskId]) set({ tasks: { ...s.tasks, [e.taskId]: { ...s.tasks[e.taskId], status: 'failed' } } });
+        break;
+    }
+  },
+
+  addTask: (taskId, prompt) => {
+    const s = get();
+    set({
+      tasks: { ...s.tasks, [taskId]: { taskId, prompt, steps: [], status: 'routing' } },
+      taskOrder: [taskId, ...s.taskOrder].slice(0, 20),
+    });
+    s.log({ kind: 'user', from: 'user', to: 'concierge', text: prompt, taskId });
+  },
+
+  addUserChat: (districtId, requestId, text) => {
+    const s = get();
+    set({ chats: { ...s.chats, [districtId]: [...(s.chats[districtId] ?? []), { id: `u-${requestId}`, role: 'user', text }] } });
+  },
+
+  log: (item) => set((s) => ({ feed: [...s.feed, { ...item, id: nextId++, at: Date.now() }].slice(-FEED_MAX) })),
+
+  toast: (icon, text) => {
+    const id = nextId++;
+    set((s) => ({ toasts: [...s.toasts, { id, icon, text }].slice(-4) }));
+    setTimeout(() => get().dismissToast(id), 5000);
+  },
+  dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+
+  setView: (view) => set({ view }),
+  select: (selected) => set({ selected }),
+  setAutoSnap: (autoSnap) => set({ autoSnap }),
+  setSnap: (snap, lastSnapshot) => set(lastSnapshot ? { snap, lastSnapshot } : { snap }),
+}));

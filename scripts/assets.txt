@@ -1,0 +1,24 @@
+# <kenney pack slug>/<file inside pack>   <key used in game (src/game/assets.ts)>
+isometric-tiles-landscape/PNG/landscapeTiles_067.png  grass
+isometric-tiles-landscape/PNG/landscapeTiles_075.png  grassDark
+isometric-tiles-landscape/PNG/landscapeTiles_066.png  water
+isometric-tiles-landscape/PNG/landscapeTiles_059.png  sand
+isometric-tiles-landscape/PNG/landscapeTiles_083.png  dirt
+isometric-tiles-city/PNG/cityTiles_072.png  paving
+isometric-tiles-city/PNG/cityTiles_043.png  fountain
+isometric-tiles-city/PNG/cityTiles_067.png  pavingTree
+isometric-tiles-city/PNG/cityTiles_080.png  asphalt
+isometric-miniature-dungeon/Isometric/planks_N.png  floorPlanks
+isometric-miniature-library/Isometric/floorCarpet_N.png  carpet
+isometric-miniature-library/Isometric/bookcaseWideBooks_S.png  bookcase
+isometric-miniature-library/Isometric/bookcaseBooks_E.png  bookcaseSide
+isometric-miniature-library/Isometric/longTableDecoratedChairsBooks_S.png  longTable
+isometric-miniature-library/Isometric/bookStand_S.png  bookStand
+isometric-miniature-library/Isometric/candleStand_S.png  candle
+isometric-miniature-library/Isometric/displayCase_S.png  displayCase
+isometric-miniature-dungeon/Isometric/tableRoundChairs_S.png  roundTable
+isometric-miniature-dungeon/Isometric/tableShort_S.png  desk
+isometric-miniature-dungeon/Isometric/chair_S.png  chair
+isometric-miniature-dungeon/Isometric/chestClosed_S.png  chest
+isometric-miniature-dungeon/Isometric/barrels_S.png  barrels
+isometric-miniature-dungeon/Isometric/woodenCrates_S.png  crates

@@ -1,0 +1,9 @@
+node_modules
+.output
+.wxt
+dist
+.env.local
+*.log
+.DS_Store
+public/assets/kenney/_zips
+.cache
