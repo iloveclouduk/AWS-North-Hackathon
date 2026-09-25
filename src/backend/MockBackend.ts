@@ -1,11 +1,12 @@
 import { Listeners, type AgentBackend, type ConnectionStatus } from './AgentBackend';
-import type { Progress, ServerEvent } from './contract';
+import type { ChatAsk, ClientCommand, DeployPlan, PageClassify, Progress, ServerEvent, TaskSubmit } from './contract';
+import templatesJson from '../../shared/templates.json' with { type: 'json' };
 import { SERVICES, matchText, serviceById, servicesIn, type DistrictId } from '@/world/taxonomy';
 import { placeFor } from '@/world/places';
 
 /**
- * In-browser fake of the AWS backend. Emits exactly the events the real one will, with realistic
- * timing, so the whole game can be built and demoed before any Lambda exists.
+ * In-browser fake of the AgentCore swarm. Emits exactly the events the real one will (contract v2),
+ * with realistic timing, so the whole game can be built and demoed with no AWS account.
  */
 
 interface ScriptStep {
@@ -147,6 +148,10 @@ export class MockBackend implements AgentBackend {
   private statuses = new Listeners<ConnectionStatus>();
   private ambientTimer?: ReturnType<typeof setTimeout>;
   private speed: number;
+  private remembered = new Set<string>();
+  private jobs = new Map<string, number>();
+  private deploys = new Map<string, string>();
+  private account?: { accountId: string; region: string };
 
   constructor(private opts: MockOptions = {}) {
     this.speed = opts.speed ?? 1;
@@ -184,7 +189,7 @@ export class MockBackend implements AgentBackend {
     this.emit({ type: 'agent.state', agentId, state: 'idle' });
   }
 
-  submitTask({ taskId, prompt, context }: Parameters<AgentBackend['submitTask']>[0]) {
+  private submitTask({ taskId, prompt, context }: TaskSubmit) {
     void (async () => {
       const serviceId = matchText(prompt) ?? context.serviceId ?? 'bedrock';
       const place = placeFor(serviceId);
@@ -208,6 +213,13 @@ export class MockBackend implements AgentBackend {
       for (let i = 0; i < script.steps.length; i++) {
         const step = script.steps[i];
         const index = i + 1;
+        // Memory: agents skip steps the player has already been through on this kind of task.
+        const memKey = `${serviceId}:${i}`;
+        if (this.remembered.has(memKey) && i < script.steps.length - 1) {
+          this.emit({ type: 'task.step', taskId, index, text: `${step.text} (you know this — skipping)`, status: 'skipped' });
+          continue;
+        }
+        this.remembered.add(memKey);
         this.emit({ type: 'task.step', taskId, index, text: step.text, status: 'running' });
         if (step.aws) await this.work(serviceId, step.aws.split(':')[0], step.aws, 2200);
         else await this.sleep(1600);
@@ -225,11 +237,14 @@ export class MockBackend implements AgentBackend {
       const xp = [{ serviceId, amount: 15 }];
       if (script.helper && serviceById(script.helper.agentId)) xp.push({ serviceId: script.helper.agentId, amount: 5 });
       this.emit({ type: 'task.done', taskId, ok: true, result: script.result, xp });
+      const jobs = (this.jobs.get(serviceId) ?? 0) + 1;
+      this.jobs.set(serviceId, jobs);
+      if (jobs % 2 === 0) this.emit({ type: 'agent.level', agentId: serviceId, level: 1 + jobs / 2, skill: 'Remembers your setup — skips steps you already know' });
       this.emit({ type: 'agent.message', from: serviceId, to: 'user', text: script.result });
     })();
   }
 
-  ask({ requestId, districtId, question }: Parameters<AgentBackend['ask']>[0]) {
+  private ask({ requestId, districtId, question }: ChatAsk) {
     void (async () => {
       const inDistrict = servicesIn(districtId as DistrictId);
       const matched = matchText(question);
@@ -254,7 +269,7 @@ export class MockBackend implements AgentBackend {
     })();
   }
 
-  classifyPage({ requestId, context }: Parameters<AgentBackend['classifyPage']>[0]) {
+  private classifyPage({ requestId, context }: PageClassify) {
     void (async () => {
       await this.work('lookout', 'bedrock', 'InvokeModel (vision) on screenshot', 1800);
       const guess = context.serviceId ?? matchText(`${context.title ?? ''} ${context.url ?? ''}`);
@@ -267,7 +282,90 @@ export class MockBackend implements AgentBackend {
     })();
   }
 
-  async uploadScreenshot(_dataUrl: string, _meta: { url?: string; title?: string }) {
+  send(cmd: ClientCommand) {
+    switch (cmd.action) {
+      case 'task.submit':
+        return this.submitTask(cmd);
+      case 'chat.ask':
+        return this.ask(cmd);
+      case 'page.classify':
+        return this.classifyPage(cmd);
+      case 'screenshot.presign':
+        return this.emit({ type: 'screenshot.url', requestId: cmd.requestId, uploadUrl: 'mock://upload', screenshotKey: `mock/screenshots/${Date.now()}.jpg` });
+      case 'progress.get':
+        return this.emit({ type: 'progress.state', requestId: cmd.requestId, progress: null });
+      case 'progress.put':
+        return;
+      case 'account.link': {
+        const externalId = `aws-city-${Math.random().toString(36).slice(2, 12)}`;
+        const url =
+          `https://${cmd.region}.console.aws.amazon.com/cloudformation/home?region=${cmd.region}#/stacks/quickcreate` +
+          `?stackName=aws-city-player&templateURL=${encodeURIComponent('https://example.invalid/player-role.yaml')}&param_ExternalId=${externalId}`;
+        return this.emit({ type: 'account.linkUrl', requestId: cmd.requestId, url, externalId });
+      }
+      case 'account.verify':
+        return void this.sleep(900).then(() => {
+          this.account = { accountId: /:(\d{12}):/.exec(cmd.roleArn)?.[1] ?? '123456789012', region: 'us-west-2' };
+          this.emit({ type: 'account.status', requestId: cmd.requestId, linked: true, ...this.account, message: 'Demo account linked (mock).' });
+        });
+      case 'quest.start':
+        return this.emit({ type: 'agent.message', from: 'concierge', to: 'user', text: 'Quest accepted! Follow the steps in your quest log.' });
+      case 'deploy.plan':
+        return void this.planDeploy(cmd);
+      case 'deploy.approve':
+        return void this.runDeploy(cmd.deployId);
+      case 'deploy.reject':
+        this.deploys.delete(cmd.deployId);
+        return this.emit({ type: 'deploy.status', deployId: cmd.deployId, status: 'rejected', message: 'Nothing was created.' });
+      case 'deploy.teardown':
+        return void this.teardown(cmd.deployId);
+    }
+  }
+
+  private async planDeploy({ requestId, templateId, taskId }: DeployPlan) {
+    const t = templatesJson.templates.find((x) => x.id === templateId);
+    if (!t) return this.emit({ type: 'error', requestId, message: `Unknown template ${templateId}` });
+    const deployId = `d-${Date.now().toString(36)}`;
+    await this.work('builder', 'cloudformation', `CreateChangeSet aws-city-${templateId}`, 2000);
+    this.deploys.set(deployId, templateId);
+    this.emit({
+      type: 'deploy.preview',
+      requestId,
+      deployId,
+      taskId,
+      templateId,
+      stackName: `aws-city-${templateId}`,
+      region: this.account?.region ?? 'us-west-2',
+      changes: t.resources.map((r) => ({ action: 'Add' as const, logicalId: r.logicalId, resourceType: r.type })),
+      costNote: t.costNote,
+    });
+    this.emit({ type: 'agent.message', from: 'builder', to: 'user', text: `Change set ready: ${t.resources.length} resources. Nothing is created until you approve.` });
+  }
+
+  private async runDeploy(deployId: string) {
+    const templateId = this.deploys.get(deployId);
+    const t = templatesJson.templates.find((x) => x.id === templateId);
+    if (!t) return this.emit({ type: 'deploy.status', deployId, status: 'failed', message: 'Unknown deployment' });
+    this.emit({ type: 'deploy.status', deployId, status: 'creating' });
+    for (const r of t.resources) {
+      const svc = r.type.split('::')[1].toLowerCase();
+      const agent = t.serviceIds.find((id) => svc.includes(id) || (id === 'apigateway' && svc.startsWith('apigateway'))) ?? 'builder';
+      await this.work(agent, svc, `Creating ${r.logicalId} (${r.type})`, 1300);
+    }
+    const outputs: Record<string, string> = {};
+    for (const o of t.outputs) outputs[o] = o.endsWith('URL') || o.endsWith('Url') ? `https://${templateId}.example.aws-city.dev` : `aws-city-${templateId}-${o.toLowerCase()}`;
+    this.emit({ type: 'deploy.status', deployId, status: 'complete', outputs, message: `${t.title} is live (mock).` });
+    this.emit({ type: 'task.done', taskId: deployId, ok: true, result: `${t.title} deployed`, xp: t.serviceIds.map((serviceId) => ({ serviceId, amount: 25 })) });
+  }
+
+  private async teardown(deployId: string) {
+    this.emit({ type: 'deploy.status', deployId, status: 'deleting' });
+    await this.work('builder', 'cloudformation', 'DeleteStack', 1500);
+    this.deploys.delete(deployId);
+    this.emit({ type: 'deploy.status', deployId, status: 'deleted', message: 'Stack deleted — nothing left running.' });
+  }
+
+  async uploadScreenshot(_dataUrl: string) {
     const key = `mock/screenshots/${Date.now()}.jpg`;
     void this.work('s3', 's3', `PutObject ${key}`, 1200);
     await this.sleep(400);
@@ -277,7 +375,7 @@ export class MockBackend implements AgentBackend {
   async getProgress(): Promise<Progress | null> {
     return null; // mock has no server state; the local cache in chrome.storage is used
   }
-  async putProgress(_p: Progress) {}
+  putProgress(_p: Progress) {}
 
   private scheduleAmbient() {
     clearTimeout(this.ambientTimer);

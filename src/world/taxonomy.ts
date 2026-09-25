@@ -1,5 +1,7 @@
-// Districts (AWS categories) → services. Pure data: add a service here + a place in places.ts
-// and it appears in the city. Nothing in game/ or ui/ hard-codes service ids.
+// Districts (AWS categories) → services, read from shared/world.json (shared with the Python backend).
+// Add a service there and it appears in the city. Nothing in game/ or ui/ hard-codes service ids.
+
+import world from '../../shared/world.json' with { type: 'json' };
 
 export type DistrictId = 'storage' | 'compute' | 'database' | 'networking' | 'security' | 'aiml';
 
@@ -10,6 +12,7 @@ export interface District {
   color: number;
   /** Name of the district HQ (the Habbo-style interior room). */
   hq: string;
+  tagline: string;
 }
 
 export interface Service {
@@ -24,41 +27,18 @@ export interface Service {
   keywords: string[];
 }
 
-export const DISTRICTS: District[] = [
-  { id: 'storage', name: 'Storage Shores', color: 0x3f9b4f, hq: 'Storage HQ' },
-  { id: 'compute', name: 'Compute Quarter', color: 0xe8912d, hq: 'Compute HQ' },
-  { id: 'database', name: 'Database Row', color: 0x3a6fd8, hq: 'Database HQ' },
-  { id: 'networking', name: 'Network Junction', color: 0x8b5cf6, hq: 'Networking HQ' },
-  { id: 'security', name: 'Security Keep', color: 0xd64545, hq: 'Security HQ' },
-  { id: 'aiml', name: 'AI Heights', color: 0x14b8a6, hq: 'AI/ML HQ' },
-];
+const hexToNum = (h: string) => parseInt(h.replace('#', ''), 16);
 
-export const SERVICES: Service[] = [
-  // Storage
-  { id: 's3', name: 'Amazon S3', districtId: 'storage', consolePaths: ['s3'], docsPaths: ['AmazonS3'], keywords: ['s3', 'bucket', 'object', 'upload', 'file', 'photo', 'image', 'backup', 'store', 'storage'] },
-  { id: 'ebs', name: 'Amazon EBS', districtId: 'storage', consolePaths: ['ebs'], docsPaths: ['ebs'], keywords: ['ebs', 'volume', 'block storage', 'disk', 'snapshot'] },
-  { id: 'efs', name: 'Amazon EFS', districtId: 'storage', consolePaths: ['efs'], docsPaths: ['efs'], keywords: ['efs', 'file system', 'nfs', 'shared files'] },
-  // Compute
-  { id: 'ec2', name: 'Amazon EC2', districtId: 'compute', consolePaths: ['ec2'], docsPaths: ['AWSEC2', 'ec2'], keywords: ['ec2', 'instance', 'server', 'virtual machine', 'vm', 'ami'] },
-  { id: 'lambda', name: 'AWS Lambda', districtId: 'compute', consolePaths: ['lambda'], docsPaths: ['lambda'], keywords: ['lambda', 'function', 'serverless', 'trigger', 'event', 'run code', 'code', 'when a file'] },
-  { id: 'ecs', name: 'Amazon ECS', districtId: 'compute', consolePaths: ['ecs', 'eks'], docsPaths: ['AmazonECS', 'eks'], keywords: ['ecs', 'eks', 'container', 'docker', 'kubernetes', 'fargate'] },
-  // Database
-  { id: 'dynamodb', name: 'Amazon DynamoDB', districtId: 'database', consolePaths: ['dynamodbv2', 'dynamodb'], docsPaths: ['amazondynamodb'], keywords: ['dynamodb', 'dynamo', 'nosql', 'key-value', 'partition key', 'table'] },
-  { id: 'rds', name: 'Amazon RDS', districtId: 'database', consolePaths: ['rds'], docsPaths: ['AmazonRDS'], keywords: ['rds', 'postgres', 'mysql', 'relational', 'sql', 'database'] },
-  { id: 'aurora', name: 'Amazon Aurora', districtId: 'database', consolePaths: ['rds/aurora'], docsPaths: ['AmazonRDS/latest/AuroraUserGuide'], keywords: ['aurora', 'serverless v2', 'global database'] },
-  // Networking
-  { id: 'route53', name: 'Amazon Route 53', districtId: 'networking', consolePaths: ['route53'], docsPaths: ['Route53'], keywords: ['route 53', 'route53', 'dns', 'domain', 'hosted zone', 'record'] },
-  { id: 'vpc', name: 'Amazon VPC', districtId: 'networking', consolePaths: ['vpc', 'vpcconsole'], docsPaths: ['vpc'], keywords: ['vpc', 'subnet', 'network', 'security group', 'nat', 'private'] },
-  { id: 'cloudfront', name: 'Amazon CloudFront', districtId: 'networking', consolePaths: ['cloudfront'], docsPaths: ['AmazonCloudFront'], keywords: ['cloudfront', 'cdn', 'cache', 'edge', 'distribution'] },
-  // Security
-  { id: 'shield', name: 'AWS Shield', districtId: 'security', consolePaths: ['wafv2/shield', 'shield'], docsPaths: ['waf/latest/developerguide/shield'], keywords: ['shield', 'ddos', 'attack', 'waf', 'protect'] },
-  { id: 'iam', name: 'AWS IAM', districtId: 'security', consolePaths: ['iam', 'iamv2'], docsPaths: ['IAM'], keywords: ['iam', 'role', 'policy', 'permission', 'user', 'access'] },
-  { id: 'kms', name: 'AWS KMS', districtId: 'security', consolePaths: ['kms'], docsPaths: ['kms'], keywords: ['kms', ' key ', 'encrypt', 'encryption', 'secret'] },
-  // AI / ML
-  { id: 'bedrock', name: 'Amazon Bedrock', districtId: 'aiml', consolePaths: ['bedrock'], docsPaths: ['bedrock'], keywords: ['bedrock', 'llm', 'claude', 'generative', 'genai', 'prompt', 'model'] },
-  { id: 'sagemaker', name: 'Amazon SageMaker', districtId: 'aiml', consolePaths: ['sagemaker'], docsPaths: ['sagemaker'], keywords: ['sagemaker', 'train', 'training', 'notebook', 'machine learning', ' ml '] },
-  { id: 'rekognition', name: 'Amazon Rekognition', districtId: 'aiml', consolePaths: ['rekognition'], docsPaths: ['rekognition'], keywords: ['rekognition', 'face', 'vision', 'label', 'detect', 'recognise', 'recognize'] },
-];
+export const DISTRICTS: District[] = world.districts.map((d) => ({ ...d, id: d.id as DistrictId, color: hexToNum(d.color) }));
+
+export const SERVICES: Service[] = world.services.map((s) => ({
+  id: s.id,
+  name: s.name,
+  districtId: s.districtId as DistrictId,
+  consolePaths: s.consolePaths,
+  docsPaths: s.docsPaths,
+  keywords: s.keywords,
+}));
 
 export const serviceById = (id: string) => SERVICES.find((s) => s.id === id);
 export const districtById = (id: string) => DISTRICTS.find((d) => d.id === id);

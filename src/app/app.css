@@ -503,3 +503,247 @@ code {
     opacity: 0;
   }
 }
+
+/* Kenney pixel fonts (CC0) — used by the Phaser world and pixel UI bits. */
+@font-face {
+  font-family: 'Kenney Pixel';
+  src: url('/assets/kenney/fonts/kenney-pixel.ttf') format('truetype');
+  font-display: block;
+}
+@font-face {
+  font-family: 'Kenney Mini';
+  src: url('/assets/kenney/fonts/kenney-mini.ttf') format('truetype');
+  font-display: block;
+}
+@font-face {
+  font-family: 'Kenney Future';
+  src: url('/assets/kenney/fonts/kenney-future.ttf') format('truetype');
+  font-display: block;
+}
+
+/* ── v2: tabs with icons ── */
+.tabs button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 5px 2px;
+  min-width: 0;
+}
+.tabs .ti {
+  font-size: 15px;
+}
+.tabs .tl {
+  font-size: 10px;
+  white-space: nowrap;
+}
+.app-panel .tabs .tl {
+  font-size: 9px;
+}
+select {
+  width: 100%;
+  background: #0c1526;
+  color: var(--ink);
+  border: 2px solid #000;
+  border-radius: 6px;
+  padding: 5px;
+  font: inherit;
+}
+.btn.tiny {
+  padding: 1px 6px;
+  font-size: 11px;
+  margin-left: 6px;
+}
+
+/* ── flashcards ── */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flash {
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  background: #fffbeb;
+  color: #1b1200;
+  border: 3px solid #000;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 #000;
+  padding: 14px;
+  text-align: center;
+  font-size: 15px;
+}
+.flash.back {
+  background: #ecfeff;
+}
+.flash-meta {
+  font-size: 11px;
+  color: #92400e;
+  text-transform: uppercase;
+}
+.flash-hint {
+  font-size: 11px;
+  color: #6b7280;
+}
+.grades {
+  justify-content: space-between;
+}
+.grades .btn {
+  flex: 1;
+}
+.source {
+  font-size: 11px;
+  color: #93c5fd;
+}
+
+/* ── architecture board ── */
+.arch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.story {
+  color: #dbeafe;
+  margin: 2px 0;
+}
+.reqs {
+  margin: 0;
+  padding-left: 4px;
+  list-style: none;
+  color: #fde68a;
+}
+.palette,
+.board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.board {
+  min-height: 48px;
+  padding: 8px;
+  border: 2px dashed var(--line);
+  border-radius: 8px;
+  background: #0c1526;
+}
+.svc {
+  background: var(--panel-2);
+  border: 2px solid;
+  border-left-width: 6px;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.svc.on {
+  background: #1e3a5f;
+}
+.result {
+  border: 2px solid;
+  border-radius: 8px;
+  padding: 8px;
+  background: #0c1526;
+}
+.result.pass {
+  border-color: var(--good);
+}
+.result.fail {
+  border-color: var(--bad);
+}
+.pillars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+  margin: 6px 0;
+}
+.pillar {
+  font-size: 11px;
+}
+.pillar .bar {
+  height: 7px;
+  background: #22314f;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pillar .bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #22c55e);
+}
+
+/* ── quests ── */
+.quests {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.quest {
+  background: #0c1526;
+  border: 2px solid var(--line);
+  border-left-width: 6px;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.quest.done {
+  opacity: 0.7;
+}
+.quest-head {
+  display: flex;
+  justify-content: space-between;
+}
+.quest .btn.primary {
+  align-self: flex-start;
+}
+
+/* ── deploy ── */
+.deploy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.deploy h4 {
+  margin: 6px 0 0;
+}
+.tpl {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  background: #0c1526;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.changes {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0;
+  font-size: 12px;
+}
+.changes td {
+  padding: 2px 4px;
+  border-bottom: 1px solid #22314f;
+}
+.chg.Add {
+  color: var(--good);
+  font-weight: bold;
+}
+.chg.Remove {
+  color: var(--bad);
+}
+.stack.complete {
+  border-color: var(--good);
+}
+.outputs {
+  margin: 4px 0;
+  padding-left: 16px;
+  font-size: 12px;
+}
+.outputs a {
+  color: #93c5fd;
+}

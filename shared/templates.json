@@ -1,0 +1,56 @@
+{
+  "templates": [
+    {
+      "id": "static-site",
+      "title": "Host a static website",
+      "serviceIds": ["s3", "cloudfront"],
+      "summary": "A private S3 bucket served worldwide by CloudFront using Origin Access Control.",
+      "resources": [
+        { "logicalId": "SiteBucket", "type": "AWS::S3::Bucket" },
+        { "logicalId": "SiteOAC", "type": "AWS::CloudFront::OriginAccessControl" },
+        { "logicalId": "SiteDistribution", "type": "AWS::CloudFront::Distribution" },
+        { "logicalId": "SiteBucketPolicy", "type": "AWS::S3::BucketPolicy" }
+      ],
+      "outputs": ["WebsiteURL", "BucketName"],
+      "costNote": "Free tier eligible — typically $0 for a small site."
+    },
+    {
+      "id": "hello-api",
+      "title": "Serverless API",
+      "serviceIds": ["lambda", "apigateway", "iam"],
+      "summary": "An HTTP API in API Gateway that invokes a Lambda function with a least-privilege role.",
+      "resources": [
+        { "logicalId": "HelloRole", "type": "AWS::IAM::Role" },
+        { "logicalId": "HelloFunction", "type": "AWS::Lambda::Function" },
+        { "logicalId": "HelloApi", "type": "AWS::ApiGatewayV2::Api" },
+        { "logicalId": "HelloPermission", "type": "AWS::Lambda::Permission" }
+      ],
+      "outputs": ["ApiUrl"],
+      "costNote": "Free tier: 1M Lambda requests and 1M HTTP API calls per month."
+    },
+    {
+      "id": "dynamo-table",
+      "title": "On-demand DynamoDB table",
+      "serviceIds": ["dynamodb"],
+      "summary": "A pay-per-request table with a partition key and point-in-time recovery.",
+      "resources": [{ "logicalId": "CityTable", "type": "AWS::DynamoDB::Table" }],
+      "outputs": ["TableName"],
+      "costNote": "On-demand: pay per request; ~$0 when idle."
+    },
+    {
+      "id": "queue-worker",
+      "title": "Queue + worker",
+      "serviceIds": ["sqs", "lambda", "iam"],
+      "summary": "An SQS queue with a dead-letter queue, drained by a Lambda function.",
+      "resources": [
+        { "logicalId": "DeadLetterQueue", "type": "AWS::SQS::Queue" },
+        { "logicalId": "WorkQueue", "type": "AWS::SQS::Queue" },
+        { "logicalId": "WorkerRole", "type": "AWS::IAM::Role" },
+        { "logicalId": "WorkerFunction", "type": "AWS::Lambda::Function" },
+        { "logicalId": "WorkerMapping", "type": "AWS::Lambda::EventSourceMapping" }
+      ],
+      "outputs": ["QueueUrl"],
+      "costNote": "Free tier: 1M SQS requests and 1M Lambda requests per month."
+    }
+  ]
+}

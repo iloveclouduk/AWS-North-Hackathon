@@ -1,7 +1,10 @@
 import { create } from 'zustand';
 import type { ConnectionStatus } from '@/backend/AgentBackend';
-import type { Progress, ServerEvent, StepStatus } from '@/backend/contract';
-import { placeFor, SPECIAL_AGENTS, TIER_NAMES, tierForXp } from '@/world/places';
+import type { DeployChange, DeployStatusEvent, Progress, ServerEvent, StepStatus } from '@/backend/contract';
+import { placeFor, SPECIAL_AGENTS, TIER_NAMES, tierForXp, type GameId } from '@/world/places';
+import { questById, serviceOfCard, type QuestStep } from '@/world/content';
+import { review, xpFor, type Grade } from '@/learning/srs';
+import { ACTION_BLUEPRINT, GUARDED_EQUIV } from '@/backend/ServerBackend';
 import { SERVICES, serviceById } from '@/world/taxonomy';
 import { bus } from './bus';
 import type { PageFocus } from './types';
@@ -39,7 +42,7 @@ export interface Toast {
   text: string;
 }
 
-export type View = { name: 'city' } | { name: 'interior'; districtId: string } | { name: 'fishing' };
+export type View = { name: 'city' } | { name: 'interior'; districtId: string } | { name: 'game'; game: GameId };
 
 export interface AgentStatus {
   state: 'idle' | 'working';
@@ -47,10 +50,32 @@ export interface AgentStatus {
   detail?: string;
 }
 
+export interface AccountState {
+  linked: boolean;
+  accountId?: string;
+  region?: string;
+  linkUrl?: string;
+  externalId?: string;
+  message?: string;
+}
+
+export interface DeployView {
+  deployId: string;
+  templateId: string;
+  stackName: string;
+  region: string;
+  changes: DeployChange[];
+  costNote?: string;
+  status: 'preview' | DeployStatusEvent['status'];
+  outputs?: Record<string, string>;
+  message?: string;
+}
+
 export type SnapState = 'idle' | 'snapping' | 'needs-permission' | 'failed' | 'unavailable';
 
 export interface CityState {
-  backendKind: 'mock' | 'aws';
+  backendKind: 'mock' | 'agentcore' | 'server';
+  deployMode: 'templates' | 'guarded';
   backendStatus: ConnectionStatus;
   focus?: PageFocus;
   progress: Progress;
@@ -66,9 +91,12 @@ export interface CityState {
   lastClassified?: { serviceIds: string[]; summary: string };
   snap: SnapState;
   lastSnapshot?: string;
+  account: AccountState;
+  deploys: Record<string, DeployView>;
+  agentLevels: Record<string, number>;
 
   // pure state transitions (no I/O — see app/runtime.ts for commands)
-  setBackend(kind: 'mock' | 'aws', status: ConnectionStatus): void;
+  setBackend(kind: 'mock' | 'agentcore' | 'server', status: ConnectionStatus, deployMode?: 'templates' | 'guarded'): void;
   setFocus(f: PageFocus): void;
   discover(serviceId: string): void;
   addXp(serviceId: string, amount: number): void;
@@ -83,6 +111,13 @@ export interface CityState {
   select(id?: string): void;
   setAutoSnap(on: boolean): void;
   setSnap(s: SnapState, snapshot?: string): void;
+  // learning
+  reviewCard(cardId: string, grade: Grade): void;
+  recordPuzzle(puzzleId: string, score: number, passed: boolean): void;
+  recordGame(game: GameId, score: number): void;
+  startQuest(questId: string): void;
+  /** Advance any active quest whose current step matches. */
+  questEvent(match: (step: QuestStep) => boolean, countable?: boolean): void;
 }
 
 let nextId = 1;
@@ -105,6 +140,7 @@ export const knownAgents = (p: Progress) => ['concierge', 'lookout', ...SERVICES
 
 export const useCity = create<CityState>()((set, get) => ({
   backendKind: 'mock',
+  deployMode: 'templates',
   backendStatus: 'disconnected',
   progress: emptyProgress(),
   agents: {},
@@ -116,13 +152,17 @@ export const useCity = create<CityState>()((set, get) => ({
   view: { name: 'city' },
   autoSnap: false,
   snap: 'idle',
+  account: { linked: false },
+  deploys: {},
+  agentLevels: {},
 
-  setBackend: (backendKind, backendStatus) => set({ backendKind, backendStatus }),
+  setBackend: (backendKind, backendStatus, deployMode) => set(deployMode ? { backendKind, backendStatus, deployMode } : { backendKind, backendStatus }),
 
   setFocus: (focus) => {
     set({ focus });
     const id = focus.serviceId;
     if (!id) return;
+    get().questEvent((st) => st.kind === 'visit' && st.serviceId === id);
     if (!isDiscovered(get().progress, id)) {
       get().discover(id);
       return;
@@ -219,6 +259,7 @@ export const useCity = create<CityState>()((set, get) => ({
         const t = s.tasks[e.taskId];
         if (t) set({ tasks: { ...s.tasks, [e.taskId]: { ...t, status: e.ok ? 'done' : 'failed', result: e.result } } });
         for (const x of e.xp) get().addXp(x.serviceId, x.amount);
+        if (e.ok) get().questEvent((st) => st.kind === 'ask');
         break;
       }
       case 'page.classified':
@@ -235,6 +276,38 @@ export const useCity = create<CityState>()((set, get) => ({
         if (e.done) get().addXp(e.agentId, 5);
         break;
       }
+      case 'agent.level':
+        set({ agentLevels: { ...s.agentLevels, [e.agentId]: e.level } });
+        s.toast('🧠', `${agentName(e.agentId)} reached level ${e.level}${e.skill ? `: ${e.skill}` : ''}`);
+        break;
+      case 'account.linkUrl':
+        set({ account: { ...s.account, linkUrl: e.url, externalId: e.externalId } });
+        break;
+      case 'account.status':
+        set({ account: { ...s.account, linked: e.linked, accountId: e.accountId, region: e.region, message: e.message } });
+        if (e.linked) s.toast('🔗', `AWS account ${e.accountId} linked — agents can now deploy for you (with your approval).`);
+        break;
+      case 'deploy.preview':
+        set({
+          deploys: {
+            ...s.deploys,
+            [e.deployId]: { deployId: e.deployId, templateId: e.templateId, stackName: e.stackName, region: e.region, changes: e.changes, costNote: e.costNote, status: 'preview' },
+          },
+        });
+        break;
+      case 'deploy.status': {
+        const d = s.deploys[e.deployId];
+        if (d) set({ deploys: { ...s.deploys, [e.deployId]: { ...d, status: e.status, outputs: e.outputs ?? d.outputs, message: e.message } } });
+        s.log({ kind: 'system', text: `🏗️ ${d?.stackName ?? e.deployId}: ${e.status}${e.message ? ` — ${e.message}` : ''}` });
+        if (e.status === 'complete') {
+          s.toast('🚀', `${d?.stackName ?? 'Stack'} deployed to your AWS account!`);
+          if (d) get().questEvent((st) => st.kind === 'deploy' && (st.templateId === d.templateId || GUARDED_EQUIV[st.templateId] === ACTION_BLUEPRINT[d.templateId]));
+        }
+        break;
+      }
+      case 'screenshot.url':
+      case 'progress.state':
+        break;
       case 'error':
         s.log({ kind: 'system', text: `⚠️ ${e.message}` });
         if (e.taskId && s.tasks[e.taskId]) set({ tasks: { ...s.tasks, [e.taskId]: { ...s.tasks[e.taskId], status: 'failed' } } });
@@ -266,7 +339,70 @@ export const useCity = create<CityState>()((set, get) => ({
   dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 
   setView: (view) => set({ view }),
-  select: (selected) => set({ selected }),
+  select: (selected) => {
+    set({ selected });
+    if (selected) get().questEvent((st) => st.kind === 'visit' && st.serviceId === selected);
+  },
   setAutoSnap: (autoSnap) => set({ autoSnap }),
   setSnap: (snap, lastSnapshot) => set(lastSnapshot ? { snap, lastSnapshot } : { snap }),
+
+  reviewCard: (cardId, grade) => {
+    const { progress } = get();
+    const prev = progress.cards?.[cardId];
+    set({ progress: { ...progress, cards: { ...progress.cards, [cardId]: review(prev, grade) }, updatedAt: new Date().toISOString() } });
+    const serviceId = serviceOfCard(cardId);
+    get().addXp(serviceId, xpFor(prev, grade));
+    if (grade !== 'again') get().questEvent((st) => st.kind === 'cards' && st.serviceId === serviceId, true);
+  },
+
+  recordPuzzle: (puzzleId, score, passed) => {
+    const { progress } = get();
+    const best = Math.max(score, progress.puzzles?.[puzzleId]?.best ?? 0);
+    set({ progress: { ...progress, puzzles: { ...progress.puzzles, [puzzleId]: { best } }, updatedAt: new Date().toISOString() } });
+    if (passed) get().questEvent((st) => st.kind === 'puzzle' && st.puzzleId === puzzleId);
+  },
+
+  recordGame: (game, score) => {
+    const { progress } = get();
+    const g = progress.games?.[game] ?? { best: 0, plays: 0 };
+    set({ progress: { ...progress, games: { ...progress.games, [game]: { best: Math.max(g.best, score), plays: g.plays + 1 } }, updatedAt: new Date().toISOString() } });
+  },
+
+  startQuest: (questId) => {
+    const q = questById(questId);
+    const { progress } = get();
+    if (!q || progress.quests?.[questId]?.status === 'active') return;
+    set({ progress: { ...progress, quests: { ...progress.quests, [questId]: { status: 'active', step: 0, count: 0 } }, updatedAt: new Date().toISOString() } });
+    get().toast('📜', `Quest started: ${q.title}`);
+    get().log({ kind: 'system', text: `📜 ${q.title}: ${q.intro}` });
+  },
+
+  questEvent: (match, countable) => {
+    const { progress } = get();
+    const quests = { ...progress.quests };
+    let changed = false;
+    for (const [id, st] of Object.entries(quests)) {
+      if (st.status !== 'active') continue;
+      const q = questById(id);
+      const step = q?.steps[st.step];
+      if (!q || !step || !match(step)) continue;
+      changed = true;
+      if (countable && step.kind === 'cards' && (st.count ?? 0) + 1 < step.count) {
+        quests[id] = { ...st, count: (st.count ?? 0) + 1 };
+        continue;
+      }
+      const next = st.step + 1;
+      if (next >= q.steps.length) {
+        quests[id] = { status: 'done', step: next };
+        get().toast('🏆', `Quest complete: ${q.title}! +${q.rewardXp} XP`);
+        bus.emit('questDone', { questId: id });
+        const share = Math.ceil(q.rewardXp / q.serviceIds.length);
+        setTimeout(() => q.serviceIds.forEach((sid) => get().addXp(sid, share)), 0);
+      } else {
+        quests[id] = { status: 'active', step: next, count: 0 };
+        get().log({ kind: 'system', text: `📜 ${q.title} — next: ${q.steps[next].text}` });
+      }
+    }
+    if (changed) set({ progress: { ...get().progress, quests, updatedAt: new Date().toISOString() } });
+  },
 }));

@@ -13,7 +13,9 @@
     "postinstall": "wxt prepare",
     "assets": "bash scripts/fetch-assets.sh",
     "smoke": "wxt build && node scripts/smoke.mjs",
-    "check": "tsc --noEmit && vitest run"
+    "check": "tsc --noEmit && vitest run",
+    "open": "wxt build && node scripts/open.mjs",
+    "art": "python3 art/characters/aws_city.py && python3 art/tiles/generate_tiles.py"
   },
   "dependencies": {
     "phaser": "^4.2.1",

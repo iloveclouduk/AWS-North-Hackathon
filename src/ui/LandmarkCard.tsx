@@ -84,9 +84,9 @@ export function LandmarkCard() {
         </>
       )}
       <div className="actions">
-        {place.game === 'fishing' && tier >= 0 && (
-          <button className="btn primary" onClick={() => setView({ name: 'fishing' })}>
-            🎣 Go fishing
+        {place.game && tier >= 0 && (
+          <button className="btn primary" onClick={() => setView({ name: 'game', game: place.game! })}>
+            🎮 Play {place.game === 'fishing' ? 'Fishing' : place.game === 'shield' ? 'Shield Wall' : place.game === 'route53' ? 'Dance Hall' : 'Food Stall'}
           </button>
         )}
         {tier >= 0 && (

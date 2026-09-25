@@ -3,6 +3,7 @@ import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import WebSocket from 'ws';
 import { loadConfig } from '../src/config.js';
+import type { Approvals } from '../src/contract/approvals.js';
 import type { Orchestrator } from '../src/contract/orchestrator.js';
 import { createProgressStore } from '../src/contract/progress.js';
 import { createUploadStore } from '../src/contract/uploads.js';
@@ -21,7 +22,13 @@ beforeAll(async () => {
   const snap = snapshot([]);
   const poller = { current: () => snap, refresh: async () => snap, start() {}, stop() {} } as Poller;
   const orchestrator = {
-    submitTask: async (cmd: { taskId: string }, emit: (e: ServerEvent) => void) => emit({ type: 'task.done', taskId: cmd.taskId, ok: true, result: 'ok', xp: [] }),
+    submitTask: async (cmd: { taskId: string; prompt: string }, emit: (e: ServerEvent) => void, approvals?: Approvals) => {
+      // 'approve-me' simulates an agent write that needs the player's OK (contract v2).
+      const ok = cmd.prompt === 'approve-me' && approvals
+        ? await approvals.request(cmd.taskId, { action: { type: 'create_table', name: 'city-x' } as never, summary: 'Create DynamoDB table "city-x"', destructive: false }, emit)
+        : true;
+      emit({ type: 'task.done', taskId: cmd.taskId, ok, result: 'ok', xp: [] });
+    },
     ask: async () => {},
     classifyPage: async () => {},
   } as unknown as Orchestrator;
@@ -109,5 +116,43 @@ describe('HTTP/WebSocket guards', () => {
     expect((await fetch(uploadUrl.replace(/sig=.*/, 'sig=forged'), { method: 'PUT', body: 'x' })).status).toBe(403);
     expect((await fetch(uploadUrl, { method: 'PUT', body: 'jpeg-bytes' })).status).toBe(200);
     expect((await fetch(uploadUrl, { method: 'PUT', body: 'again' })).status).toBe(403);
+  });
+});
+
+describe('player approvals over the socket (contract v2)', () => {
+  const next = (ws: WebSocket, type: string) =>
+    new Promise<ServerEvent>((resolve) => {
+      const onMsg = (raw: WebSocket.RawData) => {
+        const e = JSON.parse(raw.toString()) as ServerEvent;
+        if (e.type === type) {
+          ws.off('message', onMsg);
+          resolve(e);
+        }
+      };
+      ws.on('message', onMsg);
+    });
+
+  it('a write waits for deploy.approve on the same socket, and stale answers are refused', async () => {
+    const { ws } = await openWs(`?token=${TOKEN}`);
+    const preview = next(ws!, 'deploy.preview');
+    ws!.send(JSON.stringify({ action: 'task.submit', taskId: 'appr-1', prompt: 'approve-me', context: {} }));
+    const p = await preview;
+    if (p.type !== 'deploy.preview') throw new Error();
+    expect(p.changes[0]).toMatchObject({ action: 'Add', resourceType: 'AWS::DynamoDB::Table' });
+    const done = next(ws!, 'task.done');
+    ws!.send(JSON.stringify({ action: 'deploy.approve', deployId: p.deployId }));
+    expect(await done).toMatchObject({ taskId: 'appr-1', ok: true });
+    const stale = next(ws!, 'deploy.status');
+    ws!.send(JSON.stringify({ action: 'deploy.approve', deployId: p.deployId }));
+    expect(await stale).toMatchObject({ status: 'failed' });
+    ws!.close();
+  });
+
+  it('closing the socket rejects pending approvals', async () => {
+    const { ws } = await openWs(`?token=${TOKEN}`);
+    const preview = next(ws!, 'deploy.preview');
+    ws!.send(JSON.stringify({ action: 'task.submit', taskId: 'appr-2', prompt: 'approve-me', context: {} }));
+    await preview;
+    ws!.close();
   });
 });

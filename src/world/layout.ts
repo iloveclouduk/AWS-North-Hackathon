@@ -1,12 +1,12 @@
-// Where things sit on the isometric grid. The city is a 3×3 grid of 9×9 plots separated by roads.
-// The centre plot is the Town Square; each district claims one plot and fills its three landmark
-// slots in the order services are listed in taxonomy.ts. Two plots are reserved for future districts.
+// Where things sit on the isometric grid. The city is a 3×3 grid of 12×12 plots separated by roads.
+// The centre plot is the Town Square; each district claims one plot and fills its six landmark
+// slots in the order services are listed in shared/world.json. Two plots are reserved for the future.
 
 import { DISTRICTS, SERVICES, type DistrictId } from './taxonomy';
 
-export const PLOT = 9;
+export const PLOT = 12;
 export const ROAD = 1;
-export const GRID = 3 * PLOT + 4 * ROAD; // 31
+export const GRID = 3 * PLOT + 4 * ROAD; // 40
 
 export interface Rect {
   x: number;
@@ -34,15 +34,18 @@ export const FUTURE_CELLS: [number, number][] = [
   [1, 2],
   [2, 2],
 ];
-export const FUTURE_LABELS = ['Analytics Park (coming soon)', 'DevTools Yard (coming soon)'];
+export const FUTURE_LABELS = ['Migration Meadow (coming soon)', 'IoT Island (coming soon)'];
 
 /** Landmark footprints inside a plot, in plot-local coordinates. */
 const SLOTS: Rect[] = [
   { x: 1, y: 1, w: 3, h: 3 },
   { x: 5, y: 1, w: 3, h: 3 },
-  { x: 2, y: 5, w: 3, h: 3 },
+  { x: 9, y: 1, w: 3, h: 3 },
+  { x: 1, y: 6, w: 3, h: 3 },
+  { x: 5, y: 6, w: 3, h: 3 },
+  { x: 9, y: 6, w: 3, h: 3 },
 ];
-const HQ_SLOT: Rect = { x: 6, y: 6, w: 2, h: 2 };
+const HQ_SLOT: Rect = { x: 5, y: 10, w: 2, h: 2 };
 
 export interface PlotLayout {
   id: string;
@@ -50,7 +53,7 @@ export interface PlotLayout {
 }
 
 export interface LandmarkLayout {
-  id: string; // service id, 'hq:<district>', 'plaza', 'lookout'
+  id: string; // service id, 'hq:<district>', 'plaza', 'lookout', 'workshop'
   districtId?: DistrictId;
   footprint: Rect;
   /** Walkable tile where the agent stands to work. */
@@ -77,10 +80,12 @@ export const FUTURE_PLOTS: PlotLayout[] = FUTURE_CELLS.map(([cx, cy], i) => ({
 function buildLandmarks(): LandmarkLayout[] {
   const out: LandmarkLayout[] = [];
   const sq = TOWN_SQUARE.rect;
-  const plaza = offset(sq, { x: 3, y: 1, w: 3, h: 2 });
+  const plaza = offset(sq, { x: 4, y: 1, w: 4, h: 2 });
   out.push({ id: 'plaza', footprint: plaza, workSpot: frontOf(plaza) });
-  const lookout = offset(sq, { x: 7, y: 1, w: 1, h: 1 });
+  const lookout = offset(sq, { x: 10, y: 1, w: 1, h: 1 });
   out.push({ id: 'lookout', footprint: lookout, workSpot: { x: lookout.x, y: lookout.y + 1 } });
+  const workshop = offset(sq, { x: 1, y: 7, w: 3, h: 3 });
+  out.push({ id: 'workshop', footprint: workshop, workSpot: frontOf(workshop) });
 
   for (const d of DISTRICTS) {
     const o = DISTRICT_PLOTS[d.id].rect;
@@ -99,8 +104,14 @@ function buildLandmarks(): LandmarkLayout[] {
 export const LANDMARKS: LandmarkLayout[] = buildLandmarks();
 export const landmarkLayout = (id: string) => LANDMARKS.find((l) => l.id === id);
 
-export const FOUNTAIN: Tile = { x: TOWN_SQUARE.rect.x + 4, y: TOWN_SQUARE.rect.y + 5 };
-export const PLAYER_SPAWN: Tile = { x: TOWN_SQUARE.rect.x + 4, y: TOWN_SQUARE.rect.y + 7 };
+export const FOUNTAIN: Tile = { x: TOWN_SQUARE.rect.x + 6, y: TOWN_SQUARE.rect.y + 6 };
+export const PLAYER_SPAWN: Tile = { x: TOWN_SQUARE.rect.x + 6, y: TOWN_SQUARE.rect.y + 9 };
+/** Benches in the square (citizens sit here). */
+export const BENCHES: Tile[] = [
+  { x: TOWN_SQUARE.rect.x + 8, y: TOWN_SQUARE.rect.y + 5 },
+  { x: TOWN_SQUARE.rect.x + 8, y: TOWN_SQUARE.rect.y + 7 },
+  { x: TOWN_SQUARE.rect.x + 5, y: TOWN_SQUARE.rect.y + 4 },
+];
 
 export const inRect = (t: Tile, r: Rect) => t.x >= r.x && t.x < r.x + r.w && t.y >= r.y && t.y < r.y + r.h;
 export const isRoad = (t: Tile) => t.x % (PLOT + ROAD) === 0 || t.y % (PLOT + ROAD) === 0;

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { useCity } from '@/state/store';
-import { castFor } from '../cast';
-import { registerAgentSheet } from '../sprites';
+import { FRAME_H, FRAME_W, PIVOT } from '../assets';
+import { sfx } from '../audio';
 import { UI_FONT } from '../SpeechBubble';
 
 /**
@@ -92,14 +92,13 @@ export class FishingScene extends Phaser.Scene {
       const bx = 22 + i * ((pierW - 50) / 3);
       g.fillStyle(c.color, 1).fillRect(bx, this.waterY - 44, 30, 26);
       g.fillStyle(0x161622, 1).fillRect(bx - 2, this.waterY - 46, 34, 4);
-      this.add.text(bx + 15, this.waterY - 50, c.label.replace('S3 ', ''), { fontFamily: UI_FONT, fontSize: '10px', fontStyle: 'bold', color: '#161622', resolution: 2 }).setOrigin(0.5, 1);
+      this.add.text(bx + 15, this.waterY - 50, c.label.replace('S3 ', ''), { fontFamily: UI_FONT, fontSize: '16px', color: '#161622' }).setOrigin(0.5, 1);
     });
 
     // player with a rod
-    const cast = castFor('player')!;
-    registerAgentSheet(this, 'player', cast.look);
-    this.player = this.add.sprite(pierW - 40, this.waterY - 18, 'agent:player', 0).setOrigin(0.5, 28 / 30).setScale(1.6);
-    this.player.play('player:work');
+    // Kai, the player, fishing (team sprite, 2× for the close-up)
+    this.player = this.add.sprite(pierW - 40, this.waterY - 18, 'char:player', 0).setOrigin(PIVOT.x / FRAME_W, PIVOT.y / FRAME_H).setScale(2);
+    this.player.play('player:idle:SE');
     this.rodTip.set(this.player.x + 26, this.player.y - 62);
 
     this.line = this.add.graphics().setDepth(5);
@@ -107,12 +106,12 @@ export class FishingScene extends Phaser.Scene {
 
     for (let i = 0; i < 6; i++) this.spawnSwimmer(i);
 
-    this.hud = this.add.text(w - 12, 10, '', { fontFamily: UI_FONT, fontSize: '14px', fontStyle: 'bold', color: '#0f172a', backgroundColor: '#ffffffcc', padding: { x: 8, y: 4 }, resolution: 2 }).setOrigin(1, 0).setDepth(20);
+    this.hud = this.add.text(w - 12, 10, '', { fontFamily: UI_FONT, fontSize: '16px', color: '#0f172a', backgroundColor: '#ffffffcc', padding: { x: 8, y: 4 } }).setOrigin(1, 0).setDepth(20);
     this.info = this.add
-      .text(w / 2, 40, '', { fontFamily: UI_FONT, fontSize: '15px', fontStyle: 'bold', color: '#ffffff', stroke: '#0f172a', strokeThickness: 4, align: 'center', wordWrap: { width: w - 40 }, resolution: 2 })
+      .text(w / 2, 40, '', { fontFamily: UI_FONT, fontSize: '16px', color: '#ffffff', stroke: '#0f172a', strokeThickness: 4, align: 'center', wordWrap: { width: w - 40 } })
       .setOrigin(0.5, 0)
       .setDepth(20);
-    this.add.text(12, 10, '🎣 S3 Lake', { fontFamily: UI_FONT, fontSize: '16px', fontStyle: 'bold', color: '#0f172a', resolution: 2 }).setDepth(20);
+    this.add.text(12, 10, '🎣 S3 Lake', { fontFamily: UI_FONT, fontSize: '16px', color: '#0f172a' }).setDepth(20);
     this.updateHud();
     this.setInfo('Click the water to cast. Each fish is an S3 object — choose the right storage class!');
   }
@@ -153,6 +152,8 @@ export class FishingScene extends Phaser.Scene {
 
   private cast(x: number, y: number) {
     this.state = 'casting';
+    this.player.play('player:fish:SE');
+    sfx('whoosh', 0.3);
     this.bobber.setPosition(this.rodTip.x, this.rodTip.y).setVisible(true);
     this.tweens.add({
       targets: this.bobber,
@@ -211,14 +212,14 @@ export class FishingScene extends Phaser.Scene {
     const cw = Math.min(420, w - 24);
     const card = this.add.container(w / 2, this.waterY + 20).setDepth(30);
     const bg = this.add.rectangle(0, 0, cw, 190, 0xffffff).setStrokeStyle(3, 0x161622).setOrigin(0.5, 0);
-    const t1 = this.add.text(0, 12, `📄 ${item.name}`, { fontFamily: UI_FONT, fontSize: '17px', fontStyle: 'bold', color: '#161622', resolution: 2 }).setOrigin(0.5, 0);
-    const t2 = this.add.text(0, 40, `“${item.hint}”\nWhich bucket (storage class)?`, { fontFamily: UI_FONT, fontSize: '13px', color: '#374151', align: 'center', resolution: 2 }).setOrigin(0.5, 0);
+    const t1 = this.add.text(0, 12, `📄 ${item.name}`, { fontFamily: UI_FONT, fontSize: '16px', color: '#161622' }).setOrigin(0.5, 0);
+    const t2 = this.add.text(0, 40, `“${item.hint}”\nWhich bucket (storage class)?`, { fontFamily: UI_FONT, fontSize: '16px', color: '#374151', align: 'center' }).setOrigin(0.5, 0);
     card.add([bg, t1, t2]);
     const bw = (cw - 40) / 3;
     CLASSES.forEach((c, i) => {
       const x = -cw / 2 + 12 + bw / 2 + i * (bw + 8);
       const b = this.add.rectangle(x, 110, bw, 56, c.color).setStrokeStyle(2, 0x161622).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
-      const l = this.add.text(x, 118, `${c.label}\n${c.note}`, { fontFamily: UI_FONT, fontSize: '12px', fontStyle: 'bold', color: '#ffffff', align: 'center', stroke: '#161622', strokeThickness: 3, resolution: 2 }).setOrigin(0.5, 0);
+      const l = this.add.text(x, 118, `${c.label}\n${c.note}`, { fontFamily: UI_FONT, fontSize: '16px', color: '#ffffff', align: 'center', stroke: '#161622', strokeThickness: 3 }).setOrigin(0.5, 0);
       b.on('pointerdown', () => this.answer(item, c.id));
       card.add([b, l]);
     });
@@ -233,12 +234,16 @@ export class FishingScene extends Phaser.Scene {
     if (right) {
       this.correct++;
       useCity.getState().addXp('s3', 3);
+      sfx('correct', 0.4);
+      this.player.play('player:jump:SE');
+      this.time.delayedCall(700, () => this.player.play('player:idle:SE'));
     }
     this.hooked?.destroy();
     this.swimmers = this.swimmers.filter((f) => f !== this.hooked);
     this.hooked = undefined;
     this.spawnSwimmer(this.swimmers.length);
     this.updateHud();
+    if (!right) sfx('wrong', 0.4);
     const verdict = right ? `✅ Correct! ${item.why}` : `❌ Not quite. ${item.why}`;
     if (this.caught >= ROUND) return this.summary(verdict);
     this.reset(`${verdict}\nClick the water to cast again.`);
@@ -251,11 +256,12 @@ export class FishingScene extends Phaser.Scene {
     if (perfect) useCity.getState().addXp('s3', 5);
     this.setInfo(`${last}\n\n🏆 ${this.correct}/${ROUND} objects in the right bucket${perfect ? ' — perfect! +5 bonus XP' : ''}.\nTip: S3 Lifecycle rules can move objects between classes automatically.`);
     const { width: w, height: h } = this.scale;
-    const again = this.add.text(w / 2, h - 50, '🎣 Play again', { fontFamily: UI_FONT, fontSize: '15px', fontStyle: 'bold', color: '#ffffff', backgroundColor: '#3f9b4f', padding: { x: 12, y: 8 }, resolution: 2 }).setOrigin(0.5).setDepth(30).setInteractive({ useHandCursor: true });
+    const again = this.add.text(w / 2, h - 50, '🎣 Play again', { fontFamily: UI_FONT, fontSize: '16px', color: '#ffffff', backgroundColor: '#3f9b4f', padding: { x: 12, y: 8 } }).setOrigin(0.5).setDepth(30).setInteractive({ useHandCursor: true });
     again.on('pointerdown', () => this.scene.restart());
   }
 
   private reset(msg: string) {
+    this.player.play('player:idle:SE');
     this.tweens.killTweensOf(this.bobber);
     this.bobber.setVisible(false);
     this.state = 'ready';

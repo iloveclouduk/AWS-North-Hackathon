@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MockBackend } from '@/backend/MockBackend';
-import { isServerEvent, type ServerEvent } from '@/backend/contract';
+import { bearerSubprotocols, isServerEvent, type ServerEvent } from '@/backend/contract';
 
 /** The mock is the executable spec for the backend team: every event it emits must satisfy the contract. */
 describe('MockBackend speaks the contract', () => {
@@ -8,7 +8,7 @@ describe('MockBackend speaks the contract', () => {
     const mock = new MockBackend({ speed: 200 });
     const events: ServerEvent[] = [];
     mock.onEvent((e) => events.push(e));
-    mock.submitTask({ taskId: 't1', prompt: 'Store my holiday photos cheaply', context: {} });
+    mock.send({ action: 'task.submit', taskId: 't1', prompt: 'Store my holiday photos cheaply', context: {} });
     await new Promise((r) => setTimeout(r, 600));
 
     expect(events.every(isServerEvent)).toBe(true);
@@ -29,11 +29,36 @@ describe('MockBackend speaks the contract', () => {
     const mock = new MockBackend({ speed: 200 });
     const events: ServerEvent[] = [];
     mock.onEvent((e) => events.push(e));
-    mock.ask({ requestId: 'r1', districtId: 'storage', question: 'When should I use EFS?', context: {} });
+    mock.send({ action: 'chat.ask', requestId: 'r1', districtId: 'storage', question: 'When should I use EFS?', context: {} });
     await new Promise((r) => setTimeout(r, 400));
     const chunks = events.filter((e) => e.type === 'chat.answer');
     expect(chunks.length).toBeGreaterThan(3);
     expect(chunks.at(-1)).toMatchObject({ done: true, districtId: 'storage', agentId: 'efs' });
+  });
+
+  it('deploy.plan → preview; nothing is created until deploy.approve', async () => {
+    const mock = new MockBackend({ speed: 200 });
+    const events: ServerEvent[] = [];
+    mock.onEvent((e) => events.push(e));
+    mock.send({ action: 'deploy.plan', requestId: 'p1', templateId: 'static-site' });
+    await new Promise((r) => setTimeout(r, 100));
+    const preview = events.find((e) => e.type === 'deploy.preview');
+    expect(preview).toMatchObject({ requestId: 'p1', templateId: 'static-site', stackName: 'aws-city-static-site' });
+    expect(events.some((e) => e.type === 'deploy.status')).toBe(false);
+    if (preview?.type !== 'deploy.preview') throw new Error('no preview');
+    expect(preview.changes.map((c) => c.resourceType)).toContain('AWS::CloudFront::Distribution');
+
+    mock.send({ action: 'deploy.approve', deployId: preview.deployId });
+    await new Promise((r) => setTimeout(r, 300));
+    const statuses = events.filter((e) => e.type === 'deploy.status').map((e) => (e.type === 'deploy.status' ? e.status : ''));
+    expect(statuses).toEqual(['creating', 'complete']);
+  });
+
+  it('bearerSubprotocols uses the AgentCore browser OAuth format (token never in the URL)', () => {
+    const [p1, p2] = bearerSubprotocols('a.b+c/d=');
+    expect(p2).toBe('base64UrlBearerAuthorization');
+    expect(p1.startsWith('base64UrlBearerAuthorization.')).toBe(true);
+    expect(p1).not.toMatch(/[+/=]/);
   });
 
   it('rejects frames with unknown types', () => {

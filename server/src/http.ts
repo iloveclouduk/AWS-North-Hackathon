@@ -4,6 +4,7 @@ import { type WebSocket, WebSocketServer } from 'ws';
 import { z } from 'zod';
 import type { Config } from './config.js';
 import type { Orchestrator } from './contract/orchestrator.js';
+import { createApprovals } from './contract/approvals.js';
 import type { ProgressStore } from './contract/progress.js';
 import { MAX_UPLOAD_BYTES, type UploadStore } from './contract/uploads.js';
 import type { Poller } from './state/poller.js';
@@ -39,6 +40,9 @@ const Command = z.discriminatedUnion('action', [
   z.object({ action: z.literal('task.submit'), taskId: Id, prompt: z.string().min(1).max(2000), context: Context.default({}) }),
   z.object({ action: z.literal('chat.ask'), requestId: Id, districtId: z.string().max(64), question: z.string().min(1).max(2000), context: Context.default({}) }),
   z.object({ action: z.literal('page.classify'), requestId: Id, context: Context }),
+  // contract v2: the player's answer to a deploy.preview (approval of a guarded write)
+  z.object({ action: z.literal('deploy.approve'), deployId: Id }),
+  z.object({ action: z.literal('deploy.reject'), deployId: Id }),
 ]);
 
 const safeEqual = (a: string, b: string) => {
@@ -190,7 +194,11 @@ export const createHttpServer = (deps: Deps) => {
       let tasks = 0;
       let requests = 0;
       // Events for a task still running when its socket closes are dropped (accepted limitation).
-      ws.on('close', () => sockets.delete(ws));
+      const approvals = createApprovals({ region: deps.config.region });
+      ws.on('close', () => {
+        sockets.delete(ws);
+        approvals.cancelAll();
+      });
       ws.on('error', () => ws.terminate());
       for (const e of deps.welcome()) sendTo(ws, e);
 
@@ -209,13 +217,18 @@ export const createHttpServer = (deps: Deps) => {
           return;
         }
         const cmd = parsed.data;
+        if (cmd.action === 'deploy.approve' || cmd.action === 'deploy.reject') {
+          if (!approvals.answer(cmd.deployId, cmd.action === 'deploy.approve'))
+            emit({ type: 'deploy.status', deployId: cmd.deployId, status: 'failed', message: 'That request expired or was already answered.' });
+          return;
+        }
         if (cmd.action === 'task.submit') {
           if (tasks >= MAX_TASKS_PER_SOCKET) {
             emit({ type: 'error', message: 'Two tasks are already running. Wait for one to finish.', taskId: cmd.taskId });
             return;
           }
           tasks++;
-          void deps.orchestrator.submitTask(cmd, emit).finally(() => tasks--);
+          void deps.orchestrator.submitTask(cmd, emit, approvals).finally(() => tasks--);
         } else {
           // Each chat/classify is a Bedrock call billed to the account: cap them per socket.
           const requestId = cmd.requestId;

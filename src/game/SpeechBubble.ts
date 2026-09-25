@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 
-export const UI_FONT = '"Trebuchet MS", Verdana, sans-serif';
+/** Kenney Pixel (CC0), loaded via @font-face in app/app.css. Crisp at 16px multiples. */
+export const PIXEL_FONT = '"Kenney Pixel", monospace';
+export const UI_FONT = PIXEL_FONT;
 
 export interface SayOptions {
   /** How long to keep it up after typing finishes. Defaults scale with length. */
@@ -27,18 +29,17 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
   private hideTimer?: Phaser.Time.TimerEvent;
   private maxW: number;
 
-  constructor(scene: Phaser.Scene, maxW = 190) {
+  constructor(scene: Phaser.Scene, maxW = 170) {
     super(scene, 0, 0);
     this.maxW = maxW;
     this.bg = scene.add.graphics();
-    this.cap = scene.add.text(0, 0, '', { fontFamily: UI_FONT, fontSize: '10px', fontStyle: 'bold', color: '#6b7280', resolution: 2 });
+    this.cap = scene.add.text(0, 0, '', { fontFamily: UI_FONT, fontSize: '16px', color: '#6b7280' });
     this.label = scene.add.text(0, 0, '', {
       fontFamily: UI_FONT,
-      fontSize: '12px',
+      fontSize: '16px',
       color: '#161622',
-      wordWrap: { width: maxW - 16, useAdvancedWrap: true },
-      resolution: 2,
-      lineSpacing: 1,
+      wordWrap: { width: maxW - 12, useAdvancedWrap: true },
+      lineSpacing: -4,
     });
     this.add([this.bg, this.cap, this.label]);
     this.setVisible(false);
@@ -76,20 +77,21 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
   }
 
   private layout(tone: (typeof TONES)[keyof typeof TONES]) {
-    const padX = 8;
-    const padY = 6;
-    const capH = this.cap.text ? this.cap.height : 0;
+    const padX = 6;
+    const padY = 2;
+    const capH = this.cap.text ? this.cap.height - 6 : 0;
     const w = Math.min(this.maxW, Math.max(this.label.width, this.cap.width) + padX * 2);
     const h = this.label.height + capH + padY * 2;
     // Bubble sits above (0,0) with a tail pointing down to it.
-    const x = -w / 2;
-    const y = -h - 8;
+    const x = Math.round(-w / 2);
+    const y = Math.round(-h - 6);
+    // Habbo-style: white box, 1px dark outline, little tail.
     this.bg.clear();
-    this.bg.fillStyle(0x000000, 0.18).fillRoundedRect(x + 2, y + 3, w, h, 6);
-    this.bg.fillStyle(tone.fill, 1).lineStyle(2, tone.stroke, 1);
-    this.bg.fillRoundedRect(x, y, w, h, 6).strokeRoundedRect(x, y, w, h, 6);
-    this.bg.fillTriangle(-6, y + h - 1, 6, y + h - 1, 0, y + h + 7);
-    this.bg.lineBetween(-6, y + h, 0, y + h + 7).lineBetween(6, y + h, 0, y + h + 7);
+    this.bg.fillStyle(0x000000, 0.2).fillRect(x + 1, y + 2, w, h);
+    this.bg.fillStyle(tone.stroke, 1).fillRect(x - 1, y - 1, w + 2, h + 2);
+    this.bg.fillStyle(tone.fill, 1).fillRect(x, y, w, h);
+    this.bg.fillStyle(tone.stroke, 1).fillTriangle(-4, y + h, 4, y + h, 0, y + h + 5);
+    this.bg.fillStyle(tone.fill, 1).fillTriangle(-3, y + h - 1, 3, y + h - 1, 0, y + h + 3);
     this.cap.setPosition(x + padX, y + padY);
     this.label.setPosition(x + padX, y + padY + capH);
   }

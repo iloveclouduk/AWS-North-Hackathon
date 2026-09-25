@@ -1,0 +1,126 @@
+{
+  "quests": [
+    {
+      "id": "compute-first-function",
+      "title": "Fire Up the Grill",
+      "districtId": "compute",
+      "serviceIds": ["lambda", "apigateway", "iam", "s3"],
+      "intro": "Welcome to the Compute Quarter! I only light the grill when an order comes in, so let me show you how serverless functions answer the city's requests.",
+      "rewardXp": 50,
+      "steps": [
+        { "kind": "visit", "serviceId": "lambda", "text": "Walk to the Lambda Food Stall and say hello" },
+        { "kind": "cards", "serviceId": "lambda", "count": 5, "text": "Learn 5 Lambda cards: triggers, timeouts and pricing" },
+        { "kind": "puzzle", "puzzleId": "thumbnails", "text": "Build the Thumbnail Factory: resize every uploaded photo automatically" },
+        { "kind": "ask", "prompt": "What is a cold start in AWS Lambda and how can I reduce it?", "text": "Ask the agents about cold starts" },
+        { "kind": "deploy", "templateId": "hello-api", "text": "Deploy your first serverless API with Cody the Builder" }
+      ]
+    },
+    {
+      "id": "storage-static-site",
+      "title": "Your First Bucket",
+      "districtId": "storage",
+      "serviceIds": ["s3", "cloudfront", "route53"],
+      "intro": "Every fish in my lake is an object and every net is a bucket. Let's put the city's brochure in a bucket and send it around the world.",
+      "rewardXp": 40,
+      "steps": [
+        { "kind": "visit", "serviceId": "s3", "text": "Walk to S3 Lake and talk to Sally" },
+        { "kind": "cards", "serviceId": "s3", "count": 5, "text": "Learn 5 S3 cards: buckets, durability and storage classes" },
+        { "kind": "cards", "serviceId": "cloudfront", "count": 3, "text": "Learn 3 CloudFront cards about edge caching" },
+        { "kind": "puzzle", "puzzleId": "static-site", "text": "Design the City Brochure Site with S3, CloudFront and Route 53" },
+        { "kind": "deploy", "templateId": "static-site", "text": "Deploy a private S3 bucket served by CloudFront" }
+      ]
+    },
+    {
+      "id": "database-library-card",
+      "title": "The Librarian's Card Index",
+      "districtId": "database",
+      "serviceIds": ["dynamodb", "aurora", "route53"],
+      "intro": "Tell me the exact card number and I'll fetch it in milliseconds. Let me teach you how to pick keys, and how to keep the library open on two continents.",
+      "rewardXp": 60,
+      "steps": [
+        { "kind": "visit", "serviceId": "dynamodb", "text": "Walk to the DynamoDB Library and meet the librarian" },
+        { "kind": "cards", "serviceId": "dynamodb", "count": 5, "text": "Learn 5 DynamoDB cards: keys, capacity modes and indexes" },
+        { "kind": "cards", "serviceId": "aurora", "count": 3, "text": "Learn 3 Aurora cards at the Observatory" },
+        { "kind": "puzzle", "puzzleId": "global-db", "text": "Keep the booking system running across two Regions" },
+        { "kind": "deploy", "templateId": "dynamo-table", "text": "Deploy an on-demand DynamoDB table with point-in-time recovery" }
+      ]
+    },
+    {
+      "id": "networking-market-day",
+      "title": "Market Day Rush",
+      "districtId": "networking",
+      "serviceIds": ["sqs", "apigateway", "lambda", "dynamodb"],
+      "intro": "Letters wait patiently in my queue until someone is ready. On market day that patience is what stops the bakery from losing orders!",
+      "rewardXp": 60,
+      "steps": [
+        { "kind": "visit", "serviceId": "sqs", "text": "Walk to the Queue & Bell Tower and talk to Quinn" },
+        { "kind": "cards", "serviceId": "sqs", "count": 5, "text": "Learn 5 SQS & SNS cards: queues, visibility timeouts and DLQs" },
+        { "kind": "cards", "serviceId": "apigateway", "count": 3, "text": "Learn 3 API Gateway cards at the station" },
+        { "kind": "puzzle", "puzzleId": "order-queue", "text": "Design an order pipeline that never drops an order" },
+        { "kind": "ask", "prompt": "When should I use SQS, SNS or EventBridge?", "text": "Ask the agents to compare the three messengers" },
+        { "kind": "deploy", "templateId": "queue-worker", "text": "Deploy a queue with a dead-letter queue and a Lambda worker" }
+      ]
+    },
+    {
+      "id": "security-night-watch",
+      "title": "The Night Watch",
+      "districtId": "security",
+      "serviceIds": ["iam", "guardduty", "cloudwatch", "eventbridge", "shield", "cloudfront"],
+      "intro": "Nobody passes my gate without a badge. Together we'll lock down identities, then set a watch that never sleeps and a wall that holds against the storm.",
+      "rewardXp": 80,
+      "steps": [
+        { "kind": "visit", "serviceId": "iam", "text": "Walk to the IAM Gatehouse and talk to Ivy" },
+        { "kind": "cards", "serviceId": "iam", "count": 5, "text": "Learn 5 IAM cards: roles, least privilege and explicit deny" },
+        { "kind": "cards", "serviceId": "guardduty", "count": 3, "text": "Learn 3 GuardDuty cards at the Watchtower" },
+        { "kind": "puzzle", "puzzleId": "event-audit", "text": "Detect threats and respond automatically, even at 3 a.m." },
+        { "kind": "puzzle", "puzzleId": "ddos-ready", "text": "Prepare the ticket shop for a DDoS storm" },
+        { "kind": "ask", "prompt": "What is the difference between CloudWatch and CloudTrail?", "text": "Ask the agents about monitoring versus auditing" }
+      ]
+    },
+    {
+      "id": "aiml-first-model-call",
+      "title": "Consult the Oracle",
+      "districtId": "aiml",
+      "serviceIds": ["bedrock", "cognito", "s3"],
+      "intro": "Ask me anything, traveller. One API reaches many foundation models, and with a Knowledge Base my answers come from your own documents.",
+      "rewardXp": 50,
+      "steps": [
+        { "kind": "visit", "serviceId": "bedrock", "text": "Walk to the Bedrock Oracle" },
+        { "kind": "cards", "serviceId": "bedrock", "count": 5, "text": "Learn 5 Bedrock cards: tokens, RAG and guardrails" },
+        { "kind": "ask", "prompt": "Explain retrieval-augmented generation in two sentences, with an AWS example.", "text": "Ask the agents what RAG means" },
+        { "kind": "puzzle", "puzzleId": "hr-assistant", "text": "Ground an HR assistant in the city's handbook" }
+      ]
+    },
+    {
+      "id": "build-ai-agent",
+      "title": "Build an AI Agent",
+      "districtId": "aiml",
+      "serviceIds": ["agentcore", "bedrock", "cognito", "lambda"],
+      "intro": "At the Academy every agent gets a runtime, a memory, tools and an identity. Let's enrol your first one and make sure it behaves.",
+      "rewardXp": 80,
+      "steps": [
+        { "kind": "visit", "serviceId": "agentcore", "text": "Walk to AgentCore Academy and meet Ace" },
+        { "kind": "cards", "serviceId": "agentcore", "count": 8, "text": "Learn all 8 AgentCore cards: harness, Runtime, Memory, Gateway, Identity and more" },
+        { "kind": "cards", "serviceId": "cognito", "count": 3, "text": "Learn 3 Cognito cards so your agent knows who it serves" },
+        { "kind": "puzzle", "puzzleId": "hr-assistant", "text": "Assemble the Ask HR Helper agent" },
+        { "kind": "ask", "prompt": "How does AgentCore Gateway turn a Lambda function into a tool my agent can call?", "text": "Ask the agents how agents get tools" }
+      ]
+    },
+    {
+      "id": "first-data-lake",
+      "title": "Your First Data Lake",
+      "districtId": "storage",
+      "serviceIds": ["s3", "glue", "athena", "lakeformation"],
+      "intro": "I crawl the lake and label every shelf. Once the catalogue is written, Athena can shine her SQL beam right across the water.",
+      "rewardXp": 70,
+      "steps": [
+        { "kind": "visit", "serviceId": "glue", "text": "Walk to the Glue Workshop and talk to Gus" },
+        { "kind": "cards", "serviceId": "glue", "count": 4, "text": "Learn 4 Glue cards: the Data Catalog and crawlers" },
+        { "kind": "cards", "serviceId": "athena", "count": 4, "text": "Learn 4 Athena cards: SQL on S3 and pay-per-scan" },
+        { "kind": "visit", "serviceId": "lakeformation", "text": "Visit the Lake Formation Gate to see who may read what" },
+        { "kind": "puzzle", "puzzleId": "data-lake-query", "text": "Query the Lake of Receipts while hiding restricted columns" },
+        { "kind": "ask", "prompt": "Why does converting CSV to partitioned Parquet make Athena cheaper?", "text": "Ask the agents how to cut query costs" }
+      ]
+    }
+  ]
+}

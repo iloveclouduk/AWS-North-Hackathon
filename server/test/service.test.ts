@@ -16,7 +16,7 @@ const { executeAction } = vi.hoisted(() => {
 });
 vi.mock('../src/agents/executor.js', () => ({ executeAction }));
 
-const { createActionService, NEEDS_APPROVAL_REASON } = await import('../src/agents/service.js');
+const { createActionService, NEEDS_APPROVAL_REASON, REJECTED_REASON } = await import('../src/agents/service.js');
 
 const pollerFor = (resources = snapshot([])) => ({ current: () => resources, refresh: async () => resources, start() {}, stop() {} }) as Poller;
 
@@ -40,5 +40,37 @@ describe('action service', () => {
   it('rejects invalid input before policy or AWS', async () => {
     const service = createActionService({ clients: {} as AwsClients, poller: pollerFor(), region: 'us-west-2' });
     expect(await service.submit('launch_instance', { name: 'x', instanceType: 'm5.large' })).toMatchObject({ status: 'invalid' });
+  });
+
+  it('with an approval channel, asks the player before any write and only runs on approve', async () => {
+    executeAction.mockClear();
+    const service = createActionService({ clients: {} as AwsClients, poller: pollerFor(), region: 'us-west-2' });
+    const approve = vi.fn(async () => false);
+    expect(await service.submit('create_table', { name: 'city-quest' }, { approve })).toEqual({ status: 'denied', reason: REJECTED_REASON });
+    expect(approve).toHaveBeenCalledWith(expect.objectContaining({ destructive: false, summary: expect.stringContaining('city-quest') }));
+    expect(executeAction).not.toHaveBeenCalled();
+    approve.mockResolvedValueOnce(true);
+    expect(await service.submit('create_table', { name: 'city-quest' }, { approve })).toMatchObject({ status: 'done' });
+    expect(executeAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets destructive actions run only after explicit approval, and never asks about denied ones', async () => {
+    executeAction.mockClear();
+    const mine = instance('i-0000000000000001a', 'running');
+    const service = createActionService({ clients: {} as AwsClients, poller: pollerFor(snapshot([mine])), region: 'us-west-2' });
+    const approve = vi.fn(async () => true);
+    expect(await service.submit('terminate_instance', { instanceId: mine.id }, { approve })).toMatchObject({ status: 'done' });
+    expect(approve).toHaveBeenCalledWith(expect.objectContaining({ destructive: true }));
+    approve.mockClear();
+    // not built by the game → policy denies before the player is even asked
+    expect(await service.submit('terminate_instance', { instanceId: 'i-0000000000000009f' }, { approve })).toMatchObject({ status: 'denied' });
+    expect(approve).not.toHaveBeenCalled();
+  });
+
+  it('reads never need approval', async () => {
+    const service = createActionService({ clients: {} as AwsClients, poller: pollerFor(), region: 'us-west-2' });
+    const approve = vi.fn(async () => false);
+    await service.submit('describe_resource', { id: 'anything' }, { approve });
+    expect(approve).not.toHaveBeenCalled();
   });
 });
