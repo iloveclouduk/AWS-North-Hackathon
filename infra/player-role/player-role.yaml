@@ -1,0 +1,140 @@
+# AWS City player role, installed in the PLAYER'S OWN account with one click (CloudFormation quick-create).
+#
+# What it allows, and nothing more:
+#   - read: EC2 instances/security groups/AMIs, DynamoDB tables, S3 bucket list, Lambda, RDS, API Gateway
+#   - build, only things the game made:
+#       EC2 t4g.nano / t4g.micro with IMDSv2, tagged managed-by=aws-city (stop/start/terminate only those)
+#       DynamoDB tables named city-*, tagged managed-by=aws-city
+#       S3 buckets named aws-city-<your account id>-*
+#   - only in the region you installed it in; no IAM, no billing, no passing roles
+# Who can use it: only the AWS City service role (TrustedRoleName in TrustedAccountId), and only with
+# your personal ExternalId. Every change still needs your Approve in the game.
+# Remove access any time: delete the "AWSCity" stack.
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS City player role (least privilege, game-owned resources only). v1
+
+Parameters:
+  ExternalId:
+    Type: String
+    NoEcho: true
+    MinLength: 16
+    MaxLength: 128
+    AllowedPattern: '[A-Za-z0-9_-]+'
+    Description: Your personal AWS City id (filled in by the setup link).
+  TrustedAccountId:
+    Type: String
+    AllowedPattern: '\d{12}'
+    Description: The AWS City service account (filled in by the setup link).
+  TrustedRoleName:
+    Type: String
+    Default: AWSCityTaskRole
+    AllowedPattern: '[A-Za-z0-9+=,.@_-]+'
+
+Resources:
+  PlayerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub AWSCityPlayerRole-${AWS::Region}
+      Description: Lets AWS City agents build small, tagged learning resources after you approve them.
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            # The account root + a PrincipalArn condition (not the role ARN as principal) keeps the trust
+            # valid even if the service role is ever recreated.
+            Principal: { AWS: !Sub 'arn:aws:iam::${TrustedAccountId}:root' }
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: { 'sts:ExternalId': !Ref ExternalId }
+              ArnEquals: { 'aws:PrincipalArn': !Sub 'arn:aws:iam::${TrustedAccountId}:role/${TrustedRoleName}' }
+      Tags:
+        - { Key: managed-by, Value: aws-city }
+      Policies:
+        - PolicyName: aws-city-read
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: ReadInRegion
+                Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeImages
+                  - dynamodb:ListTables
+                  - dynamodb:DescribeTable
+                  - dynamodb:ListTagsOfResource
+                  - lambda:ListFunctions
+                  - rds:DescribeDBInstances
+                Resource: '*'
+                Condition: { StringEquals: { 'aws:RequestedRegion': !Ref 'AWS::Region' } }
+              - Sid: ListApis
+                Effect: Allow
+                Action: apigateway:GET
+                Resource: !Sub 'arn:aws:apigateway:${AWS::Region}::/apis'
+              - Sid: ListBuckets
+                # Bucket listing is account-wide in S3.
+                Effect: Allow
+                Action: s3:ListAllMyBuckets
+                Resource: '*'
+        - PolicyName: aws-city-build
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: LaunchTinyTaggedInstances
+                Effect: Allow
+                Action: ec2:RunInstances
+                Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+                Condition:
+                  StringEquals:
+                    'ec2:InstanceType': [t4g.nano, t4g.micro]
+                    'ec2:MetadataHttpTokens': required
+                    'aws:RequestTag/managed-by': aws-city
+              - Sid: TaggedVolumes
+                Effect: Allow
+                Action: ec2:RunInstances
+                Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:volume/*'
+                Condition: { StringEquals: { 'aws:RequestTag/managed-by': aws-city } }
+              - Sid: AmazonImagesOnly
+                Effect: Allow
+                Action: ec2:RunInstances
+                Resource: !Sub 'arn:aws:ec2:${AWS::Region}::image/*'
+                Condition: { StringEquals: { 'ec2:Owner': amazon } }
+              - Sid: DefaultNetworking
+                Effect: Allow
+                Action: ec2:RunInstances
+                Resource:
+                  - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*'
+                  - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:network-interface/*'
+                  - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*'
+              - Sid: TagOnLaunchOnly
+                Effect: Allow
+                Action: ec2:CreateTags
+                Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:*/*'
+                Condition: { StringEquals: { 'ec2:CreateAction': RunInstances } }
+              - Sid: ManageOnlyGameInstances
+                Effect: Allow
+                Action: [ec2:StopInstances, ec2:StartInstances, ec2:TerminateInstances]
+                Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+                Condition: { StringEquals: { 'aws:ResourceTag/managed-by': aws-city } }
+              - Sid: CreateGameTables
+                Effect: Allow
+                Action: [dynamodb:CreateTable, dynamodb:TagResource]
+                Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/city-*'
+                Condition: { StringEquals: { 'aws:RequestTag/managed-by': aws-city } }
+              - Sid: DeleteGameTables
+                Effect: Allow
+                Action: dynamodb:DeleteTable
+                Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/city-*'
+                Condition: { StringEquals: { 'aws:ResourceTag/managed-by': aws-city } }
+              - Sid: GameBuckets
+                # S3 ownership is by name: aws-city-<this account>-*.
+                Effect: Allow
+                Action: [s3:CreateBucket, s3:PutBucketTagging, s3:DeleteBucket]
+                Resource: !Sub 'arn:aws:s3:::aws-city-${AWS::AccountId}-*'
+                Condition: { StringEquals: { 'aws:RequestedRegion': !Ref 'AWS::Region' } }
+
+Outputs:
+  RoleArn:
+    Description: Paste this (or just your account id) into AWS City → Deploy → Connect your AWS.
+    Value: !GetAtt PlayerRole.Arn

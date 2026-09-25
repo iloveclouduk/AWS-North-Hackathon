@@ -292,12 +292,24 @@ export const createHttpServer = (deps: Deps) => {
         if (!(err instanceof HttpError)) log.error('upgrade', { err: (err as Error).message });
         return reject(socket, err);
       }
-      if (socket.destroyed) {
-        release(principal.sub);
-        return hub.release(principal);
-      }
       const p = principal;
-      wss.handleUpgrade(req, socket, head, (ws) => onSocket(ws, p, tenant));
+      // Until the WebSocket owns the connection, a client that drops mid-handshake must give its
+      // slot and tenant reference back (ws never calls back for a socket that died).
+      let owned = false;
+      const giveBack = () => {
+        if (owned) return;
+        owned = true;
+        release(p.sub);
+        hub.release(p);
+      };
+      if (socket.destroyed) return giveBack();
+      socket.once('close', giveBack);
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        if (owned) return ws.terminate();
+        owned = true;
+        socket.off('close', giveBack);
+        onSocket(ws, p, tenant);
+      });
     })();
   });
 

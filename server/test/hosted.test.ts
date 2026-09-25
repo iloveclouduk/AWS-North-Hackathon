@@ -214,6 +214,26 @@ describe('hosted server: Cognito players and tenants', () => {
     again.ws!.close();
   });
 
+  it('clients that drop mid-handshake give their slot back', async () => {
+    const { connect } = await import('node:net');
+    const b64 = Buffer.from('jwt-alice').toString('base64url');
+    for (let i = 0; i < 6; i++) {
+      await new Promise<void>((resolve) => {
+        const s = connect(port, '127.0.0.1', () => {
+          s.write(`GET /ws HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nOrigin: ${EXT}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n` +
+            `Sec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Protocol: base64UrlBearerAuthorization.${b64}, base64UrlBearerAuthorization\r\n\r\n`);
+          s.resetAndDestroy(); // gone before the server finishes the upgrade
+          resolve();
+        });
+      });
+    }
+    await new Promise((r) => setTimeout(r, 200));
+    const tabs = await Promise.all(Array.from({ length: 4 }, () => open('jwt-alice')));
+    expect(tabs.every((t) => t.ws)).toBe(true);
+    for (const t of tabs) t.ws!.close();
+    await new Promise((r) => setTimeout(r, 100));
+  });
+
   it('REST progress is per player', async () => {
     const put = (jwt: string, xp: number) =>
       fetch(`http://127.0.0.1:${port}/progress`, {
