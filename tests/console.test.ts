@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { findExact, findTarget, typeInto } from '@/console/act';
+import { choose, findExact, findTarget, typeInto } from '@/console/act';
 import { redact } from '@/console/risk';
 import { isConsoleUrl, isRisky, mayAct } from '@/console/safety';
 import { takeSnapshot } from '@/console/snapshot';
@@ -150,5 +150,17 @@ describe('select is checked against the option it picks', () => {
     const el = findExact(document, { id: item.id, name: item.name })!;
     expect(mayAct(item, 'select', el, '2')).toMatchObject({ ok: false, reason: 'risky' });
     expect(mayAct(item, 'select', el, '1')).toEqual({ ok: true });
+  });
+});
+
+describe('choose selects exactly the option that was checked', () => {
+  it('is not redirected by a duplicate option value', () => {
+    document.body.innerHTML = `<label for="s">Setting</label><select id="s">
+      <option value="x">Disable Block Public Access</option><option value="x">Keep defaults</option></select>`;
+    const item = takeSnapshot(document, { requireLayout: false }).items.find((i) => i.name.startsWith('Setting'))!;
+    const el = findExact(document, { id: item.id, name: item.name }) as HTMLSelectElement;
+    el.selectedIndex = -1;
+    choose(el, 'Keep defaults');
+    expect(el.selectedOptions[0]?.textContent).toBe('Keep defaults');
   });
 });

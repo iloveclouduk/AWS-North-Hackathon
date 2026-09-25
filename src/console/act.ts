@@ -41,7 +41,8 @@ export function choose(el: Element, value?: string) {
   if (el instanceof HTMLSelectElement && value !== undefined) {
     const opt = optionFor(el, value);
     if (!opt) throw new Error(`no option “${value}”`);
-    el.value = opt.value;
+    // Select the checked option itself: el.value = opt.value would pick the first option sharing that value.
+    el.selectedIndex = opt.index;
     el.dispatchEvent(new Event('change', { bubbles: true }));
     return;
   }
