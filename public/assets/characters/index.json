@@ -1,0 +1,927 @@
+{
+ "player": {
+  "role": "player",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign",
+   "open_door",
+   "type",
+   "carry"
+  ]
+ },
+ "ec2": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ]
+ },
+ "lambda": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "cook",
+   "type"
+  ]
+ },
+ "ecs": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ]
+ },
+ "fargate": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ]
+ },
+ "eks": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ]
+ },
+ "beanstalk": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ]
+ },
+ "s3": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "type"
+  ]
+ },
+ "ebs": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ]
+ },
+ "efs": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ]
+ },
+ "glue": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "file",
+   "type"
+  ]
+ },
+ "athena": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ]
+ },
+ "lakeformation": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ]
+ },
+ "dynamodb": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "file",
+   "type"
+  ]
+ },
+ "rds": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ]
+ },
+ "aurora": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "think",
+   "type"
+  ]
+ },
+ "elasticache": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "cook",
+   "type"
+  ]
+ },
+ "redshift": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ]
+ },
+ "neptune": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "think",
+   "type"
+  ]
+ },
+ "vpc": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ]
+ },
+ "route53": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "dance",
+   "type"
+  ]
+ },
+ "cloudfront": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ]
+ },
+ "apigateway": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ]
+ },
+ "sqs": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ]
+ },
+ "eventbridge": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ]
+ },
+ "iam": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ]
+ },
+ "cognito": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ]
+ },
+ "kms": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "lock",
+   "type"
+  ]
+ },
+ "shield": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "guard",
+   "type"
+  ]
+ },
+ "guardduty": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ]
+ },
+ "cloudwatch": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ]
+ },
+ "bedrock": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "think",
+   "type"
+  ]
+ },
+ "agentcore": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ]
+ },
+ "sagemaker": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ]
+ },
+ "q": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ]
+ },
+ "rekognition": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ]
+ },
+ "textract": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "file",
+   "type"
+  ]
+ },
+ "concierge": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ]
+ },
+ "lookout": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ]
+ },
+ "builder": {
+  "role": "agent",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ]
+ },
+ "mia": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "dre": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "noah": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "zed": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "victor": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "sky": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "luna": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen0": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen1": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen2": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen3": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen4": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen5": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen6": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen7": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen8": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "citizen9": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ }
+}

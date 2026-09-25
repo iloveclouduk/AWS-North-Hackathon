@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { useCity, type View } from '@/state/store';
+import { attachAudio } from './audio';
 import { BootScene } from './scenes/BootScene';
 import { CityScene } from './scenes/CityScene';
 import { FishingScene } from './scenes/FishingScene';
@@ -14,8 +15,10 @@ export function createGame(parent: HTMLElement) {
     scale: { mode: Phaser.Scale.RESIZE, width: parent.clientWidth || 400, height: parent.clientHeight || 400 },
     scene: [BootScene, CityScene, InteriorScene, FishingScene],
     input: { mouse: { preventDefaultWheel: true } },
-    render: { antialias: true },
+    pixelArt: true,
+    roundPixels: true,
   });
+  attachAudio(game);
 
   const apply = (v: View) => {
     const sm = game.scene;

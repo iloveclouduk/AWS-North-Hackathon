@@ -503,3 +503,20 @@ code {
     opacity: 0;
   }
 }
+
+/* Kenney pixel fonts (CC0) — used by the Phaser world and pixel UI bits. */
+@font-face {
+  font-family: 'Kenney Pixel';
+  src: url('/assets/kenney/fonts/kenney-pixel.ttf') format('truetype');
+  font-display: block;
+}
+@font-face {
+  font-family: 'Kenney Mini';
+  src: url('/assets/kenney/fonts/kenney-mini.ttf') format('truetype');
+  font-display: block;
+}
+@font-face {
+  font-family: 'Kenney Future';
+  src: url('/assets/kenney/fonts/kenney-future.ttf') format('truetype');
+  font-display: block;
+}

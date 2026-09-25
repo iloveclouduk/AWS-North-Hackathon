@@ -6,41 +6,49 @@ import type { Tile } from '@/world/layout';
 import { placeFor } from '@/world/places';
 import { districtById, servicesIn, type DistrictId } from '@/world/taxonomy';
 import { Agent, type AgentWorld } from '../Agent';
-import { MINI_ORIGIN_Y, MINI_SCALE, type RoomSprite } from '../assets';
+import { addSprite, CITY_ATLAS } from '../assets';
+import { sfx } from '../audio';
 import { castFor } from '../cast';
-import { entityDepth, ROOM_ISO, toScreen, toTile } from '../iso';
-import { IsoPainter, shade } from '../Landmark';
-import { UI_FONT } from '../SpeechBubble';
+import { cornerScreen, entityDepth, ROOM_ISO, toScreen, toTile } from '../iso';
+import { PIXEL_FONT } from '../SpeechBubble';
 
-const W = 8;
+const W = 9;
 const H = 8;
-const WALL_H = 150;
 const DOOR: Tile = { x: 0, y: 6 };
-/** Seats at the workstations along the back of the room. */
+/** Chairs where agents sit and type while their AWS calls run. */
 const SEATS: Tile[] = [
-  { x: 1, y: 2 },
-  { x: 3, y: 2 },
-  { x: 5, y: 2 },
+  { x: 2, y: 2 },
+  { x: 4, y: 2 },
+  { x: 6, y: 2 },
+  { x: 2, y: 5 },
+  { x: 4, y: 5 },
+  { x: 6, y: 5 },
 ];
 
-/** Furniture per district: [sprite, tile]. Kenney miniatures, CC0. */
-const FURNITURE: Record<DistrictId, [RoomSprite, number, number][]> = {
-  storage: [['crates', 7, 0], ['barrels', 7, 1], ['chest', 6, 6], ['bookcase', 7, 3]],
-  compute: [['crates', 7, 0], ['barrels', 6, 6], ['crates', 7, 5], ['bookcaseSide', 0, 2]],
-  database: [['bookcase', 7, 0], ['bookcase', 7, 2], ['bookStand', 6, 6], ['bookcaseSide', 0, 2]],
-  networking: [['roundTable', 6, 6], ['displayCase', 7, 0], ['bookcase', 7, 2]],
-  security: [['chest', 7, 0], ['displayCase', 7, 2], ['chest', 6, 6], ['candle', 0, 3]],
-  aiml: [['bookStand', 7, 0], ['candle', 7, 2], ['displayCase', 6, 6], ['bookcaseSide', 0, 2]],
+/** Furniture per district: [sprite, x, y]. Generated pixel art (art/tiles). */
+const FURNITURE: Record<DistrictId, [string, number, number][]> = {
+  compute: [['rack0', 8, 0], ['rack1', 8, 1], ['rack0', 8, 2], ['rack1', 8, 3]],
+  storage: [['bookshelf', 8, 0], ['rack0', 8, 1], ['plant', 8, 3]],
+  database: [['bookshelf', 8, 0], ['bookshelf', 8, 1], ['bookshelf', 8, 2], ['plant', 8, 3]],
+  networking: [['rack1', 8, 0], ['whiteboard', 8, 1], ['plant', 8, 3]],
+  security: [['rack0', 8, 0], ['bookshelf', 8, 1], ['plant', 8, 3]],
+  aiml: [['whiteboard', 8, 0], ['whiteboard', 8, 1], ['rack1', 8, 2], ['plant', 8, 3]],
 };
+const COMMON: [string, number, number][] = [
+  ['sofa', 5, 7],
+  ['cooler', 8, 5],
+  ['plant', 1, 0],
+  ['plant', 8, 7],
+];
 
 export class InteriorScene extends Phaser.Scene {
   private districtId!: DistrictId;
   private agents = new Map<string, Agent>();
   private player!: Agent;
-  private monitors = new Map<string, { g: Phaser.GameObjects.Graphics; seat: Tile }>();
   private blocked = new Set<number>();
   private offs: (() => void)[] = [];
   private answers = new Map<string, string>();
+  private racks: Phaser.GameObjects.Image[] = [];
 
   readonly world: AgentWorld = {
     iso: ROOM_ISO,
@@ -56,73 +64,102 @@ export class InteriorScene extends Phaser.Scene {
   init(data: { districtId: DistrictId }) {
     this.districtId = data.districtId;
     this.agents = new Map();
-    this.monitors = new Map();
     this.blocked = new Set();
     this.answers = new Map();
+    this.racks = [];
+    this.offs = [];
+  }
+
+  preload() {
+    if (!this.textures.exists('door')) this.load.spritesheet('door', '/assets/city/door_left.png', { frameWidth: 40, frameHeight: 64 });
   }
 
   create() {
     const d = districtById(this.districtId)!;
-    this.cameras.main.setBackgroundColor('#0b1220');
+    this.cameras.main.setBackgroundColor('#0b1220').setRoundPixels(true);
 
-    // floor
+    // floor + a rug under the meeting area
     for (let y = 0; y < H; y++)
       for (let x = 0; x < W; x++) {
-        const s = toScreen(ROOM_ISO, x, y);
-        this.add.image(s.x, s.y, 'k:floorPlanks').setOrigin(0.5, MINI_ORIGIN_Y).setScale(MINI_SCALE).setDepth(x + y);
+        const n = cornerScreen(ROOM_ISO, x, y);
+        const rug = x >= 3 && x <= 5 && y >= 6;
+        this.add.image(n.x, n.y, CITY_ATLAS, rug ? 'carpet' : 'floorWood').setOrigin(0.5, 0).setDepth(x + y);
       }
-    const carpet = toScreen(ROOM_ISO, 3.5, 5);
-    this.add.image(carpet.x, carpet.y, 'k:carpet').setOrigin(0.5, MINI_ORIGIN_Y).setScale(MINI_SCALE * 1.6).setDepth(100);
+    // back walls with windows, tinted to the district
+    for (let x = 0; x < W; x++) {
+      const n = cornerScreen(ROOM_ISO, x, 0);
+      addSprite(this, x % 3 === 1 ? 'wallRWin' : 'wallR', n.x, n.y).setDepth(-5).setTint(tintFor(d.color, 0.25));
+    }
+    for (let y = 0; y < H; y++) {
+      const n = cornerScreen(ROOM_ISO, 0, y);
+      addSprite(this, y % 3 === 1 ? 'wallLWin' : 'wallL', n.x, n.y).setDepth(-5).setTint(tintFor(d.color, 0.15));
+    }
+    // the team's animated door on the left wall
+    const dp = toScreen(ROOM_ISO, -0.5, DOOR.y + 0.75);
+    const door = this.add.sprite(dp.x, dp.y, 'door', 0).setOrigin(8 / 40, 52 / 64).setDepth(-4);
 
-    this.drawWalls(d.color);
+    for (const [key, x, y] of [...FURNITURE[this.districtId], ...COMMON]) this.furniture(key, x, y);
 
-    // meeting table in the middle
-    this.furniture('longTable', 3, 5);
-    for (const [key, x, y] of FURNITURE[this.districtId]) this.furniture(key, x, y);
-
-    // workstations
+    // workstations: a chair per discovered agent, desk in front
     const staff = servicesIn(this.districtId).filter((s) => isDiscovered(useCity.getState().progress, s.id));
-    staff.forEach((s, i) => this.workstation(s.id, SEATS[i]));
+    staff.forEach((s, i) => {
+      const seat = SEATS[i];
+      this.furniture('desk', seat.x + 1, seat.y);
+      const n = cornerScreen(ROOM_ISO, seat.x, seat.y);
+      addSprite(this, 'chair', n.x, n.y).setDepth(entityDepth(toScreen(ROOM_ISO, seat.x, seat.y).y) - 2);
+    });
 
-    // title
     const title = toScreen(ROOM_ISO, 0, 0);
     this.add
-      .text(title.x, title.y - WALL_H - 40, `${d.hq} · ${d.name}`, { fontFamily: UI_FONT, fontSize: '16px', fontStyle: 'bold', color: '#ffffff', backgroundColor: '#161622d9', padding: { x: 8, y: 4 }, resolution: 2 })
+      .text(title.x + 60, title.y - 140, `${d.hq} · ${d.name}`, { fontFamily: PIXEL_FONT, fontSize: '16px', color: '#ffffff', backgroundColor: '#161622d9', padding: { x: 6, y: 1 } })
       .setOrigin(0.5, 1)
       .setDepth(70_000);
 
-    // agents
     staff.forEach((s, i) => {
       const c = castFor(s.id)!;
       const a = new Agent(this, this.world, {
-        id: s.id, name: c.name, look: c.look, tile: { x: 2 + i, y: 4 }, home: { x: 1, y: 3, w: 6, h: 4 },
-        workSpot: SEATS[i], workAnim: 'type', speed: 1.8,
+        id: s.id,
+        name: c.name,
+        tile: { x: 3 + (i % 3), y: 4 },
+        home: { x: 1, y: 3, w: 6, h: 4 },
+        workSpot: SEATS[i],
+        workAnim: 'type',
+        workDir: 'SE',
+        speed: 1.6,
       });
       a.onClick(() => {
         useCity.getState().select(s.id);
         bus.emit('select', { id: s.id });
-        a.say(`Ask me anything about ${placeFor(s.id)?.place}! Use the chat below.`);
+        a.face(this.player.tile);
+        a.emote('hi', 1400);
+        a.say(`Ask me anything about ${placeFor(s.id)?.place}! Use the chat.`);
       });
       this.agents.set(s.id, a);
-      if (useCity.getState().agents[s.id]?.state === 'working') this.time.delayedCall(200, () => this.setWorking(s.id, true));
+      if (useCity.getState().agents[s.id]?.state === 'working') this.time.delayedCall(200, () => a.setWorking(true));
     });
 
-    const p = castFor('player')!;
-    this.player = new Agent(this, this.world, { id: 'player', name: 'You', look: p.look, tile: DOOR, home: { x: 0, y: 0, w: W, h: H }, speed: 2.6, wanders: false });
-    this.player.goTo({ x: 2, y: 6 });
+    // Kai walks in through the door
+    this.player = new Agent(this, this.world, { id: 'player', name: 'Kai (you)', tile: { x: 0, y: DOOR.y }, home: { x: 0, y: 0, w: W, h: H }, speed: 2.4, wanders: false });
+    this.player.sprite.disableInteractive();
+    door.setFrame(3);
+    sfx('door', 0.4);
+    this.time.delayedCall(250, () => this.player.goTo({ x: 2, y: 7 }, () => door.setFrame(0)));
 
     const lead = this.agents.values().next().value as Agent | undefined;
-    this.time.delayedCall(700, () => lead?.say(`Welcome to ${d.hq}! We sit at our computers when real AWS calls run. Ask us a question below.`, { holdMs: 5000 }));
+    this.time.delayedCall(800, () => lead?.say(`Welcome to ${d.hq}! We sit and type when real AWS calls run. Ask us anything below.`, { holdMs: 5000 }));
 
+    this.time.addEvent({ delay: 350, loop: true, callback: () => this.racks.forEach((r) => r.setFrame(r.frame.name === 'rack0' ? 'rack1' : 'rack0')) });
     this.setupCamera();
     this.input.on('pointerup', (ptr: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       if (over.length || ptr.getDistance() > 8) return;
       const t = toTile(ROOM_ISO, ptr.worldX, ptr.worldY);
+      if (t.x === DOOR.x && t.y === DOOR.y) {
+        this.player.goTo(DOOR, () => useCity.getState().setView({ name: 'city' }));
+        return;
+      }
       if (this.world.walkable(t.x, t.y)) this.player.goTo(t);
     });
 
-    // Screens of working agents flicker with "code".
-    this.time.addEvent({ delay: 300, loop: true, callback: () => this.agents.forEach((a, id) => a.isWorking && this.drawStation(id, true)) });
     this.offs.push(bus.on('server', (e) => this.onServer(e)));
     const teardown = () => {
       for (const off of this.offs) off();
@@ -141,91 +178,28 @@ export class InteriorScene extends Phaser.Scene {
     const cam = this.cameras.main;
     const c = toScreen(ROOM_ISO, W / 2 - 0.5, H / 2 - 0.5);
     const fit = () => {
-      cam.setZoom(Phaser.Math.Clamp(Math.min(this.scale.width / 1150, this.scale.height / 820), 0.35, 1.1));
-      cam.centerOn(c.x, c.y - 50);
+      const z = Math.min(this.scale.width / 640, this.scale.height / 520);
+      cam.setZoom(Phaser.Math.Clamp(Math.floor(z * 4) / 4, 0.5, 2));
+      cam.centerOn(c.x, c.y - 40);
     };
     fit();
     this.scale.on('resize', fit);
     this.offs.push(() => this.scale.off('resize', fit));
   }
 
-  private furniture(key: RoomSprite, x: number, y: number) {
-    const s = toScreen(ROOM_ISO, x, y);
-    this.add.image(s.x, s.y, `k:${key}`).setOrigin(0.5, MINI_ORIGIN_Y).setScale(MINI_SCALE).setDepth(entityDepth(s.y));
+  private furniture(key: string, x: number, y: number) {
+    const n = cornerScreen(ROOM_ISO, x, y);
+    const img = addSprite(this, key, n.x, n.y).setDepth(entityDepth(toScreen(ROOM_ISO, x, y).y));
+    if (key.startsWith('rack')) this.racks.push(img);
+    if (key === 'sofa') this.blocked.add(y * W + x + 1);
     this.blocked.add(y * W + x);
-  }
-
-  private drawWalls(color: number) {
-    const g = this.add.graphics().setDepth(1);
-    const P = new IsoPainter(g, ROOM_ISO);
-    const wall = shade(color, 1.35) & 0xffffff;
-    const light = mix(wall, 0xffffff, 0.55);
-    // back-right wall (along y = -0.5) and back-left wall (along x = -0.5)
-    P.poly([P.p(-0.5, -0.5, 0), P.p(W - 0.5, -0.5, 0), P.p(W - 0.5, -0.5, WALL_H), P.p(-0.5, -0.5, WALL_H)], shade(light, 0.9));
-    P.poly([P.p(-0.5, -0.5, 0), P.p(-0.5, H - 0.5, 0), P.p(-0.5, H - 0.5, WALL_H), P.p(-0.5, -0.5, WALL_H)], light);
-    // skirting + top trim
-    P.poly([P.p(-0.5, -0.5, 0), P.p(W - 0.5, -0.5, 0), P.p(W - 0.5, -0.5, 10), P.p(-0.5, -0.5, 10)], shade(color, 0.8));
-    P.poly([P.p(-0.5, -0.5, 0), P.p(-0.5, H - 0.5, 0), P.p(-0.5, H - 0.5, 10), P.p(-0.5, -0.5, 10)], shade(color, 0.9));
-    P.poly([P.p(-0.5, -0.5, WALL_H), P.p(W - 0.5, -0.5, WALL_H), P.p(W - 0.5, -0.7, WALL_H + 8), P.p(-0.7, -0.7, WALL_H + 8)], shade(color, 0.7));
-    P.poly([P.p(-0.5, -0.5, WALL_H), P.p(-0.5, H - 0.5, WALL_H), P.p(-0.7, H - 0.5, WALL_H + 8), P.p(-0.7, -0.7, WALL_H + 8)], shade(color, 0.85));
-    // windows on the back-right wall
-    for (const wx of [2, 5]) {
-      P.poly([P.p(wx - 0.4, -0.5, 60), P.p(wx + 0.4, -0.5, 60), P.p(wx + 0.4, -0.5, 120), P.p(wx - 0.4, -0.5, 120)], 0x7dd3fc);
-      P.poly([P.p(wx - 0.02, -0.5, 60), P.p(wx + 0.02, -0.5, 60), P.p(wx + 0.02, -0.5, 120), P.p(wx - 0.02, -0.5, 120)], 0xffffff);
-    }
-    // door on the left wall
-    P.poly([P.p(-0.5, DOOR.y - 0.4, 0), P.p(-0.5, DOOR.y + 0.4, 0), P.p(-0.5, DOOR.y + 0.4, 90), P.p(-0.5, DOOR.y - 0.4, 90)], 0x5b3a1e);
-    const knob = P.p(-0.5, DOOR.y + 0.25, 45);
-    g.fillStyle(0xfacc15, 1).fillCircle(knob.x, knob.y, 3);
-    // district poster
-    P.poly([P.p(-0.5, 2.6, 70), P.p(-0.5, 3.8, 70), P.p(-0.5, 3.8, 125), P.p(-0.5, 2.6, 125)], color);
-  }
-
-  /** Desk + monitor to the screen-right of a seat; the monitor glows while its agent works. */
-  private workstation(agentId: string, seat: Tile) {
-    const g = this.add.graphics();
-    g.setDepth(entityDepth(toScreen(ROOM_ISO, seat.x, seat.y).y) - 3);
-    this.monitors.set(agentId, { g, seat });
-    this.drawStation(agentId, false);
-    for (const [x, y] of [[seat.x, seat.y - 1], [seat.x + 1, seat.y - 1], [seat.x + 1, seat.y]]) this.blocked.add(y * W + x);
-  }
-
-  private drawStation(agentId: string, on: boolean) {
-    const m = this.monitors.get(agentId);
-    if (!m) return;
-    const g = m.g.clear();
-    const P = new IsoPainter(g, ROOM_ISO);
-    const cx = m.seat.x + 0.55;
-    const cy = m.seat.y - 0.55;
-    // desk
-    P.boxAt(cx, cy, 0.8, 0, 34, 0x8b5a2b);
-    // monitor (thin box) with a screen on its left (seat-facing) face
-    const mon = P.box({ x: cx + 0.15, y: cy - 0.35 + 0.5, w: 0.12, h: 0.7 }, 38, 72, 0x1f2937);
-    P.boxAt(cx + 0.21, cy, 0.12, 34, 40, 0x374151);
-    const screen = on ? 0x22d3ee : 0x0f172a;
-    P.poly([P.p(mon.x0, mon.y1 - 0.05, 41), P.p(mon.x0, mon.y0 + 0.05, 41), P.p(mon.x0, mon.y0 + 0.05, 69), P.p(mon.x0, mon.y1 - 0.05, 69)], screen);
-    if (on) {
-      for (let i = 0; i < 4; i++) {
-        const z = 46 + i * 5;
-        P.poly([P.p(mon.x0, mon.y1 - 0.12, z), P.p(mon.x0, mon.y1 - 0.12 - 0.1 - Math.random() * 0.35, z), P.p(mon.x0, mon.y1 - 0.12 - 0.1, z + 2), P.p(mon.x0, mon.y1 - 0.12, z + 2)], 0xecfeff);
-      }
-    }
-    // keyboard
-    P.box({ x: cx - 0.2 + 0.5 - 0.15, y: cy + 0.5 - 0.2, w: 0.2, h: 0.4 }, 34, 36, 0xd1d5db);
-  }
-
-  private setWorking(id: string, on: boolean) {
-    const a = this.agents.get(id);
-    if (!a) return;
-    a.setWorking(on);
-    this.drawStation(id, on);
   }
 
   private onServer(e: ServerEvent) {
     switch (e.type) {
       case 'agent.state':
         this.agents.get(e.agentId)?.setDetail(e.state === 'working' ? e.detail : undefined);
-        this.setWorking(e.agentId, e.state === 'working');
+        this.agents.get(e.agentId)?.setWorking(e.state === 'working');
         break;
       case 'agent.message':
         this.agents.get(e.from)?.say(e.text);
@@ -236,7 +210,8 @@ export class InteriorScene extends Phaser.Scene {
         this.answers.set(e.requestId, text);
         if (e.done) {
           const a = this.agents.get(e.agentId) ?? this.agents.values().next().value;
-          a?.say(text.length > 160 ? text.slice(0, 157) + '…' : text, { holdMs: 7000 });
+          a?.say(text.length > 140 ? text.slice(0, 137) + '…' : text, { holdMs: 7000 });
+          sfx('pop', 0.3);
         }
         break;
       }
@@ -244,7 +219,8 @@ export class InteriorScene extends Phaser.Scene {
   }
 }
 
-function mix(a: number, b: number, t: number) {
-  const ch = (s: number) => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t);
+/** Soft wall tint from a district colour (mixed towards white). */
+function tintFor(color: number, amount: number) {
+  const ch = (s: number) => Math.round(255 - (255 - ((color >> s) & 255)) * amount);
   return (ch(16) << 16) | (ch(8) << 8) | ch(0);
 }

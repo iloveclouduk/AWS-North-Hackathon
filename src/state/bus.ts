@@ -21,6 +21,10 @@ export interface BusEvents {
   enterHq: { districtId: string };
   play: { game: 'fishing' };
   xpGained: { serviceId: string; amount: number };
+  /** Dev/demo: force the day/night clock (hour 0–24) or undefined for real time. */
+  hour: { hour?: number };
+  /** UI asks the city to animate an architecture: packets flow between these services in order. */
+  showFlow: { serviceIds: string[] };
 }
 
 type Handler<K extends keyof BusEvents> = (payload: BusEvents[K]) => void;
