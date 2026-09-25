@@ -1,0 +1,69 @@
+<!doctype html>
+<html><head><meta charset="utf-8" /><title>Tables | Amazon DynamoDB Management Console</title>
+<!-- A stand-in for DynamoDB "Create table" (Cloudscape-like markup: form fields, a custom select for the
+     key type, radio tiles for table settings). "Create table" is an SPA route change (pushState). -->
+<link rel="stylesheet" href="/awscity-fixture/cloudscape.css" />
+<style>.row{display:flex;gap:12px;align-items:flex-end}.row .awsui_select_x5{width:140px}</style>
+</head>
+<body>
+<header>aws · DynamoDB</header>
+<main id="app">
+  <div class="col"><div class="awsui_container_x1"><h1>Tables (0)</h1>
+    <p>You have no tables in this account in this AWS Region.</p>
+    <button class="awsui_button_x4 secondary" type="button" data-risky>Delete</button>
+    <button class="awsui_button_x4" id="create-start" type="button">Create table</button>
+  </div></div>
+</main>
+<script src="/awscity-fixture/cloudscape.js"></script>
+<script>
+const app = document.getElementById('app');
+document.getElementById('create-start').addEventListener('click', () => {
+  history.pushState({}, '', '/dynamodbv2/home?region=us-west-2#create-table');
+  document.title = 'Create table | Amazon DynamoDB Management Console';
+  // the form loads behind a spinner first, like the real console
+  app.innerHTML = '<div class="col"><div class="awsui_container_x1"><span class="awsui_spinner_xf">⏳</span> Loading…</div></div>';
+  setTimeout(renderForm, 700);
+});
+function renderForm() {
+  app.innerHTML = `
+  <div class="col">
+    <h1>Create table</h1>
+    <div class="awsui_container_x1"><h2>Table details</h2>
+      <div class="awsui_form-field_x2"><label id="tn-label" for="tn">Table name</label>
+        <input class="awsui_input_x3" id="tn" aria-labelledby="tn-label" /></div>
+      <div class="row">
+        <div class="awsui_form-field_x2"><label id="pk-label" for="pk">Partition key</label>
+          <input class="awsui_input_x3" id="pk" aria-labelledby="pk-label" placeholder="Enter the partition key name" /></div>
+        <div id="pk-type"></div>
+      </div>
+      <div class="awsui_form-field_x2"><label id="sk-label" for="sk">Sort key - optional</label>
+        <input class="awsui_input_x3" id="sk" aria-labelledby="sk-label" placeholder="Enter the sort key name" /></div>
+    </div>
+    <div class="awsui_container_x1"><h2>Table settings</h2>
+      <div class="awsui_tiles_xa" role="radiogroup" aria-label="Table settings">
+        <label class="awsui_tile-container_xb" style="width:260px"><input class="awsui_radio-native_xc" type="radio" name="ts" checked /> Default settings<span class="awsui_description_x9">The fastest way to create your table. On-demand capacity; you can modify most settings later.</span></label>
+        <label class="awsui_tile-container_xb" style="width:260px"><input class="awsui_radio-native_xc" type="radio" name="ts" /> Customize settings<span class="awsui_description_x9">Use advanced features to fit your needs.</span></label>
+      </div>
+      <p>Capacity mode: <b>On-demand</b> · Encryption: <b>Owned by Amazon DynamoDB</b> · Deletion protection: <b>Off</b></p>
+    </div>
+    <button class="awsui_button_x4 secondary" type="button">Cancel</button>
+    <button class="awsui_button_x4" id="create" type="button">Create table</button>
+  </div>`;
+  customSelect(document.getElementById('pk-type'), { id: 'pkt', label: 'Partition key type', value: 'String', options: [
+    { label: 'String' }, { label: 'Number' }, { label: 'Binary' },
+  ] });
+  document.getElementById('create').addEventListener('click', () => {
+    const name = document.getElementById('tn').value;
+    const pk = document.getElementById('pk').value;
+    if (!name || !pk) return alert('Table name and partition key are required');
+    history.pushState({}, '', '/dynamodbv2/home?region=us-west-2#tables');
+    app.innerHTML = '<div class="col"><div class="awsui_container_x1"><span class="awsui_spinner_xf">⏳</span> Creating the ' + name + ' table…</div></div>';
+    setTimeout(() => {
+      document.body.dataset.created = name + ' (pk ' + pk + ')';
+      app.innerHTML = '<div class="col"><div class="awsui_flash_xd">The ' + name + ' table was created successfully.</div>' +
+        '<div class="awsui_container_x1"><h1>Tables (1)</h1><p id="created">' + name + ' · partition key ' + pk + ' (String) · On-demand</p></div></div>';
+    }, 900);
+  });
+}
+</script>
+</body></html>

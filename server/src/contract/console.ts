@@ -66,6 +66,8 @@ interface Task {
   index: number;
   misses: number;
   history: string[];
+  /** The page as of the last snapshot, to tell the model when a step navigated. */
+  page: { url: string; title: string; heading?: string };
   /** A model call is in flight — further observes are ignored (no request amplification). */
   thinking: boolean;
 }
@@ -76,12 +78,64 @@ export const MAX_CONSOLE_TASKS = 1;
 export const MODEL_CALL_BUDGET = 60;
 const BUDGET_WINDOW_MS = 10 * 60_000;
 
-const describe = (s: PageSnapshot) =>
+type Item = PageSnapshot['items'][number];
+
+/** Elements sent to the model per step (the page may send up to 200). */
+export const MODEL_ITEM_LIMIT = 120;
+const STOP_WORDS = new Set(['the', 'and', 'for', 'with', 'my', 'a', 'an', 'to', 'in', 'on', 'of', 'me', 'please', 'create', 'new', 'make', 'set', 'up']);
+const wordsOf = (s: string) => s.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !STOP_WORDS.has(w));
+
+/**
+ * Cut the snapshot down before it goes to the model (tokens are the Copilot's main cost): drop disabled
+ * controls unless the history mentions them, then keep the `limit` most relevant — goal keywords in the
+ * name/section, closeness to the main heading's section, form controls over navigation links —
+ * in their original page order.
+ */
+export function trimSnapshot(s: PageSnapshot, goal: string, history: readonly string[] = [], limit = MODEL_ITEM_LIMIT): Item[] {
+  const said = history.join('\n').toLowerCase();
+  const tokens = new Set(said.split(/[^a-z0-9_-]+/));
+  const referenced = (i: Item) => (i.name.length > 2 && said.includes(i.name.toLowerCase())) || tokens.has(i.id.toLowerCase());
+  const goalWords = wordsOf(goal);
+  const headWords = wordsOf(s.heading ?? '');
+  const items = s.items.filter((i) => !i.disabled || referenced(i));
+  if (items.length <= limit) return items;
+  // Where the main content starts: the first control whose section shares a word with the main heading.
+  const headAt = headWords.length ? items.findIndex((i) => wordsOf(i.context ?? '').some((w) => headWords.includes(w))) : -1;
+  const score = (i: Item, idx: number) => {
+    const text = `${i.name} ${i.context ?? ''}`.toLowerCase();
+    let n = goalWords.reduce((acc, w) => acc + (text.includes(w) ? 10 : 0), 0);
+    if (headWords.length && wordsOf(i.context ?? '').some((w) => headWords.includes(w))) n += 6;
+    if (headAt >= 0) n += Math.max(0, 5 - Math.abs(idx - headAt) / 10);
+    if (i.role !== 'link') n += 2; // form controls and buttons do things; links mostly navigate away
+    if (referenced(i)) n += 20;
+    return n;
+  };
+  const keep = new Set(
+    items
+      .map((i, idx) => ({ i, n: score(i, idx), idx }))
+      .sort((a, b) => b.n - a.n || a.idx - b.idx)
+      .slice(0, limit)
+      .map((x) => x.i),
+  );
+  return items.filter((i) => keep.has(i));
+}
+
+/** Only the path and hash of a console URL (the query holds nothing the model needs). */
+const shortUrl = (raw: string) => {
+  try {
+    const u = new URL(raw);
+    return `${u.pathname}${u.hash}`.slice(0, 160);
+  } catch {
+    return raw.slice(0, 160);
+  }
+};
+
+const describe = (s: PageSnapshot, goal: string, history: readonly string[]) =>
   [
     `URL: ${s.url}`,
     `Title: ${s.title}${s.heading ? ` · Heading: ${s.heading}` : ''}`,
     'Elements:',
-    ...s.items.slice(0, 140).map((i: PageSnapshot['items'][number]) => {
+    ...trimSnapshot(s, goal, history).map((i: Item) => {
       const state = [i.disabled && 'disabled', i.checked !== undefined && (i.checked ? 'checked' : 'unchecked'), i.value && `value="${i.value}"`, i.sensitive && 'secret']
         .filter(Boolean)
         .join(', ');
@@ -128,7 +182,7 @@ export const createConsoleCopilot = (deps: { llm: Llm; now?: () => number }) => 
         system: SYSTEM,
         tools: [STEP_TOOL],
         tool_choice: { type: 'tool', name: STEP_TOOL.name },
-        messages: [{ role: 'user', content: `Goal: ${t.goal}\n\nSo far:\n${t.history.join('\n') || '(nothing yet)'}\n\n${describe(snapshot)}` }],
+        messages: [{ role: 'user', content: `Goal: ${t.goal}\n\nSo far:\n${t.history.join('\n') || '(nothing yet)'}\n\n${describe(snapshot, t.goal, t.history)}` }],
       });
       const block = msg.content.find((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use' && b.name === STEP_TOOL.name);
       const parsed = block ? Step.safeParse(block.input) : undefined;
@@ -143,8 +197,10 @@ export const createConsoleCopilot = (deps: { llm: Llm; now?: () => number }) => 
     if (!step) return finish(taskId, false, 'I couldn’t work out the next step on this page.', emit);
     // Server-side guard too: risky controls are always the learner's click.
     if ((step.action === 'click' || step.action === 'select') && step.target && isRisky(step.target.name)) step.risk = 'confirm';
+    // …and so is picking a risky option or typing a risky value (e.g. a custom select's "Disable …").
+    if ((step.action === 'select' || step.action === 'type') && isRisky(step.value ?? '')) step.risk = 'confirm';
     const index = t.index++;
-    t.history.push(`${index + 1}. ${step.action} ${step.target?.name ?? ''} — ${step.say}`);
+    t.history.push(`${index + 1}. ${step.action} ${step.target?.name ?? ''}${step.target?.id ? ` [${step.target.id}]` : ''} — ${step.say}`);
     emit({ type: 'console.step', taskId, index, agentId: t.agentId, ...step });
     if (step.action === 'done') finish(taskId, true, step.say, emit);
   };
@@ -157,7 +213,7 @@ export const createConsoleCopilot = (deps: { llm: Llm; now?: () => number }) => 
         return;
       }
       const agentId = cmd.context.serviceId ?? matchText(cmd.goal) ?? 'bedrock';
-      tasks.set(cmd.taskId, { goal: cmd.goal, agentId, index: 0, misses: 0, history: [], thinking: false });
+      tasks.set(cmd.taskId, { goal: cmd.goal, agentId, index: 0, misses: 0, history: [], page: { url: cmd.snapshot.url, title: cmd.snapshot.title, heading: cmd.snapshot.heading }, thinking: false });
       const who = placeFor(agentId)?.agentName ?? agentId;
       emit({ type: 'agent.message', from: 'concierge', to: 'user', text: `${who} will do this in your console, step by step — watch the highlights.` });
       emit({ type: 'task.plan', taskId: cmd.taskId, agentId, targetServiceId: agentId, steps: ['Working in your AWS console'] });
@@ -168,7 +224,12 @@ export const createConsoleCopilot = (deps: { llm: Llm; now?: () => number }) => 
       // Only the answer to the step we just sent counts, and only once: stale, repeated or
       // out-of-order observes can't trigger extra model calls.
       if (!t || t.thinking || cmd.index !== t.index - 1 || t.history.at(-1)?.startsWith('   result')) return;
-      t.history.push(`   result: ${cmd.ok ? 'ok' : 'failed'}${cmd.note ? ` (${cmd.note})` : ''}`);
+      // Say when the step changed the page (SPA route / title / heading), so the model knows where it is now.
+      const s = cmd.snapshot;
+      const moved = s.url !== t.page.url || s.title !== t.page.title || s.heading !== t.page.heading;
+      const change = moved ? ` · page changed: now "${(s.heading ?? s.title).slice(0, 80)}" at ${shortUrl(s.url)}` : ' · same page';
+      t.page = { url: s.url, title: s.title, heading: s.heading };
+      t.history.push(`   result: ${cmd.ok ? 'ok' : 'failed'}${cmd.note ? ` (${cmd.note.slice(0, 120)})` : ''}${change}`);
       if (!cmd.ok && ++t.misses >= 3) return finish(cmd.taskId, false, 'I got stuck after a few tries, so I stopped.', emit);
       return next(cmd.taskId, cmd.snapshot, emit);
     },
