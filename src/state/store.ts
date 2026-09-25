@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import type { ConnectionStatus } from '@/backend/AgentBackend';
 import type { DeployChange, DeployStatusEvent, Progress, ServerEvent, StepStatus } from '@/backend/contract';
-import { placeFor, SPECIAL_AGENTS, TIER_NAMES, tierForXp } from '@/world/places';
+import { placeFor, SPECIAL_AGENTS, TIER_NAMES, tierForXp, type GameId } from '@/world/places';
+import { questById, serviceOfCard, type QuestStep } from '@/world/content';
+import { review, xpFor, type Grade } from '@/learning/srs';
 import { SERVICES, serviceById } from '@/world/taxonomy';
 import { bus } from './bus';
 import type { PageFocus } from './types';
@@ -39,7 +41,7 @@ export interface Toast {
   text: string;
 }
 
-export type View = { name: 'city' } | { name: 'interior'; districtId: string } | { name: 'fishing' };
+export type View = { name: 'city' } | { name: 'interior'; districtId: string } | { name: 'game'; game: GameId };
 
 export interface AgentStatus {
   state: 'idle' | 'working';
@@ -107,6 +109,13 @@ export interface CityState {
   select(id?: string): void;
   setAutoSnap(on: boolean): void;
   setSnap(s: SnapState, snapshot?: string): void;
+  // learning
+  reviewCard(cardId: string, grade: Grade): void;
+  recordPuzzle(puzzleId: string, score: number, passed: boolean): void;
+  recordGame(game: GameId, score: number): void;
+  startQuest(questId: string): void;
+  /** Advance any active quest whose current step matches. */
+  questEvent(match: (step: QuestStep) => boolean, countable?: boolean): void;
 }
 
 let nextId = 1;
@@ -150,6 +159,7 @@ export const useCity = create<CityState>()((set, get) => ({
     set({ focus });
     const id = focus.serviceId;
     if (!id) return;
+    get().questEvent((st) => st.kind === 'visit' && st.serviceId === id);
     if (!isDiscovered(get().progress, id)) {
       get().discover(id);
       return;
@@ -246,6 +256,7 @@ export const useCity = create<CityState>()((set, get) => ({
         const t = s.tasks[e.taskId];
         if (t) set({ tasks: { ...s.tasks, [e.taskId]: { ...t, status: e.ok ? 'done' : 'failed', result: e.result } } });
         for (const x of e.xp) get().addXp(x.serviceId, x.amount);
+        if (e.ok) get().questEvent((st) => st.kind === 'ask');
         break;
       }
       case 'page.classified':
@@ -285,7 +296,10 @@ export const useCity = create<CityState>()((set, get) => ({
         const d = s.deploys[e.deployId];
         if (d) set({ deploys: { ...s.deploys, [e.deployId]: { ...d, status: e.status, outputs: e.outputs ?? d.outputs, message: e.message } } });
         s.log({ kind: 'system', text: `🏗️ ${d?.stackName ?? e.deployId}: ${e.status}${e.message ? ` — ${e.message}` : ''}` });
-        if (e.status === 'complete') s.toast('🚀', `${d?.stackName ?? 'Stack'} deployed to your AWS account!`);
+        if (e.status === 'complete') {
+          s.toast('🚀', `${d?.stackName ?? 'Stack'} deployed to your AWS account!`);
+          if (d) get().questEvent((st) => st.kind === 'deploy' && st.templateId === d.templateId);
+        }
         break;
       }
       case 'screenshot.url':
@@ -322,7 +336,70 @@ export const useCity = create<CityState>()((set, get) => ({
   dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 
   setView: (view) => set({ view }),
-  select: (selected) => set({ selected }),
+  select: (selected) => {
+    set({ selected });
+    if (selected) get().questEvent((st) => st.kind === 'visit' && st.serviceId === selected);
+  },
   setAutoSnap: (autoSnap) => set({ autoSnap }),
   setSnap: (snap, lastSnapshot) => set(lastSnapshot ? { snap, lastSnapshot } : { snap }),
+
+  reviewCard: (cardId, grade) => {
+    const { progress } = get();
+    const prev = progress.cards?.[cardId];
+    set({ progress: { ...progress, cards: { ...progress.cards, [cardId]: review(prev, grade) }, updatedAt: new Date().toISOString() } });
+    const serviceId = serviceOfCard(cardId);
+    get().addXp(serviceId, xpFor(prev, grade));
+    if (grade !== 'again') get().questEvent((st) => st.kind === 'cards' && st.serviceId === serviceId, true);
+  },
+
+  recordPuzzle: (puzzleId, score, passed) => {
+    const { progress } = get();
+    const best = Math.max(score, progress.puzzles?.[puzzleId]?.best ?? 0);
+    set({ progress: { ...progress, puzzles: { ...progress.puzzles, [puzzleId]: { best } }, updatedAt: new Date().toISOString() } });
+    if (passed) get().questEvent((st) => st.kind === 'puzzle' && st.puzzleId === puzzleId);
+  },
+
+  recordGame: (game, score) => {
+    const { progress } = get();
+    const g = progress.games?.[game] ?? { best: 0, plays: 0 };
+    set({ progress: { ...progress, games: { ...progress.games, [game]: { best: Math.max(g.best, score), plays: g.plays + 1 } }, updatedAt: new Date().toISOString() } });
+  },
+
+  startQuest: (questId) => {
+    const q = questById(questId);
+    const { progress } = get();
+    if (!q || progress.quests?.[questId]?.status === 'active') return;
+    set({ progress: { ...progress, quests: { ...progress.quests, [questId]: { status: 'active', step: 0, count: 0 } }, updatedAt: new Date().toISOString() } });
+    get().toast('📜', `Quest started: ${q.title}`);
+    get().log({ kind: 'system', text: `📜 ${q.title}: ${q.intro}` });
+  },
+
+  questEvent: (match, countable) => {
+    const { progress } = get();
+    const quests = { ...progress.quests };
+    let changed = false;
+    for (const [id, st] of Object.entries(quests)) {
+      if (st.status !== 'active') continue;
+      const q = questById(id);
+      const step = q?.steps[st.step];
+      if (!q || !step || !match(step)) continue;
+      changed = true;
+      if (countable && step.kind === 'cards' && (st.count ?? 0) + 1 < step.count) {
+        quests[id] = { ...st, count: (st.count ?? 0) + 1 };
+        continue;
+      }
+      const next = st.step + 1;
+      if (next >= q.steps.length) {
+        quests[id] = { status: 'done', step: next };
+        get().toast('🏆', `Quest complete: ${q.title}! +${q.rewardXp} XP`);
+        bus.emit('questDone', { questId: id });
+        const share = Math.ceil(q.rewardXp / q.serviceIds.length);
+        setTimeout(() => q.serviceIds.forEach((sid) => get().addXp(sid, share)), 0);
+      } else {
+        quests[id] = { status: 'active', step: next, count: 0 };
+        get().log({ kind: 'system', text: `📜 ${q.title} — next: ${q.steps[next].text}` });
+      }
+    }
+    if (changed) set({ progress: { ...get().progress, quests, updatedAt: new Date().toISOString() } });
+  },
 }));

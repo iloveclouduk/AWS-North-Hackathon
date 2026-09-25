@@ -65,7 +65,7 @@ export class CityMap {
       return x % m === 1 || x % m === m - 1 ? 'zebraY' : 'roadX';
     }
     const plot = plotAt(t);
-    if (plot === 'square') return 'plaza';
+    if (plot === 'square') return 'plazaStone';
     if (this.sidewalk.has(key(x, y))) return 'sidewalk';
     if (plot?.startsWith('future')) return 'sand';
     const d = plot as DistrictId;
@@ -135,7 +135,7 @@ export class CityMap {
       if ((x + 2 * y) % 11 !== 0 || plotAt({ x, y }) === 'square') continue;
       this.placeProp('lamp', { x, y });
       const c = toScreen(CITY_ISO, x, y);
-      const glow = addSprite(this.scene, 'glow', c.x, c.y).setDepth(9_500).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+      const glow = addSprite(this.scene, 'glow', c.x, c.y - 44).setDepth(70_002).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
       this.lamps.push({ glow });
     }
     // Town square: fountain, benches, flowers, trees, bins.

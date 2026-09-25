@@ -155,6 +155,8 @@ SPRITES = {}  # name -> (img, anchor)
 
 
 def add(name, canvas_or_img, anchor=None, do_outline=True, lights=True):
+    if name in SPRITES:
+        raise ValueError(f"duplicate sprite name: {name}")
     if isinstance(canvas_or_img, Canvas):
         img, anchor, lit = canvas_or_img.finish(do_outline)
         SPRITES[name] = (img, anchor)
@@ -269,7 +271,7 @@ def build_ground():
     ground("grassDark", GRASS_D, speckle(shade(GRASS_D, 1.15), 8))
     ground("paving", PAVE, pave_joints(shade(PAVE, 0.88)))
     ground("sidewalk", (200, 196, 190), pave_joints(shade((200, 196, 190), 0.86), sub=3))
-    ground("plaza", PLAZA, plaza_check)
+    ground("plazaStone", PLAZA, plaza_check)
     ground("road", ROAD, speckle(shade(ROAD, 1.12), 6))
     ground("roadX", ROAD, road_line("x"))
     ground("roadY", ROAD, road_line("y"))

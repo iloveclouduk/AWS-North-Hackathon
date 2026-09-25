@@ -1,0 +1,830 @@
+{
+  "pillars": [
+    {
+      "id": "operational",
+      "name": "Operational Excellence",
+      "summary": "Run and monitor systems to deliver value, and continually improve processes: automate changes, observe everything, learn from failure."
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "summary": "Protect data, systems and assets: strong identity with least privilege, traceability, encryption in transit and at rest, and defence in depth."
+    },
+    {
+      "id": "reliability",
+      "name": "Reliability",
+      "summary": "A workload performs its intended function correctly and consistently: recover automatically from failure, scale horizontally, and avoid single points of failure."
+    },
+    {
+      "id": "performance",
+      "name": "Performance Efficiency",
+      "summary": "Use computing resources efficiently to meet requirements as demand changes: pick the right resource types, go global in minutes, and prefer managed and serverless."
+    },
+    {
+      "id": "cost",
+      "name": "Cost Optimization",
+      "summary": "Deliver business value at the lowest price point: pay only for what you use, right-size, measure spend, and stop paying for idle resources."
+    },
+    {
+      "id": "sustainability",
+      "name": "Sustainability",
+      "summary": "Minimise the environmental impact of running cloud workloads: maximise utilisation, use managed services, and reduce data stored and moved."
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "thumbnails",
+      "title": "Thumbnail Factory",
+      "districtId": "compute",
+      "tier": 1,
+      "story": "The city photo club uploads hundreds of pictures a day and wants a small thumbnail of each one created automatically. Traffic is spiky: quiet all week, flooded after events.",
+      "requirements": [
+        "Store original photos durably",
+        "Create a thumbnail automatically whenever a photo is uploaded",
+        "Pay nothing when nobody is uploading"
+      ],
+      "required": [
+        "s3",
+        "lambda"
+      ],
+      "optional": [
+        "iam",
+        "cloudwatch",
+        "sqs",
+        "rekognition"
+      ],
+      "distractors": [
+        "ec2",
+        "ebs",
+        "redshift",
+        "efs"
+      ],
+      "flow": [
+        "s3",
+        "lambda"
+      ],
+      "why": "An S3 event notification invokes a Lambda function on each upload; the function resizes the image and writes the thumbnail to a separate bucket or prefix (never the source prefix, to avoid a recursive loop). Lambda scales with uploads and costs nothing when idle, unlike an always-on EC2 server.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch"
+          ],
+          "tip": "Alarm on Lambda errors and duration so failed thumbnails are noticed, not discovered by users."
+        },
+        "security": {
+          "services": [
+            "iam"
+          ],
+          "tip": "Give the function a role that can only read the source prefix and write the thumbnail prefix."
+        },
+        "reliability": {
+          "services": [
+            "sqs"
+          ],
+          "tip": "Buffer events through SQS with a dead-letter queue so bursts and bad images are retried or isolated."
+        },
+        "performance": {
+          "services": [
+            "lambda"
+          ],
+          "tip": "Tune Lambda memory: more memory also means more CPU, often making image resizing faster."
+        },
+        "cost": {
+          "services": [
+            "lambda",
+            "s3"
+          ],
+          "tip": "Serverless pay-per-use plus S3 lifecycle rules on originals keeps idle cost near zero."
+        },
+        "sustainability": {
+          "services": [
+            "lambda"
+          ],
+          "tip": "Event-driven compute runs only when there is work, so no servers sit idle burning energy."
+        }
+      }
+    },
+    {
+      "id": "static-site",
+      "title": "The City Brochure Site",
+      "districtId": "networking",
+      "tier": 1,
+      "story": "The tourist office needs a fast website at www.awscity.example for visitors worldwide. It is plain HTML, CSS and images with no server code.",
+      "requirements": [
+        "Host static files cheaply and durably",
+        "Serve visitors from locations near them over HTTPS",
+        "Use the city's own domain name",
+        "Keep the storage bucket private"
+      ],
+      "required": [
+        "s3",
+        "cloudfront",
+        "route53"
+      ],
+      "optional": [
+        "shield",
+        "cloudwatch",
+        "iam"
+      ],
+      "distractors": [
+        "ec2",
+        "beanstalk",
+        "rds",
+        "apigateway"
+      ],
+      "flow": [
+        "route53",
+        "cloudfront",
+        "s3"
+      ],
+      "why": "Route 53 resolves the domain with an alias record to a CloudFront distribution, which caches content at edge locations and fetches from a private S3 bucket using Origin Access Control. No servers are needed, S3 Block Public Access stays on, and caching makes it both fast and cheap.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch"
+          ],
+          "tip": "Deploy site files from a pipeline and watch CloudFront error-rate metrics."
+        },
+        "security": {
+          "services": [
+            "cloudfront",
+            "shield"
+          ],
+          "tip": "Use Origin Access Control so only CloudFront can read the bucket, and add WAF rules at the edge."
+        },
+        "reliability": {
+          "services": [
+            "s3",
+            "route53"
+          ],
+          "tip": "S3 is designed for 11 nines durability and Route 53 is a highly available DNS service."
+        },
+        "performance": {
+          "services": [
+            "cloudfront"
+          ],
+          "tip": "Edge caching serves users from nearby locations; version asset file names for long TTLs."
+        },
+        "cost": {
+          "services": [
+            "cloudfront",
+            "s3"
+          ],
+          "tip": "No servers to pay for; cache hits reduce origin requests, and origin-to-CloudFront transfer from S3 is free."
+        },
+        "sustainability": {
+          "services": [
+            "cloudfront"
+          ],
+          "tip": "Caching near users cuts repeated long-distance data transfer and origin work."
+        }
+      }
+    },
+    {
+      "id": "secure-api",
+      "title": "Members-Only API",
+      "districtId": "security",
+      "tier": 2,
+      "story": "The city library app lets members sign in and save their reading lists. Only signed-in members may call the API, and each member must only see their own list.",
+      "requirements": [
+        "Users sign up and sign in with email",
+        "The API rejects requests without a valid token",
+        "Business logic runs without servers",
+        "Reading lists are stored in a fast, serverless database"
+      ],
+      "required": [
+        "cognito",
+        "apigateway",
+        "lambda",
+        "dynamodb"
+      ],
+      "optional": [
+        "iam",
+        "kms",
+        "cloudwatch",
+        "shield"
+      ],
+      "distractors": [
+        "ec2",
+        "rds",
+        "vpc",
+        "guardduty"
+      ],
+      "flow": [
+        "cognito",
+        "apigateway",
+        "lambda",
+        "dynamodb"
+      ],
+      "why": "Cognito user pools authenticate members and issue JWTs; an API Gateway JWT or Cognito authorizer validates the token before Lambda runs. Lambda uses the user ID from the token claims as the DynamoDB partition key, so each member only ever reads their own items.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch"
+          ],
+          "tip": "Enable API Gateway access logs and Lambda metrics to trace every request."
+        },
+        "security": {
+          "services": [
+            "iam",
+            "kms",
+            "cognito"
+          ],
+          "tip": "Validate tokens at the API, give Lambda a least-privilege role, and encrypt the table with KMS."
+        },
+        "reliability": {
+          "services": [
+            "dynamodb"
+          ],
+          "tip": "DynamoDB replicates across AZs; enable point-in-time recovery against accidental deletes."
+        },
+        "performance": {
+          "services": [
+            "dynamodb",
+            "apigateway"
+          ],
+          "tip": "Key by user ID for single-digit millisecond lookups; HTTP APIs add less latency than REST APIs."
+        },
+        "cost": {
+          "services": [
+            "lambda",
+            "dynamodb"
+          ],
+          "tip": "Everything is pay-per-request: on-demand DynamoDB and Lambda cost almost nothing when idle."
+        },
+        "sustainability": {
+          "services": [
+            "lambda",
+            "dynamodb"
+          ],
+          "tip": "Fully managed serverless services share infrastructure efficiently instead of idle dedicated servers."
+        }
+      }
+    },
+    {
+      "id": "order-queue",
+      "title": "Market Day Orders",
+      "districtId": "networking",
+      "tier": 2,
+      "story": "On market day the bakery gets thousands of orders in minutes. The order API must never drop an order, even if the back office is slow or a bad order breaks processing.",
+      "requirements": [
+        "Accept orders instantly through an API",
+        "Buffer orders so processing can catch up",
+        "Retry failures and isolate orders that keep failing",
+        "Store processed orders durably"
+      ],
+      "required": [
+        "apigateway",
+        "sqs",
+        "lambda",
+        "dynamodb"
+      ],
+      "optional": [
+        "cloudwatch",
+        "iam",
+        "eventbridge",
+        "kms"
+      ],
+      "distractors": [
+        "ec2",
+        "redshift",
+        "efs",
+        "route53"
+      ],
+      "flow": [
+        "apigateway",
+        "sqs",
+        "lambda",
+        "dynamodb"
+      ],
+      "why": "API Gateway writes each order to an SQS queue and returns immediately, decoupling customers from processing speed. Lambda polls the queue in batches and writes to DynamoDB; messages that fail repeatedly move to a dead-letter queue instead of blocking the line. Make processing idempotent because standard queues deliver at least once.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch"
+          ],
+          "tip": "Alarm when the dead-letter queue is not empty and when queue age grows."
+        },
+        "security": {
+          "services": [
+            "iam",
+            "kms"
+          ],
+          "tip": "Encrypt the queue and let only the API role send and the worker role receive."
+        },
+        "reliability": {
+          "services": [
+            "sqs"
+          ],
+          "tip": "A DLQ with a sensible maxReceiveCount and a visibility timeout longer than processing time prevents lost or looping orders."
+        },
+        "performance": {
+          "services": [
+            "lambda",
+            "sqs"
+          ],
+          "tip": "Lambda scales pollers with queue depth; tune batch size and use partial batch responses."
+        },
+        "cost": {
+          "services": [
+            "sqs",
+            "lambda"
+          ],
+          "tip": "Queues let a smaller consumer absorb peaks instead of provisioning for the busiest minute."
+        },
+        "sustainability": {
+          "services": [
+            "sqs"
+          ],
+          "tip": "Buffering smooths demand so fewer resources run at higher utilisation."
+        }
+      }
+    },
+    {
+      "id": "data-lake-query",
+      "title": "Lake of Receipts",
+      "districtId": "storage",
+      "tier": 2,
+      "story": "Years of city shop receipts sit as CSV files in S3. Analysts want to query them with SQL, but the finance team's salary columns must stay hidden from everyone else.",
+      "requirements": [
+        "Keep raw data in low-cost storage",
+        "Discover the schema automatically",
+        "Query with SQL without running servers",
+        "Restrict access down to specific columns"
+      ],
+      "required": [
+        "s3",
+        "glue",
+        "athena",
+        "lakeformation"
+      ],
+      "optional": [
+        "kms",
+        "cloudwatch",
+        "iam",
+        "redshift"
+      ],
+      "distractors": [
+        "rds",
+        "dynamodb",
+        "ec2",
+        "ebs"
+      ],
+      "flow": [
+        "s3",
+        "glue",
+        "athena"
+      ],
+      "why": "S3 holds the data, a Glue crawler infers schemas into the Glue Data Catalog, and Athena queries the files in place with SQL. Lake Formation grants table and column permissions centrally, so analysts see receipts but not restricted columns, and Athena enforces those grants.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "glue",
+            "cloudwatch"
+          ],
+          "tip": "Schedule crawlers and ETL jobs, and monitor their runs, instead of editing schemas by hand."
+        },
+        "security": {
+          "services": [
+            "lakeformation",
+            "kms"
+          ],
+          "tip": "Grant column-level permissions in Lake Formation and encrypt data and query results with KMS."
+        },
+        "reliability": {
+          "services": [
+            "s3"
+          ],
+          "tip": "S3 durability plus versioning protects the raw zone from accidental overwrites."
+        },
+        "performance": {
+          "services": [
+            "glue",
+            "athena"
+          ],
+          "tip": "Convert CSV to partitioned Parquet with Glue or CTAS so queries read less data."
+        },
+        "cost": {
+          "services": [
+            "athena",
+            "glue"
+          ],
+          "tip": "Athena bills by data scanned: partition, compress and use columnar formats; set workgroup scan limits."
+        },
+        "sustainability": {
+          "services": [
+            "s3",
+            "athena"
+          ],
+          "tip": "Query in place instead of copying data, and lifecycle old raw files to colder storage."
+        }
+      }
+    },
+    {
+      "id": "hr-assistant",
+      "title": "Ask HR Helper",
+      "districtId": "aiml",
+      "tier": 3,
+      "story": "City Hall staff keep asking HR the same policy questions. Build a signed-in assistant that answers from the official HR handbook, remembers each employee's context and can file leave requests.",
+      "requirements": [
+        "Only employees can use the assistant",
+        "Answers are grounded in HR documents with citations",
+        "The agent remembers context across conversations",
+        "The agent can call an internal leave API as a tool",
+        "Answers avoid off-limits topics and personal data leaks"
+      ],
+      "required": [
+        "cognito",
+        "agentcore",
+        "bedrock",
+        "s3"
+      ],
+      "optional": [
+        "lambda",
+        "cloudwatch",
+        "kms",
+        "iam",
+        "dynamodb"
+      ],
+      "distractors": [
+        "sagemaker",
+        "rekognition",
+        "redshift",
+        "ec2"
+      ],
+      "flow": [
+        "cognito",
+        "agentcore",
+        "bedrock",
+        "s3"
+      ],
+      "why": "Employees sign in with Cognito, and AgentCore Identity validates their tokens before the agent runs in an isolated AgentCore Runtime session. The agent retrieves handbook passages from a Bedrock Knowledge Base (documents in S3) for grounded answers, uses AgentCore Memory for context, and calls the leave API exposed as an MCP tool via AgentCore Gateway (e.g. a Lambda target). Bedrock Guardrails filter topics and sensitive data.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch",
+            "agentcore"
+          ],
+          "tip": "Use AgentCore Observability traces in CloudWatch to see each reasoning step and tool call."
+        },
+        "security": {
+          "services": [
+            "cognito",
+            "iam",
+            "kms"
+          ],
+          "tip": "Authenticate every user, scope the agent's tool permissions tightly, and apply Bedrock Guardrails."
+        },
+        "reliability": {
+          "services": [
+            "agentcore",
+            "bedrock"
+          ],
+          "tip": "Managed runtime and model endpoints remove servers to fail; handle throttling with retries and backoff."
+        },
+        "performance": {
+          "services": [
+            "bedrock"
+          ],
+          "tip": "Retrieve only relevant chunks and pick the smallest model that meets quality in evaluations."
+        },
+        "cost": {
+          "services": [
+            "bedrock",
+            "agentcore"
+          ],
+          "tip": "Pay per token and per use; prompt caching and right-sized models cut spend."
+        },
+        "sustainability": {
+          "services": [
+            "bedrock"
+          ],
+          "tip": "RAG over existing documents avoids training or fine-tuning a custom model."
+        }
+      }
+    },
+    {
+      "id": "global-db",
+      "title": "Two-Continent Booking System",
+      "districtId": "database",
+      "tier": 3,
+      "story": "The city's hotel booking service now has guests in Europe and North America. It must stay fast for both and keep working if an entire AWS Region has problems.",
+      "requirements": [
+        "Low-latency reads for users on both continents",
+        "Data replicated to a second Region",
+        "Traffic moves to the healthy Region automatically",
+        "Recovery without manual database rebuilds"
+      ],
+      "required": [
+        "route53",
+        "dynamodb"
+      ],
+      "optional": [
+        "aurora",
+        "cloudwatch",
+        "lambda",
+        "apigateway",
+        "kms"
+      ],
+      "distractors": [
+        "ebs",
+        "efs",
+        "redshift",
+        "elasticache"
+      ],
+      "flow": [
+        "route53",
+        "apigateway",
+        "lambda",
+        "dynamodb"
+      ],
+      "why": "DynamoDB global tables keep multi-active replicas in each Region, so apps read and write locally. Route 53 latency or failover routing with health checks sends users to the nearest healthy Region. For relational needs, Aurora Global Database offers one writer Region with low-lag read replicas in others and managed cross-Region failover.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch"
+          ],
+          "tip": "Monitor replication latency and rehearse Region failover regularly (game days)."
+        },
+        "security": {
+          "services": [
+            "kms"
+          ],
+          "tip": "Encrypt replicas with keys in each Region and keep IAM policies consistent across Regions."
+        },
+        "reliability": {
+          "services": [
+            "dynamodb",
+            "route53",
+            "aurora"
+          ],
+          "tip": "Multi-Region data plus health-checked DNS failover removes the Region as a single point of failure."
+        },
+        "performance": {
+          "services": [
+            "dynamodb",
+            "route53"
+          ],
+          "tip": "Latency-based routing and local replicas keep response times low on every continent."
+        },
+        "cost": {
+          "services": [
+            "dynamodb"
+          ],
+          "tip": "Replicate only tables that truly need multi-Region; replicated writes and transfer cost extra."
+        },
+        "sustainability": {
+          "services": [
+            "dynamodb"
+          ],
+          "tip": "Serverless, on-demand tables avoid idle standby capacity in the secondary Region."
+        }
+      }
+    },
+    {
+      "id": "ddos-ready",
+      "title": "Storm at the Gates",
+      "districtId": "security",
+      "tier": 3,
+      "story": "The city ticket shop opens sales for the summer festival and expects both a huge rush and attackers trying to flood or scrape the site.",
+      "requirements": [
+        "Absorb network-layer floods far from the origin",
+        "Block SQL injection and abusive request rates",
+        "DNS stays up under attack",
+        "Origin only accepts traffic from the edge"
+      ],
+      "required": [
+        "cloudfront",
+        "shield",
+        "route53"
+      ],
+      "optional": [
+        "apigateway",
+        "cloudwatch",
+        "lambda",
+        "guardduty"
+      ],
+      "distractors": [
+        "ec2",
+        "sqs",
+        "glue",
+        "neptune"
+      ],
+      "flow": [
+        "route53",
+        "cloudfront",
+        "shield",
+        "apigateway",
+        "lambda"
+      ],
+      "why": "Route 53 and CloudFront spread traffic across AWS's global edge, where Shield Standard mitigates common network and transport layer attacks automatically. AWS WAF on the distribution adds managed rules and rate-based rules for application-layer abuse, and the origin accepts only CloudFront traffic. Shield Advanced adds the response team and cost protection for high-stakes events.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch"
+          ],
+          "tip": "Dashboard WAF blocked-request metrics and alarm on traffic spikes."
+        },
+        "security": {
+          "services": [
+            "shield",
+            "cloudfront"
+          ],
+          "tip": "Start with AWS Managed Rules plus a rate-based rule, then tune in count mode before blocking."
+        },
+        "reliability": {
+          "services": [
+            "route53",
+            "cloudfront"
+          ],
+          "tip": "Globally distributed DNS and edge capacity keep serving while attacks are absorbed."
+        },
+        "performance": {
+          "services": [
+            "cloudfront"
+          ],
+          "tip": "Caching static pages at the edge keeps the origin free for real purchases."
+        },
+        "cost": {
+          "services": [
+            "shield",
+            "cloudfront"
+          ],
+          "tip": "Filtering at the edge stops attack traffic before it scales up (and bills) your backend."
+        },
+        "sustainability": {
+          "services": [
+            "cloudfront"
+          ],
+          "tip": "Dropping bad traffic early avoids wasted compute on requests that should never run."
+        }
+      }
+    },
+    {
+      "id": "event-audit",
+      "title": "The Night Watch",
+      "districtId": "security",
+      "tier": 4,
+      "story": "The security team wants every API call in the city recorded, threats detected automatically, and a compromised access key disabled within minutes, even at 3 a.m.",
+      "requirements": [
+        "Record who did what, when, across the account",
+        "Detect suspicious behaviour continuously",
+        "Route findings to automated responders",
+        "Notify humans and keep an audit trail of the response"
+      ],
+      "required": [
+        "cloudwatch",
+        "guardduty",
+        "eventbridge",
+        "lambda"
+      ],
+      "optional": [
+        "s3",
+        "sqs",
+        "kms",
+        "iam"
+      ],
+      "distractors": [
+        "rekognition",
+        "athena",
+        "ecs",
+        "cloudfront"
+      ],
+      "flow": [
+        "cloudwatch",
+        "guardduty",
+        "eventbridge",
+        "lambda"
+      ],
+      "why": "CloudTrail records API activity (stored in S3 for long retention), and GuardDuty analyses CloudTrail, VPC Flow Logs and DNS logs to raise findings. Findings flow to EventBridge, where rules match high-severity types and invoke a Lambda responder that deactivates keys or isolates resources and notifies the team via SNS.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "eventbridge",
+            "lambda"
+          ],
+          "tip": "Codify incident runbooks as automated responses and test them regularly."
+        },
+        "security": {
+          "services": [
+            "guardduty",
+            "cloudwatch",
+            "kms"
+          ],
+          "tip": "Use an organization trail with log file validation and encrypt logs with KMS."
+        },
+        "reliability": {
+          "services": [
+            "sqs"
+          ],
+          "tip": "Give the responder a DLQ or on-failure destination so no finding is silently dropped."
+        },
+        "performance": {
+          "services": [
+            "eventbridge"
+          ],
+          "tip": "Filter precisely with event patterns so responders only run for relevant findings."
+        },
+        "cost": {
+          "services": [
+            "s3"
+          ],
+          "tip": "Keep long-term trails in S3 with lifecycle rules rather than in expensive hot log storage."
+        },
+        "sustainability": {
+          "services": [
+            "lambda",
+            "eventbridge"
+          ],
+          "tip": "Event-driven responders run only when something happens, not on constant polling."
+        }
+      }
+    },
+    {
+      "id": "container-app",
+      "title": "Harbour Container Shop",
+      "districtId": "compute",
+      "tier": 3,
+      "story": "The harbour shop runs a containerised web API with a PostgreSQL database. The team is tired of patching servers and wants the product catalogue to load faster under heavy traffic.",
+      "requirements": [
+        "Run containers without managing servers",
+        "Expose the API securely to the internet",
+        "Use a managed relational database with high availability",
+        "Cache hot catalogue reads"
+      ],
+      "required": [
+        "ecs",
+        "fargate",
+        "apigateway",
+        "aurora",
+        "elasticache"
+      ],
+      "optional": [
+        "vpc",
+        "cloudwatch",
+        "iam",
+        "kms",
+        "cloudfront"
+      ],
+      "distractors": [
+        "ec2",
+        "ebs",
+        "beanstalk",
+        "neptune"
+      ],
+      "flow": [
+        "apigateway",
+        "ecs",
+        "fargate",
+        "elasticache",
+        "aurora"
+      ],
+      "why": "An ECS service runs the API as tasks on Fargate in private subnets, so there are no servers to patch. API Gateway reaches the tasks privately through a VPC link, Aurora PostgreSQL provides a multi-AZ managed database, and ElastiCache serves hot catalogue reads from memory using cache-aside, taking load off Aurora.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch",
+            "ecs"
+          ],
+          "tip": "Use rolling or blue/green ECS deployments with the circuit breaker and Container Insights."
+        },
+        "security": {
+          "services": [
+            "vpc",
+            "iam",
+            "kms"
+          ],
+          "tip": "Keep tasks and databases in private subnets, give each task its own role, and encrypt Aurora with KMS."
+        },
+        "reliability": {
+          "services": [
+            "aurora",
+            "ecs"
+          ],
+          "tip": "Spread tasks across AZs and let Aurora fail over to a replica automatically."
+        },
+        "performance": {
+          "services": [
+            "elasticache",
+            "cloudfront"
+          ],
+          "tip": "Cache-aside with sensible TTLs serves hot reads from memory; cache static assets at the edge."
+        },
+        "cost": {
+          "services": [
+            "fargate",
+            "elasticache"
+          ],
+          "tip": "Right-size task vCPU/memory, consider Fargate Spot for tolerant work, and let caching shrink the database."
+        },
+        "sustainability": {
+          "services": [
+            "fargate",
+            "aurora"
+          ],
+          "tip": "Managed, right-sized capacity and Aurora Serverless v2 scaling avoid idle over-provisioning."
+        }
+      }
+    }
+  ]
+}

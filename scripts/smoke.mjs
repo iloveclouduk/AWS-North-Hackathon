@@ -82,9 +82,50 @@ await shot('08-interior-working');
 await wait(5000);
 await shot('09-interior-answer');
 
-await city(() => window.awsCity.useCity.getState().setView({ name: 'fishing' }));
+await city(() => window.awsCity.useCity.getState().setView({ name: 'game', game: 'fishing' }));
 await wait(1500);
 await shot('10-fishing');
+for (const g of ['shield', 'route53', 'lambda']) {
+  await city((game) => window.awsCity.useCity.getState().setView({ name: 'game', game }), g);
+  await wait(3500);
+  await shot(`10-game-${g}`);
+}
+await city(() => window.awsCity.useCity.getState().setView({ name: 'city' }));
+await wait(1200);
+// Night time + keyboard: Kai walks with the arrow keys
+await city(() => window.awsCity.bus.emit('hour', { hour: 22 }));
+for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
+await wait(1500);
+await shot('13-night');
+await city(() => window.awsCity.bus.emit('hour', { hour: undefined }));
+// Learning modes
+const clickTab = async (label) => page.locator(`.tabs button[title="${label}"]`).click();
+await clickTab('Cards');
+await wait(400);
+await page.locator('.flash').click().catch(() => {});
+await wait(300);
+await shot('14-flashcards');
+await clickTab('Build');
+await page.locator('.palette .svc').first().click();
+await page.locator('.palette .svc').first().click();
+await page.getByText('Check design').click();
+await wait(400);
+await shot('15-architecture');
+await clickTab('Quests');
+await page.getByText('Start quest').first().click();
+await wait(400);
+await shot('16-quests');
+await clickTab('Deploy');
+await page.getByText('Get my setup link').click();
+await wait(300);
+await page.getByText('use demo role').click();
+await wait(1500);
+await page.getByText('Preview').first().click();
+await wait(3500);
+await shot('17-deploy-preview');
+await page.getByText('Approve & deploy').click();
+await wait(8000);
+await shot('18-deploy-done');
 
 // side panel layout
 const panel = await ctx.newPage();

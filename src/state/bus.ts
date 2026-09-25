@@ -19,7 +19,7 @@ export interface BusEvents {
   /** Game → UI */
   select: { id: string };
   enterHq: { districtId: string };
-  play: { game: 'fishing' };
+  questDone: { questId: string };
   xpGained: { serviceId: string; amount: number };
   /** Dev/demo: force the day/night clock (hour 0–24) or undefined for real time. */
   hour: { hour?: number };

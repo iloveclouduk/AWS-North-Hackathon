@@ -33,7 +33,7 @@ export class Landmark {
     this.img.setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 1 });
     if (hasSprite(`${spec.sprite}@lights`)) {
       this.lights = addSprite(scene, `${spec.sprite}@lights`, n.x, n.y)
-        .setDepth(entityDepth(front.y) + 0.5)
+        .setDepth(70_001) // above the night overlay so windows really glow
         .setBlendMode(Phaser.BlendModes.ADD)
         .setAlpha(0);
     }

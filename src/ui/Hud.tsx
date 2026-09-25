@@ -2,6 +2,7 @@ import { openFullCity, type Layout } from '@/app/runtime';
 import { useCity } from '@/state/store';
 import { SERVICES } from '@/world/taxonomy';
 import { districtById } from '@/world/taxonomy';
+import { SoundToggle } from './SoundToggle';
 
 export function Hud({ layout }: { layout: Layout }) {
   const progress = useCity((s) => s.progress);
@@ -25,7 +26,7 @@ export function Hud({ layout }: { layout: Layout }) {
         </span>
       )}
       {view.name === 'interior' && <span className="where">{districtById(view.districtId)?.hq}</span>}
-      {view.name === 'fishing' && <span className="where">S3 Lake</span>}
+      {view.name === 'game' && <span className="where">Mini-game</span>}
       <span className="stat" title="Landmarks discovered">
         🏛️ {discovered}/{SERVICES.length}
       </span>
@@ -35,6 +36,7 @@ export function Hud({ layout }: { layout: Layout }) {
       <span className={`dot ${status}`} title={`Backend: ${kind} · ${status}`}>
         {kind === 'mock' ? 'mock' : 'aws'}
       </span>
+      <SoundToggle />
       {layout === 'panel' && (
         <button className="btn" onClick={openFullCity} title="Open the full city in a tab">
           ⤢

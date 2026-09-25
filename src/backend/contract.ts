@@ -307,7 +307,7 @@ export interface Progress {
   version: 1 | 2;
   landmarks: Record<string, LandmarkProgress>;
   cards?: Record<string, CardState>;
-  quests?: Record<string, { status: 'active' | 'done'; step: number }>;
+  quests?: Record<string, { status: 'active' | 'done'; step: number; count?: number }>;
   puzzles?: Record<string, { best: number }>;
   /** Games played per mini-game id. */
   games?: Record<string, { best: number; plays: number }>;
