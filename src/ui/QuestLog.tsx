@@ -2,7 +2,8 @@ import { planDeploy, startQuest as notifyQuest, submitPrompt } from '@/app/runti
 import { bus } from '@/state/bus';
 import { useCity } from '@/state/store';
 import { QUESTS, type QuestStep } from '@/world/content';
-import { districtById, hexColor } from '@/world/taxonomy';
+import { districtById } from '@/world/taxonomy';
+import { districtStyle } from './logic';
 
 const ICON: Record<QuestStep['kind'], string> = { visit: '🚶', cards: '🃏', puzzle: '🧩', ask: '💬', deploy: '🚀' };
 
@@ -42,7 +43,7 @@ export function QuestLog({ openTab }: { openTab: (t: 'learn' | 'arch' | 'deploy'
         const st = quests[q.id];
         const d = districtById(q.districtId);
         return (
-          <section key={q.id} className={`quest ${st?.status ?? 'new'}`} style={{ borderColor: d ? hexColor(d.color) : undefined }}>
+          <section key={q.id} className={`quest edge ${st?.status ?? 'new'}`} style={districtStyle(d?.color)}>
             <div className="quest-head">
               <b>
                 {st?.status === 'done' ? '🏆 ' : '📜 '}

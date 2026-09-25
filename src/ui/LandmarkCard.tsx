@@ -1,7 +1,8 @@
 import { openConsole, submitPrompt } from '@/app/runtime';
 import { tierOf, useCity } from '@/state/store';
 import { placeFor, SPECIAL_AGENTS, TIER_NAMES, TIER_XP } from '@/world/places';
-import { districtById, hexColor, serviceById, servicesIn, type DistrictId } from '@/world/taxonomy';
+import { districtById, serviceById, servicesIn, type DistrictId } from '@/world/taxonomy';
+import { districtStyle } from './logic';
 
 export function LandmarkCard() {
   const id = useCity((s) => s.selected);
@@ -28,7 +29,7 @@ export function LandmarkCard() {
   if (id.startsWith('hq:')) {
     const d = districtById(id.slice(3))!;
     return (
-      <div className="card" style={{ borderColor: hexColor(d.color) }}>
+      <div className="card edge" style={districtStyle(d.color)}>
         <h3>🏢 {d.hq}</h3>
         <p>
           The {d.name} team works here. Go inside to watch them sit at their computers while real AWS calls run — and ask them anything.
@@ -51,7 +52,7 @@ export function LandmarkCard() {
   const pct = tier >= 4 ? 100 : Math.round(((xp - prev) / Math.max(1, next - prev)) * 100);
 
   return (
-    <div className="card" style={{ borderColor: hexColor(d.color) }}>
+    <div className="card edge" style={districtStyle(d.color)}>
       <h3>
         {tier < 0 ? '❔ ' : ''}
         {place.place}
@@ -68,8 +69,8 @@ export function LandmarkCard() {
         <>
           <div className="tier">
             <b>{TIER_NAMES[tier]}</b> · {xp} XP
-            <div className="bar">
-              <i style={{ width: `${Math.max(4, pct)}%`, background: hexColor(d.color) }} />
+            <div className="meter district" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={`Progress to ${TIER_NAMES[Math.min(tier + 1, 4)]}`}>
+              <i style={{ width: `${Math.max(4, pct)}%` }} />
             </div>
             {tier < 4 && <span className="muted">{next - xp} XP to {TIER_NAMES[tier + 1]}</span>}
           </div>

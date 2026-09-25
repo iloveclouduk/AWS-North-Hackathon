@@ -11,6 +11,7 @@ import { captureVisibleTab, hasCapturePermission, requestCapturePermission } fro
 import { bus } from '@/state/bus';
 import { knownAgents, useCity } from '@/state/store';
 import { matchUrl, serviceById } from '@/world/taxonomy';
+import { isAccountIdOrRoleArn, isTourDone } from '@/ui/logic';
 import { FOCUS_STORAGE_KEY, PROGRESS_STORAGE_KEY, SETTINGS_STORAGE_KEY, type PageFocus, type RuntimeMessage } from '@/state/types';
 
 export type Layout = 'panel' | 'full';
@@ -44,6 +45,7 @@ export function startRuntime(l: Layout) {
   void initFocus();
   void initSettings();
 
+  if (isTourDone()) return; // the welcome lines are for first-timers only
   store().log({ kind: 'system', text: `Welcome to AWS City! Backend: ${kind === 'mock' ? 'mock (offline demo)' : kind === 'server' ? 'local AWS server (workshop account)' : 'Bedrock AgentCore'}.` });
   store().log({ kind: 'message', from: 'concierge', to: 'user', text: 'Open any AWS Console page and I will build that part of town. Or just ask me to do something!' });
 }
@@ -179,16 +181,33 @@ export function signIn() {
   void backend?.signIn?.().catch((e) => store().log({ kind: 'system', text: `⚠️ Sign-in failed: ${String(e)}` }));
 }
 
+/** Optional backend methods (added to the AgentBackend contract separately) — read defensively. */
+type MaybeRecoverable = { reconnect?: () => void | Promise<void>; signOut?: () => void | Promise<void> };
+const optional = () => backend as (AgentBackend & MaybeRecoverable) | undefined;
+
+export const canSignIn = () => typeof backend?.signIn === 'function';
+export const canReconnect = () => typeof optional()?.reconnect === 'function';
+
+export function reconnect() {
+  void Promise.resolve(optional()?.reconnect?.()).catch((e) => store().log({ kind: 'system', text: `⚠️ Reconnect failed: ${String(e)}` }));
+}
+
+export function signOut() {
+  void Promise.resolve(optional()?.signOut?.()).catch((e) => store().log({ kind: 'system', text: `⚠️ Sign-out failed: ${String(e)}` }));
+}
+
 export function linkAccount(region = 'us-west-2') {
   backend?.send({ action: 'account.link', requestId: uid(), region });
 }
 
+/** Accepts a 12-digit account id or a role ARN; the value goes to the server unchanged (it accepts either). */
 export function verifyAccount(roleArn: string) {
-  if (!/^arn:aws:iam::\d{12}:role\/.+/.test(roleArn.trim())) {
-    store().log({ kind: 'system', text: '⚠️ That does not look like a role ARN (arn:aws:iam::123456789012:role/…).' });
-    return;
+  if (!isAccountIdOrRoleArn(roleArn)) {
+    store().toast('⚠️', 'That doesn’t look right — paste the 12-digit account ID (or the role ARN arn:aws:iam::123456789012:role/…).', 'error');
+    return false;
   }
   backend?.send({ action: 'account.verify', requestId: uid(), roleArn: roleArn.trim() });
+  return true;
 }
 
 export function planDeploy(templateId: string, taskId?: string) {

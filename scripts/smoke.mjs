@@ -122,7 +122,7 @@ await shot('16-quests');
 await clickTab('Deploy');
 await page.getByText('Get my setup link').click();
 await wait(300);
-await page.getByText('use demo role').click();
+await page.getByText('Demo account').click();
 await wait(1500);
 await page.getByText('Preview').first().click();
 await wait(3500);

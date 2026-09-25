@@ -11,7 +11,7 @@ export function Flashcards() {
   const selected = useCity((s) => s.selected);
   const reviewCard = useCity((s) => s.reviewCard);
   const discovered = SERVICES.filter((s) => isDiscovered(progress, s.id));
-  const [deck, setDeck] = useState<string>(() => (selected && serviceById(selected) ? selected : (discovered[0]?.id ?? 's3')));
+  const [deck, setDeck] = useState<string>(() => (selected && serviceById(selected) && isDiscovered(progress, selected) ? selected : (discovered[0]?.id ?? 'due')));
   const [flipped, setFlipped] = useState(false);
   const [done, setDone] = useState(0);
 
@@ -35,28 +35,39 @@ export function Flashcards() {
       <div className="row">
         <select value={deck} onChange={(e) => (setDeck(e.target.value), setFlipped(false))} aria-label="Deck">
           <option value="due">⏰ All due cards (discovered)</option>
-          {SERVICES.map((s) => (
-            <option key={s.id} value={s.id}>
-              {isDiscovered(progress, s.id) ? '' : '🔒 '}
-              {placeFor(s.id)?.place} ({cardsFor(s.id).length})
-            </option>
-          ))}
+          {SERVICES.map((s) => {
+            const open = isDiscovered(progress, s.id);
+            return (
+              <option key={s.id} value={s.id} disabled={!open}>
+                {open ? '' : '🔒 '}
+                {placeFor(s.id)?.place} ({cardsFor(s.id).length}){open ? '' : ' — discover it first'}
+              </option>
+            );
+          })}
         </select>
       </div>
+      {discovered.length < SERVICES.length && <div className="muted">🔒 Locked decks open when you visit that service in the AWS console.</div>}
       <div className="muted">
         {queue.length} due of {total} · reviewed {done} this session
       </div>
       {card ? (
-        <button className={`flash ${flipped ? 'back' : ''}`} onClick={() => setFlipped((f) => !f)}>
+        <button
+          className={`flash ${flipped ? 'back' : ''}`}
+          onClick={() => setFlipped((f) => !f)}
+          aria-label={`${flipped ? 'Answer' : 'Question'}: ${flipped ? card.a : card.q}. ${flipped ? 'Press to see the question' : 'Press to reveal the answer'}`}
+        >
           <span className="flash-meta">
             {placeFor(serviceId!)?.place} · {TIER_NAMES[card.tier]}
           </span>
           <span className="flash-text">{flipped ? card.a : card.q}</span>
-          <span className="flash-hint">{flipped ? '' : 'tap to reveal'}</span>
+          <span className="flash-hint">{flipped ? 'tap to flip back' : 'tap to reveal'}</span>
         </button>
       ) : (
         <p className="empty">🎉 Nothing due in this deck. Come back later — spaced repetition brings cards back right before you’d forget them.</p>
       )}
+      <div className="sr-only" aria-live="polite">
+        {card && flipped ? `Answer: ${card.a}` : ''}
+      </div>
       {card && flipped && (
         <>
           <div className="actions grades">

@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { bus } from '@/state/bus';
 import { agentName, useCity, type FeedItem, type TaskView } from '@/state/store';
 
+const TASK_LABEL = { routing: 'Finding an agent…', running: 'Working…', done: 'Done', failed: 'Didn’t work' } as const;
 const STEP_ICON = { pending: '○', running: '▶', done: '✓', failed: '✗', skipped: '⤼' } as const;
 
 function TaskCard({ task }: { task: TaskView }) {
@@ -9,7 +10,7 @@ function TaskCard({ task }: { task: TaskView }) {
     <div className={`task ${task.status}`}>
       <div className="task-head">
         <b>{task.agentId ? agentName(task.agentId) : 'Connie the Concierge'}</b>
-        <span className="muted">{task.status === 'routing' ? 'routing…' : task.status}</span>
+        <span className="muted">{TASK_LABEL[task.status]}</span>
       </div>
       <div className="task-prompt">“{task.prompt}”</div>
       {task.steps.length > 0 && (
@@ -28,28 +29,42 @@ function TaskCard({ task }: { task: TaskView }) {
 
 function Line({ item }: { item: FeedItem }) {
   const who = item.from ? agentName(item.from) : '';
-  const focus = () => item.from && item.from !== 'user' && bus.emit('flyTo', { id: item.from === 'concierge' ? 'plaza' : item.from });
+  const target = item.from && item.from !== 'user' ? (item.from === 'concierge' ? 'plaza' : item.from) : undefined;
+  // Rows that fly the camera to their agent are real buttons (keyboard reachable).
+  const row = (cls: string, body: ReactNode) =>
+    target ? (
+      <li>
+        <button type="button" className={`line ${cls}`} onClick={() => bus.emit('flyTo', { id: target })} title={`Show ${who} in the city`}>
+          {body}
+        </button>
+      </li>
+    ) : (
+      <li className={`line ${cls}`}>{body}</li>
+    );
   switch (item.kind) {
     case 'user':
       return <li className="line user">🧑 {item.text}</li>;
     case 'message':
-      return (
-        <li className="line msg" onClick={focus}>
+      return row(
+        'msg',
+        <>
           <b>{who}</b>
           {item.to && item.to !== 'user' ? <span className="muted"> → {agentName(item.to)}</span> : null}: {item.text}
-        </li>
+        </>,
       );
     case 'state':
-      return (
-        <li className="line state" onClick={focus}>
+      return row(
+        'state',
+        <>
           ⚙️ <b>{who}</b> <code>{item.text}</code>
-        </li>
+        </>,
       );
     case 'step':
-      return (
-        <li className="line step" onClick={focus}>
+      return row(
+        'step',
+        <>
           ▶ <b>{who}</b>: {item.text}
-        </li>
+        </>,
       );
     default:
       return <li className="line sys">{item.text}</li>;
@@ -66,6 +81,7 @@ export function ActivityFeed() {
   return (
     <div className="feed">
       {latest && <TaskCard task={latest} />}
+      {!latest && feed.length === 0 && <p className="empty">Nothing happening yet — ask the city to do something below, or open an AWS console page.</p>}
       <ul className="lines">
         {feed.map((f) => (
           <Line key={f.id} item={f} />

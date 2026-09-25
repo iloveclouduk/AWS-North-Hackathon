@@ -13,13 +13,22 @@ export function LookoutButton({ layout }: { layout: Layout }) {
       </button>
     );
   }
+  const snapping = state === 'snapping';
   return (
     <span className="lookout">
-      <button type="button" className="btn" disabled={state === 'snapping'} onClick={() => void snap()} title="Lookout: show the city this page">
-        {state === 'snapping' ? '⏳' : '📷'}
+      <button
+        type="button"
+        className="btn icon"
+        disabled={snapping}
+        aria-busy={snapping}
+        onClick={() => void snap()}
+        title="Lookout: show the city this page"
+        aria-label={snapping ? 'Taking a photo of this page…' : 'Lookout: show the city this page'}
+      >
+        {snapping ? <span className="spinner" aria-hidden="true" /> : <span aria-hidden="true">📷</span>}
       </button>
       <label title="Snap automatically when you open a non-AWS page">
-        <input type="checkbox" checked={auto} onChange={(e) => setAutoSnap(e.target.checked)} /> auto
+        <input type="checkbox" checked={auto} onChange={(e) => setAutoSnap(e.target.checked)} /> Auto-snap
       </label>
     </span>
   );

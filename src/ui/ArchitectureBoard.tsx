@@ -4,7 +4,8 @@ import { bus } from '@/state/bus';
 import { useCity } from '@/state/store';
 import { PILLARS, PUZZLES } from '@/world/content';
 import { placeFor, TIER_NAMES } from '@/world/places';
-import { districtById, hexColor, serviceById } from '@/world/taxonomy';
+import { districtById, serviceById } from '@/world/taxonomy';
+import { districtStyle, shuffle } from './logic';
 
 /** Architecture builder: pick services to meet the requirements; scored on the 6 Well-Architected pillars. */
 export function ArchitectureBoard() {
@@ -14,7 +15,8 @@ export function ArchitectureBoard() {
   const p = PUZZLES.find((x) => x.id === id) ?? PUZZLES[0];
   const [placed, setPlaced] = useState<string[]>([]);
   const [result, setResult] = useState<PuzzleScore>();
-  const palette = useMemo(() => (p ? [...new Set([...p.required, ...p.optional, ...p.distractors])].sort(() => (p.id.length % 2 ? 1 : -1)) : []), [p]);
+  // A fresh random order each time a puzzle is opened, stable while you play it.
+  const palette = useMemo(() => (p ? shuffle([...new Set([...p.required, ...p.optional, ...p.distractors])]) : []), [p?.id]);
   if (!p) return <p className="empty">No puzzles yet.</p>;
 
   const toggle = (s: string) => {
@@ -29,9 +31,15 @@ export function ArchitectureBoard() {
   };
   const chip = (s: string, on: boolean) => {
     const svc = serviceById(s);
-    const color = svc ? hexColor(districtById(svc.districtId)!.color) : '#888';
     return (
-      <button key={s} className={`svc ${on ? 'on' : ''}`} style={{ borderColor: color }} onClick={() => toggle(s)} title={placeFor(s)?.blurb}>
+      <button
+        key={s}
+        className={`svc ${on ? 'on' : ''}`}
+        style={districtStyle(svc ? districtById(svc.districtId)?.color : undefined)}
+        onClick={() => toggle(s)}
+        title={placeFor(s)?.blurb}
+        aria-pressed={on}
+      >
         {svc?.name.replace(/^(Amazon|AWS) /, '') ?? s}
       </button>
     );
@@ -61,10 +69,10 @@ export function ArchitectureBoard() {
           <li key={r}>☐ {r}</li>
         ))}
       </ul>
-      <div className="muted">Services (tap to place on the board):</div>
+      <div className="muted">Services (tap to place on the board, tap again to remove):</div>
       <div className="palette">{palette.filter((s) => !placed.includes(s)).map((s) => chip(s, false))}</div>
       <div className="board">
-        {placed.length === 0 ? <span className="muted">Your architecture is empty — add services above.</span> : placed.map((s, i) => [i > 0 && <span key={`a${i}`}>→</span>, chip(s, true)])}
+        {placed.length === 0 ? <span className="muted">Your architecture is empty — add services above.</span> : placed.map((s, i) => [i > 0 && <span key={`a${i}`} aria-hidden="true">→</span>, chip(s, true)])}
       </div>
       <div className="actions">
         <button className="btn primary" disabled={!placed.length} onClick={check}>
@@ -75,7 +83,7 @@ export function ArchitectureBoard() {
         </button>
       </div>
       {result && (
-        <div className={`result ${result.passed ? 'pass' : 'fail'}`}>
+        <div className={`result ${result.passed ? 'pass' : 'fail'}`} role="status">
           <b>
             {result.passed ? '✅ Well architected!' : '❌ Not yet'} — {result.score}/100
           </b>
@@ -85,7 +93,7 @@ export function ArchitectureBoard() {
             {PILLARS.map((pl) => (
               <div key={pl.id} className="pillar" title={pl.summary}>
                 <span>{pl.name}</span>
-                <div className="bar">
+                <div className="meter" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={result.pillars[pl.id] ?? 0} aria-label={pl.name}>
                   <i style={{ width: `${Math.max(4, result.pillars[pl.id] ?? 0)}%` }} />
                 </div>
               </div>

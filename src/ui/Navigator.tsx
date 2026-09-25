@@ -1,7 +1,8 @@
 import { bus } from '@/state/bus';
 import { tierOf, useCity } from '@/state/store';
 import { placeFor, TIER_NAMES } from '@/world/places';
-import { DISTRICTS, hexColor, servicesIn } from '@/world/taxonomy';
+import { DISTRICTS, servicesIn } from '@/world/taxonomy';
+import { districtStyle } from './logic';
 
 /** Hotel-navigator style list of every district and landmark. */
 export function Navigator() {
@@ -20,8 +21,8 @@ export function Navigator() {
         const svcs = servicesIn(d.id);
         const open = svcs.some((s) => tierOf(progress, s.id) >= 0);
         return (
-          <section key={d.id} className="nav-district" style={{ borderColor: hexColor(d.color) }}>
-            <h4 style={{ color: hexColor(d.color) }}>
+          <section key={d.id} className="nav-district edge" style={districtStyle(d.color)}>
+            <h4>
               {open ? '' : '🔒 '}
               {d.name}
             </h4>

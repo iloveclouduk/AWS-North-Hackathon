@@ -30,7 +30,7 @@ export interface TaskView {
 
 export interface ChatMsg {
   id: string;
-  role: 'user' | 'agent';
+  role: 'user' | 'agent' | 'error';
   agentId?: string;
   text: string;
   pending?: boolean;
@@ -40,7 +40,22 @@ export interface Toast {
   id: number;
   icon: string;
   text: string;
+  kind?: 'info' | 'error';
 }
+
+/** Known backend error codes (optional `code` on ErrorEvent) → friendly text. */
+const ERROR_TEXT: Record<string, string> = {
+  quota: 'You’ve used today’s AI helpers — back tomorrow!',
+  auth: 'Please sign in again',
+  unlinked: 'Connect your AWS account in the Deploy tab',
+  paused: 'The city’s AI helpers are taking a break — try again later.',
+};
+
+/** What to show the player for a backend `error` event. */
+export const errorText = (e: { message: string }) => {
+  const code = (e as { code?: string }).code;
+  return (code && ERROR_TEXT[code]) || e.message;
+};
 
 export type View = { name: 'city' } | { name: 'interior'; districtId: string } | { name: 'game'; game: GameId };
 
@@ -108,7 +123,10 @@ export interface CityState {
   addTask(taskId: string, prompt: string): void;
   addUserChat(districtId: string, requestId: string, text: string): void;
   log(item: Omit<FeedItem, 'id' | 'at'>): void;
-  toast(icon: string, text: string): void;
+  toast(icon: string, text: string, kind?: Toast['kind']): void;
+  /** Coach-mark tour overlay (UI-only, not persisted here — the done flag lives in localStorage). */
+  tourOpen: boolean;
+  setTourOpen(open: boolean): void;
   dismissToast(id: number): void;
   setView(v: View): void;
   select(id?: string): void;
@@ -158,6 +176,7 @@ export const useCity = create<CityState>()((set, get) => ({
   account: { linked: false },
   deploys: {},
   agentLevels: {},
+  tourOpen: false,
 
   setBackend: (backendKind, backendStatus, deployMode) => set(deployMode ? { backendKind, backendStatus, deployMode } : { backendKind, backendStatus }),
 
@@ -314,10 +333,23 @@ export const useCity = create<CityState>()((set, get) => ({
       case 'screenshot.url':
       case 'progress.state':
         break;
-      case 'error':
-        s.log({ kind: 'system', text: `⚠️ ${e.message}` });
+      case 'error': {
+        const text = errorText(e);
+        s.log({ kind: 'system', text: `⚠️ ${text}` });
+        s.toast('⚠️', text, 'error');
         if (e.taskId && s.tasks[e.taskId]) set({ tasks: { ...s.tasks, [e.taskId]: { ...s.tasks[e.taskId], status: 'failed' } } });
+        // Show it in the HQ chat it belongs to (by requestId), else in the HQ the player is standing in.
+        const chats = get().chats;
+        const byRequest = e.requestId ? Object.keys(chats).find((d) => chats[d].some((m) => m.id === `u-${e.requestId}`)) : undefined;
+        const v = get().view;
+        const districtId = byRequest ?? (v.name === 'interior' && v.districtId !== 'spheres' ? v.districtId : undefined);
+        if (districtId) {
+          const list = (chats[districtId] ?? []).map((m) => (m.pending && (!e.requestId || m.id === `a-${e.requestId}`) ? { ...m, pending: false } : m));
+          list.push({ id: `e-${nextId++}`, role: 'error', text });
+          set({ chats: { ...chats, [districtId]: list } });
+        }
         break;
+      }
     }
   },
 
@@ -337,11 +369,12 @@ export const useCity = create<CityState>()((set, get) => ({
 
   log: (item) => set((s) => ({ feed: [...s.feed, { ...item, id: nextId++, at: Date.now() }].slice(-FEED_MAX) })),
 
-  toast: (icon, text) => {
+  toast: (icon, text, kind = 'info') => {
     const id = nextId++;
-    set((s) => ({ toasts: [...s.toasts, { id, icon, text }].slice(-4) }));
-    setTimeout(() => get().dismissToast(id), 5000);
+    set((s) => ({ toasts: [...s.toasts, { id, icon, text, kind }].slice(-4) }));
+    setTimeout(() => get().dismissToast(id), kind === 'error' ? 8000 : 5000);
   },
+  setTourOpen: (tourOpen) => set({ tourOpen }),
   dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 
   setView: (view) => set({ view }),

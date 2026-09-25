@@ -5,14 +5,16 @@ export function SoundToggle() {
   const [muted, set] = useState(isMuted());
   return (
     <button
-      className="btn"
+      className="btn icon"
       title={muted ? 'Sound off' : 'Sound on'}
+      aria-label="Sound effects"
+      aria-pressed={!muted}
       onClick={() => {
         setMuted(!muted);
         set(!muted);
       }}
     >
-      {muted ? '🔇' : '🔊'}
+      <span aria-hidden="true">{muted ? '🔇' : '🔊'}</span>
     </button>
   );
 }
