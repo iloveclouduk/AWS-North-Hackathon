@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { findTarget, typeInto } from '@/console/act';
+import { findExact, findTarget, typeInto } from '@/console/act';
+import { redact } from '@/console/risk';
 import { isConsoleUrl, isRisky, mayAct } from '@/console/safety';
 import { takeSnapshot } from '@/console/snapshot';
 
@@ -88,5 +89,41 @@ describe('acting on the page', () => {
   it('refuses to type into secret fields', () => {
     takeSnapshot(document, { requireLayout: false });
     expect(() => typeInto(document.getElementById('pw')!, 'x')).toThrow(/secret/);
+  });
+});
+
+describe('security hardening', () => {
+  it('never sends typed values, and redacts account IDs, keys, emails and tokens from page text', () => {
+    document.body.innerHTML = `<h1>Account 1234-5678-9012 · admin@example.com</h1>
+      <label for="d">Description</label><input id="d" type="text" value="my private notes" />
+      <button type="button">Use key AKIAIOSFODNN7EXAMPLE</button>`;
+    const json = JSON.stringify(takeSnapshot(document, { requireLayout: false }));
+    expect(json).not.toContain('my private notes');
+    expect(json).toContain('(filled)');
+    expect(json).not.toContain('1234-5678-9012');
+    expect(json).not.toContain('admin@example.com');
+    expect(json).not.toContain('AKIAIOSFODNN7EXAMPLE');
+    expect(redact('token abcdefghijklmnopqrstuvwxyz0123456789ABCD')).toBe('token [token]');
+  });
+
+  it('refuses a destructive control disguised with an innocent label, and links that leave the console', () => {
+    document.body.innerHTML = `<button type="button" aria-label="Next" data-testid="delete-bucket-button">Next</button>
+      <button type="button" aria-label="Continue" class="awsui-button-variant-danger">Continue</button>
+      <a href="https://evil.example.com/steal">Learn more</a>
+      <a href="/s3/buckets">Buckets</a>`;
+    const items = takeSnapshot(document, { requireLayout: false }).items;
+    const el = (name: string) => findExact(document, { id: items.find((i) => i.name === name)!.id, name })!;
+    const item = (name: string) => items.find((i) => i.name === name);
+    expect(mayAct(item('Next'), 'click', el('Next'))).toMatchObject({ ok: false, reason: 'risky' });
+    expect(mayAct(item('Continue'), 'click', el('Continue'))).toMatchObject({ ok: false, reason: 'risky' });
+    expect(mayAct(item('Learn more'), 'click', el('Learn more'))).toMatchObject({ ok: false, reason: 'risky' });
+  });
+
+  it('acting uses only the exact snapshot element — no fuzzy redirect to a look-alike', () => {
+    document.body.innerHTML = `<button type="button">Create bucket</button>`;
+    takeSnapshot(document, { requireLayout: false });
+    expect(findExact(document, { name: 'Create bucket' })).toBeUndefined(); // no id → no action
+    expect(findExact(document, { id: 'nope', name: 'Create bucket' })).toBeUndefined();
+    expect(findTarget(document, { name: 'Create bucket' })).toBeDefined(); // pointing may still find it
   });
 });

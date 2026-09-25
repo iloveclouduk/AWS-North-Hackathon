@@ -3,7 +3,7 @@
 // (src/console/safety.ts). Every action is shown (highlight + agent bubble) before it happens.
 import { browser } from 'wxt/browser';
 import { defineContentScript } from 'wxt/utils/define-content-script';
-import { choose, findTarget, press, typeInto } from '@/console/act';
+import { choose, findExact, findTarget, press, typeInto } from '@/console/act';
 import { Overlay } from '@/console/overlay';
 import { isConsoleUrl, mayAct } from '@/console/safety';
 import { takeSnapshot } from '@/console/snapshot';
@@ -85,7 +85,8 @@ export default defineContentScript({
         return { ok: true };
       }
       const snap = takeSnapshot(document);
-      const el = step.target ? findTarget(document, step.target) : undefined;
+      // Pointing may use a name match; acting only ever uses the exact element from the snapshot.
+      const el = step.target ? (step.action === 'point' ? findTarget(document, step.target) : findExact(document, step.target)) : undefined;
       const item = el ? snap.items.find((i) => i.id === el.getAttribute('data-awscity-id')) : undefined;
 
       if (step.action === 'point') {
@@ -93,7 +94,7 @@ export default defineContentScript({
         await wait(READ_MS + 1200);
         return { ok: true, snapshot: takeSnapshot(document) };
       }
-      const verdict = mayAct(item, step.action);
+      const verdict = mayAct(item, step.action, el);
       if (!verdict.ok && verdict.reason === 'missing') {
         o.show(undefined, { agent, say: `I can’t find “${step.target?.name}” on this page.`, why: step.why });
         return { ok: false, note: 'not found', snapshot: snap };

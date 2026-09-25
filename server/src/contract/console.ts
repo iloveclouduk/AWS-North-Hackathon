@@ -66,7 +66,12 @@ interface Task {
   index: number;
   misses: number;
   history: string[];
+  /** A model call is in flight — further observes are ignored (no request amplification). */
+  thinking: boolean;
 }
+
+/** One Copilot per socket, one console task at a time. */
+export const MAX_CONSOLE_TASKS = 1;
 
 const describe = (s: PageSnapshot) =>
   [
@@ -102,6 +107,7 @@ export const createConsoleCopilot = (deps: { llm: Llm }) => {
     if (t.index >= MAX_STEPS) return finish(taskId, false, 'Step budget reached — stopping so nothing unexpected happens.', emit);
     emit({ type: 'agent.state', agentId: t.agentId, state: 'working', service: 'bedrock', detail: 'InvokeModel — next console step' });
     let step: z.infer<typeof Step> | undefined;
+    t.thinking = true;
     try {
       const msg = await deps.llm.create({
         max_tokens: 1024,
@@ -115,6 +121,8 @@ export const createConsoleCopilot = (deps: { llm: Llm }) => {
       step = parsed?.success ? parsed.data : undefined;
     } catch (err) {
       console.error('[console]', err);
+    } finally {
+      t.thinking = false;
     }
     if (!tasks.has(taskId)) return; // stopped while thinking
     if (!step) return finish(taskId, false, 'I couldn’t work out the next step on this page.', emit);
@@ -128,8 +136,12 @@ export const createConsoleCopilot = (deps: { llm: Llm }) => {
 
   return {
     start(cmd: Omit<ConsoleStart, 'action'>, emit: Emit) {
+      if (tasks.size >= MAX_CONSOLE_TASKS || tasks.has(cmd.taskId)) {
+        emit({ type: 'error', message: 'A console task is already running — stop it first.', taskId: cmd.taskId });
+        return;
+      }
       const agentId = cmd.context.serviceId ?? matchText(cmd.goal) ?? 'bedrock';
-      tasks.set(cmd.taskId, { goal: cmd.goal, agentId, index: 0, misses: 0, history: [] });
+      tasks.set(cmd.taskId, { goal: cmd.goal, agentId, index: 0, misses: 0, history: [], thinking: false });
       const who = placeFor(agentId)?.agentName ?? agentId;
       emit({ type: 'agent.message', from: 'concierge', to: 'user', text: `${who} will do this in your console, step by step — watch the highlights.` });
       emit({ type: 'task.plan', taskId: cmd.taskId, agentId, targetServiceId: agentId, steps: ['Working in your AWS console'] });
@@ -137,13 +149,19 @@ export const createConsoleCopilot = (deps: { llm: Llm }) => {
     },
     observe(cmd: Omit<ConsoleObserve, 'action'>, emit: Emit) {
       const t = tasks.get(cmd.taskId);
-      if (!t) return;
+      // Only the answer to the step we just sent counts, and only once: stale, repeated or
+      // out-of-order observes can't trigger extra model calls.
+      if (!t || t.thinking || cmd.index !== t.index - 1 || t.history.at(-1)?.startsWith('   result')) return;
       t.history.push(`   result: ${cmd.ok ? 'ok' : 'failed'}${cmd.note ? ` (${cmd.note})` : ''}`);
       if (!cmd.ok && ++t.misses >= 3) return finish(cmd.taskId, false, 'I got stuck after a few tries, so I stopped.', emit);
       return next(cmd.taskId, cmd.snapshot, emit);
     },
     stop(taskId: string, emit: Emit) {
       finish(taskId, false, 'Stopped by the learner.', emit);
+    },
+    /** Socket closed: drop everything (no model calls continue for a gone client). */
+    stopAll() {
+      tasks.clear();
     },
     get active() {
       return tasks.size;

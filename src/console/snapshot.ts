@@ -1,5 +1,6 @@
 // What the agent can "see" on a console page: visible interactive elements with their accessible names.
-// Labels only — values of secret fields are never read.
+// Labels only — typed values never leave the page, and all text is redacted (src/console/risk.ts).
+import { redact } from './risk';
 import { isSensitiveInput } from './safety';
 import type { PageSnapshot, SnapshotItem } from './types';
 
@@ -12,7 +13,9 @@ const INTERACTIVE = [
 const MAX_ITEMS = 160;
 let counter = 0;
 
-const clean = (s: string | null | undefined, max = 80) => (s ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
+const raw = (s: string | null | undefined, max = 80) => (s ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
+/** Everything that leaves the page is redacted (account IDs, keys, emails, tokens). */
+const clean = (s: string | null | undefined, max = 80) => redact(raw(s, max));
 
 function roleOf(el: Element): string {
   const r = el.getAttribute('role');
@@ -47,7 +50,8 @@ export function accessibleName(el: Element): string {
   if (wrap && clean(wrap.textContent)) return clean(wrap.textContent);
   const text = clean((el as HTMLElement).innerText ?? el.textContent);
   if (text) return text;
-  return clean(el.getAttribute('placeholder') ?? el.getAttribute('title') ?? (el as HTMLInputElement).value ?? '');
+  // never fall back to an input's typed value — only static hints
+  return clean(el.getAttribute('placeholder') ?? el.getAttribute('title') ?? '');
 }
 
 function contextOf(el: Element): string | undefined {
@@ -89,7 +93,8 @@ export function takeSnapshot(doc: Document, opts: SnapshotOptions = {}): PageSna
     const input = el as HTMLInputElement;
     const item: SnapshotItem = { id, role, name: name || '(unlabelled field)', context: contextOf(el) };
     if (sensitive) item.sensitive = true;
-    else if (role === 'textbox' || role === 'combobox') item.value = clean(input.value, 60) || undefined;
+    // Typed values never leave the page; the agent only learns whether a field is filled.
+    else if (role === 'textbox' || role === 'combobox') item.value = input.value ? '(filled)' : undefined;
     if (role === 'checkbox' || role === 'radio' || role === 'switch') item.checked = input.checked ?? el.getAttribute('aria-checked') === 'true';
     if ((el as HTMLButtonElement).disabled || el.getAttribute('aria-disabled') === 'true') item.disabled = true;
     items.push(item);

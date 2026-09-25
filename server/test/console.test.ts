@@ -48,4 +48,19 @@ describe('Console Copilot (contract v2.1)', () => {
     expect(events.at(-1)).toMatchObject({ type: 'task.done', ok: false });
     expect(cp.active).toBe(0);
   });
+
+  it('ignores stale, repeated and concurrent observes (no extra model calls) and allows one task per socket', async () => {
+    const { llm, calls } = fakeLlm([
+      step({ action: 'click', target: { id: 'e1', name: 'Create bucket' }, say: 'Open' }),
+      step({ action: 'done', say: 'Done' }),
+    ]);
+    const cp = createConsoleCopilot({ llm });
+    const events: ServerEvent[] = [];
+    const emit = (e: ServerEvent) => events.push(e);
+    await cp.start({ taskId: 'c4', goal: 'Create an S3 bucket', context: {}, snapshot }, emit);
+    cp.start({ taskId: 'c5', goal: 'another', context: {}, snapshot }, emit);
+    expect(events.at(-1)).toMatchObject({ type: 'error', taskId: 'c5' });
+    await Promise.all([cp.observe({ taskId: 'c4', index: 0, ok: true, snapshot }, emit), cp.observe({ taskId: 'c4', index: 0, ok: true, snapshot }, emit), cp.observe({ taskId: 'c4', index: 7, ok: true, snapshot }, emit)]);
+    expect(calls).toHaveLength(2); // start + exactly one observe
+  });
 });

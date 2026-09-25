@@ -3,6 +3,14 @@ import { isSensitiveInput } from './safety';
 import { accessibleName, elementFor } from './snapshot';
 import type { ConsoleTarget } from './types';
 
+/**
+ * For acting, only the exact element the agent saw (snapshot id) counts — no fuzzy name matching, so a
+ * page can't redirect an action to a look-alike control. Name matching is only used for highlighting.
+ */
+export function findExact(doc: Document, t: ConsoleTarget): Element | undefined {
+  return t.id ? (elementFor(doc, t.id) ?? undefined) : undefined;
+}
+
 export function findTarget(doc: Document, t: ConsoleTarget): Element | undefined {
   if (t.id) {
     const byId = elementFor(doc, t.id);

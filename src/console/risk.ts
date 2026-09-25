@@ -13,3 +13,12 @@ export function isRisky(name: string, context = ''): boolean {
   const s = `${name} ${context}`.toLowerCase();
   return RISKY.some((r) => r.test(s));
 }
+
+/** Strip things that must not leave the page: account IDs, access keys, emails, ARNs' account part, long tokens. */
+export function redact(text: string): string {
+  return text
+    .replace(/\b(AKIA|ASIA|AROA|AIDA)[A-Z0-9]{12,}\b/g, '[key]')
+    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '[email]')
+    .replace(/\b\d{4}-?\d{4}-?\d{4}\b/g, '[account]')
+    .replace(/\b[A-Za-z0-9+/_-]{32,}={0,2}/g, '[token]');
+}

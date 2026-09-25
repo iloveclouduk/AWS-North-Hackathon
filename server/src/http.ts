@@ -30,8 +30,8 @@ export interface Deps {
   progress: ProgressStore;
   /** Events every newly connected socket should get first (e.g. the concierge's welcome). */
   welcome: () => ServerEvent[];
-  /** Console Copilot (v2.1); optional so older setups/tests keep working. */
-  copilot?: ConsoleCopilot;
+  /** Console Copilot (v2.1): one instance per socket; optional so older setups/tests keep working. */
+  createCopilot?: () => ConsoleCopilot;
 }
 
 // ── Client → server command validation (mirrors ClientCommand in src/backend/contract.ts) ──
@@ -202,9 +202,11 @@ export const createHttpServer = (deps: Deps) => {
       let requests = 0;
       // Events for a task still running when its socket closes are dropped (accepted limitation).
       const approvals = createApprovals({ region: deps.config.region });
+      const copilot = deps.createCopilot?.();
       ws.on('close', () => {
         sockets.delete(ws);
         approvals.cancelAll();
+        copilot?.stopAll();
       });
       ws.on('error', () => ws.terminate());
       for (const e of deps.welcome()) sendTo(ws, e);
@@ -225,12 +227,10 @@ export const createHttpServer = (deps: Deps) => {
         }
         const cmd = parsed.data;
         if (cmd.action === 'console.start' || cmd.action === 'console.observe' || cmd.action === 'console.stop') {
-          const cp = deps.copilot;
+          const cp = copilot;
           if (!cp) return emit({ type: 'error', message: 'Console Copilot is not enabled on this server.', taskId: cmd.taskId });
-          if (cmd.action === 'console.start') {
-            if (cp.active >= MAX_TASKS_PER_SOCKET) return emit({ type: 'error', message: 'A console task is already running.', taskId: cmd.taskId });
-            void cp.start(cmd, emit);
-          } else if (cmd.action === 'console.observe') void cp.observe(cmd, emit);
+          if (cmd.action === 'console.start') void cp.start(cmd, emit);
+          else if (cmd.action === 'console.observe') void cp.observe(cmd, emit);
           else cp.stop(cmd.taskId, emit);
           return;
         }

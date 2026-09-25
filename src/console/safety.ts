@@ -32,9 +32,45 @@ export function isConsoleUrl(raw: string): boolean {
 
 export type Verdict = { ok: true } | { ok: false; reason: 'risky' | 'sensitive' | 'missing' | 'disabled'; message: string };
 
+/** Every label a control carries — a page could name a Delete button "Next" in one place but not all. */
+export function riskSignals(el: Element): string {
+  const h = el as HTMLElement;
+  return [
+    el.getAttribute('aria-label'),
+    el.getAttribute('title'),
+    el.getAttribute('data-testid'),
+    el.getAttribute('name'),
+    el.getAttribute('value'),
+    el.getAttribute('class'),
+    h.innerText ?? el.textContent,
+    el.closest('form')?.getAttribute('action'),
+    el.closest('[role=dialog]')?.querySelector('h1,h2,h3')?.textContent,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .slice(0, 600);
+}
+
+/** Links that leave the AWS console are never followed by the agent. */
+export function leavesConsole(el: Element): boolean {
+  const a = el.closest('a[href]') as HTMLAnchorElement | null;
+  if (!a) return false;
+  try {
+    return !isConsoleUrl(new URL(a.getAttribute('href') ?? '', el.ownerDocument.location?.href).href);
+  } catch {
+    return true;
+  }
+}
+
 /** Decide whether the agent may act on this element itself. */
-export function mayAct(item: SnapshotItem | undefined, action: string): Verdict {
+export function mayAct(item: SnapshotItem | undefined, action: string, el?: Element): Verdict {
   if (!item) return { ok: false, reason: 'missing', message: 'I can’t find that on the page.' };
+  if (el && (action === 'click' || action === 'select')) {
+    if (isRisky(riskSignals(el)) || /\b(danger|destructive|delete)\b/i.test(el.getAttribute('class') ?? ''))
+      return { ok: false, reason: 'risky', message: `“${item.name}” looks like it can change or delete something important — your turn to click it.` };
+    if (leavesConsole(el)) return { ok: false, reason: 'risky', message: 'That link leaves the AWS console — your turn if you want to follow it.' };
+  }
+  if (el && action === 'type' && isSensitiveInput(el)) return { ok: false, reason: 'sensitive', message: 'That field holds a secret — please fill it in yourself.' };
   if (item.disabled) return { ok: false, reason: 'disabled', message: `“${item.name}” is disabled right now.` };
   if (item.sensitive) return { ok: false, reason: 'sensitive', message: 'That field holds a secret — please fill it in yourself.' };
   if ((action === 'click' || action === 'select') && isRisky(item.name, item.context)) {
