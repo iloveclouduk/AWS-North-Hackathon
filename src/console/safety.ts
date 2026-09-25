@@ -62,6 +62,12 @@ export function leavesConsole(el: Element): boolean {
   }
 }
 
+/** The option a `select` step picks. `choose` uses this same lookup, so the check covers exactly what gets chosen. */
+export function optionFor(el: Element, value: string): HTMLOptionElement | undefined {
+  if (!(el instanceof HTMLSelectElement)) return undefined;
+  return [...el.options].find((o) => o.value === value || o.textContent?.trim().toLowerCase() === value.toLowerCase());
+}
+
 /** Decide whether the agent may act on this element itself. */
 export function mayAct(item: SnapshotItem | undefined, action: string, el?: Element, value?: string): Verdict {
   if (!item) return { ok: false, reason: 'missing', message: 'I can’t find that on the page.' };
@@ -69,6 +75,10 @@ export function mayAct(item: SnapshotItem | undefined, action: string, el?: Elem
     if (isRisky(riskSignals(el)) || /\b(danger|destructive|delete)\b/i.test(el.getAttribute('class') ?? ''))
       return { ok: false, reason: 'risky', message: `“${item.name}” looks like it can change or delete something important — your turn to click it.` };
     if (leavesConsole(el)) return { ok: false, reason: 'risky', message: 'That link leaves the AWS console — your turn if you want to follow it.' };
+    // Check the option that will actually be chosen, not just the value sent: value="2" can label "Disable…".
+    const opt = action === 'select' && value !== undefined ? optionFor(el, value) : undefined;
+    if (opt && isRisky(`${opt.textContent ?? ''} ${opt.value} ${opt.getAttribute('label') ?? ''}`))
+      return { ok: false, reason: 'risky', message: `Choosing “${opt.textContent?.trim()}” can change something important — your turn to pick it.` };
   }
   if (el && action === 'type' && isSensitiveInput(el)) return { ok: false, reason: 'sensitive', message: 'That field holds a secret — please fill it in yourself.' };
   // Typing is checked like clicking: delete dialogs ask you to type "delete"/the name to confirm, and

@@ -141,3 +141,14 @@ describe('typing is risk-checked too', () => {
     expect(mayAct(it('Bucket name'), 'type', el('Bucket name'), 'aws-city-demo-1')).toEqual({ ok: true });
   });
 });
+
+describe('select is checked against the option it picks', () => {
+  it('refuses an innocent-looking value whose option is risky', () => {
+    document.body.innerHTML = `<label for="s">Setting</label><select id="s">
+      <option value="1">Keep defaults</option><option value="2">Disable Block Public Access</option></select>`;
+    const item = takeSnapshot(document, { requireLayout: false }).items.find((i) => i.name.startsWith('Setting'))!;
+    const el = findExact(document, { id: item.id, name: item.name })!;
+    expect(mayAct(item, 'select', el, '2')).toMatchObject({ ok: false, reason: 'risky' });
+    expect(mayAct(item, 'select', el, '1')).toEqual({ ok: true });
+  });
+});

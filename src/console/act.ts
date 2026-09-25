@@ -1,5 +1,5 @@
 // Performing one step on the page, the way a person would: find, scroll, click / type / choose.
-import { isSensitiveInput } from './safety';
+import { isSensitiveInput, optionFor } from './safety';
 import { accessibleName, elementFor } from './snapshot';
 import type { ConsoleTarget } from './types';
 
@@ -39,7 +39,7 @@ export function typeInto(el: Element, value: string) {
 
 export function choose(el: Element, value?: string) {
   if (el instanceof HTMLSelectElement && value !== undefined) {
-    const opt = [...el.options].find((o) => o.value === value || o.textContent?.trim().toLowerCase() === value.toLowerCase());
+    const opt = optionFor(el, value);
     if (!opt) throw new Error(`no option “${value}”`);
     el.value = opt.value;
     el.dispatchEvent(new Event('change', { bubbles: true }));
