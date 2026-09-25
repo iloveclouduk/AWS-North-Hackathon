@@ -66,6 +66,24 @@ cd server && npm install && EXTENSION_ORIGIN=chrome-extension://<id> npm start  
 The workshop account blocks CloudFormation and IAM roles, which is why the server runs locally. See
 [`server/README.md`](server/README.md) for its guardrails and approvals.
 
+## Real mode (your AWS account + Claude on Bedrock)
+
+1. Get your keys from AWS Workshop Studio (**Get AWS CLI credentials**). Put them in `~/.aws/credentials`,
+   which is a file on your own machine; never paste them into chat or commit them:
+   ```ini
+   [workshop]
+   aws_access_key_id = ASIA...
+   aws_secret_access_key = ...
+   aws_session_token = ...
+   ```
+2. Run `npm run live`. This builds the extension for the server, starts `server/` (real AWS, with
+   Claude on Bedrock in us-west-2), and opens Chromium.
+3. Sign in to the AWS console in that window, then tick 🖥️ in the side panel and ask, for example,
+   "Create an S3 bucket".
+
+Workshop keys expire after a few hours. When that happens, paste fresh ones into the file; the server
+picks them up within a minute.
+
 ## Where things live
 
 ```
