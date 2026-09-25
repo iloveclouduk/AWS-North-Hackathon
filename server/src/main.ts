@@ -11,6 +11,7 @@ import { assumedRole, createAwsClients, getAccountId, serviceCredentials } from 
 import { ConfigError, loadConfig } from './config.js';
 import { createS3UploadStore, createUploadStore, type UploadStore } from './contract/uploads.js';
 import { createHttpServer } from './http.js';
+import { createKnowledge } from './knowledge/mcp.js';
 import { log } from './log.js';
 import { dynamoStores } from './store/dynamo.js';
 import { localStores } from './store/local.js';
@@ -57,6 +58,7 @@ const tenants = createTenants({
   stores,
   uploads,
   llm: createLlm(config),
+  knowledge: process.env.KNOWLEDGE === 'off' ? undefined : createKnowledge(),
   enabled: killSwitch({ ssm: config.killSwitchParam ? new SSMClient(ours) : undefined, name: config.killSwitchParam }),
   awsFor,
   linker:

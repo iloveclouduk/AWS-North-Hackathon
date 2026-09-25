@@ -1,3 +1,5 @@
+import { docsBlock, type Knowledge } from '../knowledge/mcp.js';
+import { serviceById, type DocSource } from '../world.js';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { WorldSnapshot } from '../state/model.js';
 import { type ActionName, AWS_API, actionsForAgent, toolDefinitions } from './actions.js';
@@ -20,6 +22,8 @@ export interface TurnResult {
   reply: string;
   toolCalls: ToolCallReport[];
   refused: boolean;
+  /** AWS documentation pages the turn was grounded in. */
+  sources?: DocSource[];
 }
 
 /** Callbacks that let the transport layer animate the turn as it happens. */
@@ -77,7 +81,7 @@ export const closeDangling = (messages: Anthropic.MessageParam[]) => {
 };
 
 /** Agent layer: Claude decides, the ActionService parses/polices/executes, the result goes back to Claude. */
-export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snapshot: () => Promise<WorldSnapshot> }) => {
+export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snapshot: () => Promise<WorldSnapshot>; knowledge?: Knowledge }) => {
   const histories = new Map<string, Anthropic.MessageParam[]>();
   // One turn at a time per agent (they share a conversation); later requests wait their turn.
   const queues = new Map<string, Promise<unknown>>();
@@ -95,11 +99,13 @@ export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snap
     let history = histories.get(agentId) ?? [];
     // Start a fresh conversation rather than editing old turns (keeps history append-only).
     if (history.length > MAX_HISTORY_MESSAGES) history = [];
-    const snapshot = await deps.snapshot();
+    // Ground the turn in AWS documentation fetched up front: no extra model calls, so no extra quota.
+    const [snapshot, docs] = await Promise.all([deps.snapshot(), deps.knowledge?.search(`${serviceById(agentId)?.name ?? agentId} ${playerText}`, 3) ?? []]);
     const messages: Anthropic.MessageParam[] = [
       ...history,
-      { role: 'user', content: `<city_snapshot>${snapshotForModel(snapshot)}</city_snapshot>\n\nPlayer: ${playerText}` },
+      { role: 'user', content: `${docsBlock(docs)}<city_snapshot>${snapshotForModel(snapshot)}</city_snapshot>\n\nPlayer: ${playerText}` },
     ];
+    const sources = docs.map(({ title, url }) => ({ title, url }));
     const toolCalls: ToolCallReport[] = [];
     const replyParts: string[] = [];
 
@@ -111,7 +117,8 @@ export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snap
         try {
           response = await deps.llm.create({
             max_tokens: 16000,
-            system: agentSystemPrompt(agentId),
+            // Prompt caching: the persona + tools are identical across a player's turns (cheaper, faster).
+            system: [{ type: 'text', text: agentSystemPrompt(agentId), cache_control: { type: 'ephemeral' } }],
             tools,
             ...(outOfBudget ? { tool_choice: { type: 'none' as const } } : {}),
             messages,
@@ -122,7 +129,7 @@ export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snap
 
         if (response.stop_reason === 'refusal') {
           // Drop the refused reply but keep what already happened this turn (actions that ran stay known).
-          return { agentId, reply: "Sorry, I can't help with that one.", toolCalls, refused: true };
+          return { agentId, reply: "Sorry, I can't help with that one.", toolCalls, refused: true, sources: [] };
         }
 
         messages.push({ role: 'assistant', content: response.content });
@@ -164,7 +171,7 @@ export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snap
         // All results for one assistant turn go back in a single user message.
         messages.push({ role: 'user', content: results });
       }
-      return { agentId, reply: replyParts.join('\n\n'), toolCalls, refused: false };
+      return { agentId, reply: replyParts.join('\n\n'), toolCalls, refused: false, sources };
     } finally {
       // Whatever happened (normal end, max_tokens mid tool call, refusal, an exception), leave a valid history:
       // every tool_use must be answered, or every later request for this agent would be rejected.

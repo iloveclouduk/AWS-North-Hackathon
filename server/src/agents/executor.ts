@@ -1,3 +1,4 @@
+import { reviewWorld, scorecardText } from './wellarchitected.js';
 import { CreateTableCommand, DeleteTableCommand } from '@aws-sdk/client-dynamodb';
 import {
   DescribeImagesCommand,
@@ -57,6 +58,11 @@ export const executeAction = async (action: Action, clients: AwsClients, snapsho
         return r ? { ok: true, message: `Details for ${r.name}`, resourceId: r.id, data: r } : { ok: false, message: `No resource "${action.id}" in the city.` };
       }
 
+      case 'review_architecture': {
+        const card = reviewWorld(snapshot);
+        return { ok: true, message: scorecardText(card), data: card };
+      }
+
       case 'launch_instance': {
         const res = await clients.ec2.send(
           new RunInstancesCommand({
@@ -65,6 +71,8 @@ export const executeAction = async (action: Action, clients: AwsClients, snapsho
             MinCount: 1,
             MaxCount: 1,
             MetadataOptions: { HttpTokens: 'required' },
+            // T4g defaults to "unlimited" credits, which can bill surplus CPU credits (Agent Toolkit for AWS, aws-compute).
+            CreditSpecification: { CpuCredits: 'standard' },
             TagSpecifications: [
               { ResourceType: 'instance', Tags: gameTags(action.name) },
               { ResourceType: 'volume', Tags: gameTags(action.name) },

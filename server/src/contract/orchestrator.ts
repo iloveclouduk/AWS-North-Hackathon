@@ -1,3 +1,4 @@
+import { docsBlock, type Knowledge } from '../knowledge/mcp.js';
 import type Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import type { Llm } from '../agents/llm.js';
@@ -77,6 +78,8 @@ export const createOrchestrator = (deps: {
   runner: AgentRunner;
   snapshot: () => Promise<WorldSnapshot>;
   uploads: Pick<UploadStore, 'get'>;
+  /** AWS documentation for grounded answers (the Knowledge MCP server); optional. */
+  knowledge?: Knowledge;
   /** Whose screenshots this orchestrator may read (the signed-in player; 'local' for the local server). */
   owner?: string;
   /** Time the agent gets to walk to its landmark before work starts (mock uses ~4.5 s). */
@@ -163,13 +166,14 @@ export const createOrchestrator = (deps: {
       }
       if (result.refused) emit({ type: 'agent.message', from: agentId, to: 'user', text: result.reply });
 
-      const writes = result.toolCalls.filter((c) => c.outcome === 'done' && c.name !== 'describe_resource').length;
+      const writes = result.toolCalls.filter((c) => c.outcome === 'done' && c.name !== 'describe_resource' && c.name !== 'review_architecture').length;
       emit({
         type: 'task.done',
         taskId,
         ok,
         result: (result.reply || (ok ? 'Done.' : 'That did not work out.')).slice(0, 400),
         xp: [{ serviceId: agentId, amount: ok ? XP.task + XP.perWrite * writes : XP.attempted }],
+        ...(result.sources?.length ? { sources: result.sources } : {}),
       });
     } catch (err) {
       console.error('[task]', err);
@@ -190,7 +194,7 @@ export const createOrchestrator = (deps: {
     emit({ type: 'agent.state', agentId, state: 'working', service: 'bedrock', detail: 'Answering your question' });
     let sent = false;
     try {
-      const snapshot = await deps.snapshot();
+      const [snapshot, docs] = await Promise.all([deps.snapshot(), deps.knowledge?.search(`${svc.name} ${cmd.question}`, 3) ?? []]);
       const msg = await deps.llm.stream(
         {
           max_tokens: 16000,
@@ -198,7 +202,7 @@ export const createOrchestrator = (deps: {
           messages: [
             {
               role: 'user',
-              content: `<city_snapshot>${snapshotForModel(snapshot)}</city_snapshot>\n${describeContext(cmd.context)}\n\nQuestion: ${cmd.question}`,
+              content: `${docsBlock(docs)}<city_snapshot>${snapshotForModel(snapshot)}</city_snapshot>\n${describeContext(cmd.context)}\n\nQuestion: ${cmd.question}`,
             },
           ],
         },
@@ -211,7 +215,8 @@ export const createOrchestrator = (deps: {
         const text = msg.stop_reason === 'refusal' ? "Sorry, I can't answer that one." : 'Hmm, I have nothing to add.';
         emit({ type: 'chat.answer', requestId, districtId, agentId, delta: text, done: false });
       }
-      emit({ type: 'chat.answer', requestId, districtId, agentId, delta: '', done: true });
+      const sources = docs.map(({ title, url }) => ({ title, url }));
+      emit({ type: 'chat.answer', requestId, districtId, agentId, delta: '', done: true, ...(sources.length ? { sources } : {}) });
     } catch (err) {
       console.error('[chat]', err);
       emit({ type: 'chat.answer', requestId, districtId, agentId, delta: '', done: true });

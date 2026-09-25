@@ -233,6 +233,14 @@ export interface TaskDoneEvent {
   result: string;
   /** XP awarded to the landmark(s). */
   xp: { serviceId: string; amount: number }[];
+  /** v2.2, optional: AWS documentation pages the agent used. */
+  sources?: DocSource[];
+}
+
+/** An AWS documentation page an answer was grounded in (https, AWS domains only). */
+export interface DocSource {
+  title: string;
+  url: string;
 }
 
 export interface PageClassifiedEvent {
@@ -251,6 +259,8 @@ export interface ChatAnswerEvent {
   agentId: AgentId;
   delta: string;
   done: boolean;
+  /** v2.2, optional, on the final (done) chunk: AWS documentation pages used. */
+  sources?: DocSource[];
 }
 
 export interface ScreenshotUrlEvent {

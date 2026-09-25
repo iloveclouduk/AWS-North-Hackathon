@@ -16,6 +16,7 @@ const RESOURCE_TYPE: Record<ActionName, string> = {
   create_bucket: 'AWS::S3::Bucket',
   delete_bucket: 'AWS::S3::Bucket',
   describe_resource: 'N/A',
+  review_architecture: 'N/A',
 };
 
 const COST: Partial<Record<ActionName, string>> = {

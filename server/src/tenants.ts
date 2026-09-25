@@ -1,3 +1,4 @@
+import type { Knowledge } from './knowledge/mcp.js';
 import type { AwsCredentialIdentityProvider } from '@smithy/types';
 import type { AccountLinker } from './accounts/link.js';
 import { LinkError } from './accounts/link.js';
@@ -81,6 +82,8 @@ export interface TenantDeps {
   stores: Stores;
   uploads: UploadStore;
   llm: Llm;
+  /** AWS documentation grounding (shared by every player; cached). */
+  knowledge?: Knowledge;
   enabled: () => Promise<boolean>;
   /**
    * The player's AWS access, or undefined if they haven't linked an account. Local mode: always the
@@ -110,8 +113,8 @@ export const createTenants = (deps: TenantDeps): TenantHub => {
       if (!aws) {
         const region = record?.region ?? deps.config.region;
         const snapshot = async () => emptyWorld(region);
-        const runner = createAgentRunner({ llm, actions: unlinkedActions(), snapshot });
-        return { orchestrator: createOrchestrator({ llm, runner, snapshot, uploads: deps.uploads, owner: sub, walkMs: deps.walkMs }), snapshot, linked: false, region };
+        const runner = createAgentRunner({ llm, actions: unlinkedActions(), snapshot, knowledge: deps.knowledge });
+        return { orchestrator: createOrchestrator({ llm, runner, snapshot, uploads: deps.uploads, owner: sub, walkMs: deps.walkMs, knowledge: deps.knowledge }), snapshot, linked: false, region };
       }
       const poller = createPoller({
         clients: aws.clients,
@@ -124,10 +127,10 @@ export const createTenants = (deps: TenantDeps): TenantHub => {
       });
       const snapshot = async () => poller.current() ?? poller.refresh();
       const actions = createActionService({ clients: aws.clients, poller, region: aws.region, locks: deps.stores.locks, accountKey: () => aws.accountId });
-      const runner = createAgentRunner({ llm, actions, snapshot });
+      const runner = createAgentRunner({ llm, actions, snapshot, knowledge: deps.knowledge });
       await poller.refresh().catch((err) => log.warn('first poll failed', { who: who(sub), err: (err as Error).name }));
       poller.start();
-      return { poller, orchestrator: createOrchestrator({ llm, runner, snapshot, uploads: deps.uploads, owner: sub, walkMs: deps.walkMs }), snapshot, linked: true, region: aws.region, accountId: aws.accountId };
+      return { poller, orchestrator: createOrchestrator({ llm, runner, snapshot, uploads: deps.uploads, owner: sub, walkMs: deps.walkMs, knowledge: deps.knowledge }), snapshot, linked: true, region: aws.region, accountId: aws.accountId };
     };
 
     let world = await makeWorld(await deps.stores.accounts.get(sub));
