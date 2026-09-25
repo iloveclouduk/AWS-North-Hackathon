@@ -5,7 +5,8 @@ import { LambdaClient } from '@aws-sdk/client-lambda';
 import { RDSClient } from '@aws-sdk/client-rds';
 import { S3Client } from '@aws-sdk/client-s3';
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
-import { fromIni } from '@aws-sdk/credential-providers';
+import { fromIni, fromNodeProviderChain, fromTemporaryCredentials } from '@aws-sdk/credential-providers';
+import { createHash } from 'node:crypto';
 import type { AwsCredentialIdentityProvider } from '@smithy/types';
 import type { Config } from './config.js';
 
@@ -19,8 +20,29 @@ export const refreshingProfile = (profile: string): AwsCredentialIdentityProvide
   return { ...creds, expiration: new Date(Date.now() + 60_000) };
 };
 
-export const createAwsClients = (config: Config) => {
-  const base = { region: config.region, credentials: refreshingProfile(config.awsProfile) };
+/**
+ * A player's own account (hosted mode): short-lived credentials for AWSCityPlayerRole, assumed from our
+ * task role with the player's ExternalId. The SDK caches them and refreshes before they expire.
+ */
+export const assumedRole = (opts: { roleArn: string; externalId: string; sub: string; region: string }): AwsCredentialIdentityProvider =>
+  fromTemporaryCredentials({
+    masterCredentials: fromNodeProviderChain(),
+    clientConfig: { region: opts.region },
+    params: {
+      RoleArn: opts.roleArn,
+      ExternalId: opts.externalId,
+      RoleSessionName: `aws-city-${createHash('sha256').update(opts.sub).digest('hex').slice(0, 16)}`,
+      DurationSeconds: 3600,
+    },
+  });
+
+/** Credentials for our own infrastructure (Bedrock, the table, the bucket): the profile locally, the task role hosted. */
+export const serviceCredentials = (config: Config): AwsCredentialIdentityProvider =>
+  config.awsMode === 'profile' ? refreshingProfile(config.awsProfile) : fromNodeProviderChain();
+
+export const createAwsClients = (config: Config) => clientsFor({ region: config.region, credentials: refreshingProfile(config.awsProfile) });
+
+export const clientsFor = (base: { region: string; credentials: AwsCredentialIdentityProvider }) => {
   return {
     ec2: new EC2Client(base),
     dynamodb: new DynamoDBClient(base),

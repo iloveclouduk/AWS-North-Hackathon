@@ -11,3 +11,4 @@ public/assets/kenney/_zips
 # local AWS backend state
 server/.data
 .omc
+.claude/worktrees/

@@ -4,6 +4,8 @@ import type { Poller } from '../state/poller.js';
 import { type Action, DESTRUCTIVE, parseAction, READ_ONLY } from './actions.js';
 import { type ExecutionResult, executeAction } from './executor.js';
 import { checkAction, describeAction } from './policy.js';
+import { memoryLocks } from '../store/local.js';
+import type { AccountLocks } from '../store/types.js';
 
 export type SubmitOutcome =
   | { status: 'done'; result: ExecutionResult }
@@ -32,39 +34,42 @@ export type Approve = (req: ApprovalRequest) => Promise<boolean>;
  * Writes are serialised, and resources just created are counted before the (eventually consistent)
  * AWS listings show them, so parallel requests can't all slip under the same limit.
  */
-export const createActionService = (deps: { clients: AwsClients; poller: Poller; region: string }) => {
-  let lock: Promise<unknown> = Promise.resolve();
-  const serialised = <T>(fn: () => Promise<T>): Promise<T> => {
-    const next = lock.then(fn, fn);
-    lock = next.catch(() => undefined);
-    return next;
-  };
-  const justCreated = new Map<string, { resource: Resource; until: number }>();
+export const createActionService = (deps: {
+  clients: AwsClients;
+  poller: Poller;
+  region: string;
+  /** Per-AWS-account lock + just-created list; in-process by default, DynamoDB when hosted. */
+  locks?: AccountLocks;
+  /** Which AWS account these writes go to (the lock key). */
+  accountKey?: () => string;
+}) => {
+  const locks = deps.locks ?? memoryLocks();
+  const accountKey = deps.accountKey ?? (() => deps.poller.current()?.accountId ?? 'local');
+  const serialised = <T>(fn: () => Promise<T>): Promise<T> => locks.withLock(accountKey(), fn);
 
-  const withJustCreated = (snapshot: WorldSnapshot): WorldSnapshot => {
-    const now = Date.now();
+  const withJustCreated = async (snapshot: WorldSnapshot): Promise<WorldSnapshot> => {
     const seen = new Set(snapshot.resources.map(resourceKey));
-    for (const [key, entry] of justCreated) if (seen.has(key) || entry.until < now) justCreated.delete(key);
-    return justCreated.size ? { ...snapshot, resources: [...snapshot.resources, ...[...justCreated.values()].map((e) => e.resource)] } : snapshot;
+    const extra = (await locks.pending(accountKey())).filter((r) => !seen.has(resourceKey(r)));
+    return extra.length ? { ...snapshot, resources: [...snapshot.resources, ...extra] } : snapshot;
   };
 
-  const remember = (action: Action, result: ExecutionResult) => {
+  const remember = async (action: Action, result: ExecutionResult) => {
     const kind = action.type === 'launch_instance' ? 'instance' : action.type === 'create_table' ? 'table' : action.type === 'create_bucket' ? 'bucket' : null;
     if (!kind || !result.ok || !result.resourceId) return;
     const service = kind === 'instance' ? 'ec2' : kind === 'table' ? 'dynamodb' : 's3';
     const resource: Resource = { id: result.resourceId, service, kind, name: result.resourceId, state: 'pending', managedByGame: true, meta: {} };
-    justCreated.set(resourceKey(resource), { resource, until: Date.now() + 60_000 });
+    await locks.remember(accountKey(), resource, 60_000);
   };
 
   const run = (action: Action, confirmed: boolean) =>
     serialised(async (): Promise<SubmitOutcome> => {
-      const snapshot = withJustCreated(deps.poller.current() ?? (await deps.poller.refresh()));
+      const snapshot = await withJustCreated(deps.poller.current() ?? (await deps.poller.refresh()));
       const decision = checkAction(action, snapshot, { confirmed });
       if (decision.verdict === 'deny') return { status: 'denied', reason: decision.reason };
       if (decision.verdict === 'confirm') return { status: 'denied', reason: NEEDS_APPROVAL_REASON };
 
       const result = await executeAction(action, deps.clients, snapshot, deps.region);
-      remember(action, result);
+      await remember(action, result);
       if (result.ok && !READ_ONLY.has(action.type)) {
         void deps.poller.refresh();
         // State transitions (pending → running, CREATING → ACTIVE) take a few seconds; look again soon.
@@ -84,7 +89,7 @@ export const createActionService = (deps: { clients: AwsClients; poller: Poller;
       if (!parsed.ok) return { status: 'invalid', error: parsed.error };
       const action = parsed.action;
       if (!opts.approve || READ_ONLY.has(action.type)) return run(action, false);
-      const snapshot = withJustCreated(deps.poller.current() ?? (await deps.poller.refresh()));
+      const snapshot = await withJustCreated(deps.poller.current() ?? (await deps.poller.refresh()));
       const pre = checkAction(action, snapshot, { confirmed: true });
       if (pre.verdict === 'deny') return { status: 'denied', reason: pre.reason };
       const ok = await opts.approve({ action, summary: describeAction(action), destructive: DESTRUCTIVE.has(action.type) });

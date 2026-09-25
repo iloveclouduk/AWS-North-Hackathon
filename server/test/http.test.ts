@@ -11,6 +11,7 @@ import { createHttpServer } from '../src/http.js';
 import type { Poller } from '../src/state/poller.js';
 import type { ServerEvent } from '../src/world.js';
 import { snapshot } from './fixtures.js';
+import { bearerSubprotocols } from '../../src/backend/contract.js';
 
 const TOKEN = 'test-token';
 let base: string;
@@ -53,13 +54,19 @@ beforeAll(async () => {
 });
 afterAll(() => close());
 
-const openWs = (query: string, origin?: string) =>
+/** `token` rides in the Sec-WebSocket-Protocol header, like the extension sends it (never in the URL). */
+const openWs = (token: string, origin?: string) =>
   new Promise<{ ws?: WebSocket; status?: number }>((resolve) => {
-    const ws = new WebSocket(`ws://127.0.0.1:${port}/ws${query}`, origin ? { origin } : {});
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/ws`, token ? bearerSubprotocols(token) : [], origin ? { origin } : {});
     ws.on('open', () => resolve({ ws }));
     ws.on('unexpected-response', (_q, res) => resolve({ status: res.statusCode }));
     ws.on('message', (raw) => received.push(JSON.parse(raw.toString())));
   });
+
+/** Waits for a condition instead of a fixed sleep (CI machines are slow and busy). */
+const until = async (ok: () => boolean, ms = 3000) => {
+  for (const end = Date.now() + ms; !ok() && Date.now() < end; ) await new Promise((r) => setTimeout(r, 10));
+};
 
 describe('HTTP/WebSocket guards', () => {
   it('REST needs the token (or the pinned extension origin)', async () => {
@@ -69,23 +76,27 @@ describe('HTTP/WebSocket guards', () => {
     expect((await fetch(`${base}/progress`, { headers: { origin: 'chrome-extension://other' } })).status).toBe(403);
   });
 
-  it('rejects a foreign Host header (DNS rebinding)', async () => {
-    const res = await new Promise<string>((resolve) => {
-      const s = connect(port, '127.0.0.1', () => s.write('GET /health HTTP/1.1\r\nHost: evil.example\r\nConnection: close\r\n\r\n'));
-      let data = '';
-      s.on('data', (d) => (data += d));
-      s.on('end', () => resolve(data));
-    });
-    expect(res).toMatch(/^HTTP\/1.1 421/);
+  it('rejects a foreign Host header (DNS rebinding), except the health check', async () => {
+    const raw = (path: string) =>
+      new Promise<string>((resolve) => {
+        const s = connect(port, '127.0.0.1', () => s.write(`GET ${path} HTTP/1.1\r\nHost: evil.example\r\nConnection: close\r\n\r\n`));
+        let data = '';
+        s.on('data', (d) => (data += d));
+        s.on('end', () => resolve(data));
+      });
+    expect(await raw('/progress')).toMatch(/^HTTP\/1.1 421/);
+    // Load balancer health checks use the task's IP as Host; /health reveals nothing.
+    expect(await raw('/health')).toMatch(/^HTTP\/1.1 200/);
   });
 
   it('WebSocket: token or pinned origin required, then welcome + contract events', async () => {
     expect((await openWs('')).status).toBe(401);
-    expect((await openWs('?token=x', 'https://evil.example')).status).toBe(403);
-    const { ws } = await openWs(`?token=${TOKEN}`);
+    expect((await openWs('x', 'https://evil.example')).status).toBe(403);
+    expect((await openWs('wrong')).status).toBe(401);
+    const { ws } = await openWs(TOKEN);
     ws!.send(JSON.stringify({ action: 'task.submit', taskId: 'k1', prompt: 'hi', context: {} }));
     ws!.send('not json');
-    await new Promise((r) => setTimeout(r, 100));
+    await until(() => received.some((e) => e.type === 'task.done') && received.some((e) => e.type === 'error'));
     expect(received).toContainEqual(expect.objectContaining({ type: 'agent.message', text: 'hi' }));
     expect(received).toContainEqual(expect.objectContaining({ type: 'task.done', taskId: 'k1' }));
     expect(received).toContainEqual(expect.objectContaining({ type: 'error', message: 'Frames must be JSON' }));
@@ -96,7 +107,7 @@ describe('HTTP/WebSocket guards', () => {
     const upgrade = (query: string, origin: string) =>
       `GET /ws${query} HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nOrigin: ${origin}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n` +
       `Sec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n`;
-    for (const [query, origin] of [['?token=x', 'https://evil.example'], [`?token=${TOKEN}`, 'chrome-extension://abc']] as const) {
+    for (const [query, origin] of [['', 'https://evil.example'], ['', 'chrome-extension://abc']] as const) {
       await new Promise<void>((resolve) => {
         const s = connect(port, '127.0.0.1', () => s.write(upgrade(query, origin)));
         // Reset right after the server answered: this is what crashed the live server (ECONNRESET, no listener).
@@ -133,7 +144,7 @@ describe('player approvals over the socket (contract v2)', () => {
     });
 
   it('a write waits for deploy.approve on the same socket, and stale answers are refused', async () => {
-    const { ws } = await openWs(`?token=${TOKEN}`);
+    const { ws } = await openWs(TOKEN);
     const preview = next(ws!, 'deploy.preview');
     ws!.send(JSON.stringify({ action: 'task.submit', taskId: 'appr-1', prompt: 'approve-me', context: {} }));
     const p = await preview;
@@ -149,7 +160,7 @@ describe('player approvals over the socket (contract v2)', () => {
   });
 
   it('closing the socket rejects pending approvals', async () => {
-    const { ws } = await openWs(`?token=${TOKEN}`);
+    const { ws } = await openWs(TOKEN);
     const preview = next(ws!, 'deploy.preview');
     ws!.send(JSON.stringify({ action: 'task.submit', taskId: 'appr-2', prompt: 'approve-me', context: {} }));
     await preview;

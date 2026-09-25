@@ -18,11 +18,14 @@ export interface ExecutionResult {
   data?: unknown;
 }
 
-let cachedAmi: string | undefined;
+/** AMI ids are regional (and players pick their own region): cache per region. */
+const cachedAmi = new Map<string, string>();
 
 /** Latest Amazon Linux 2023 ARM64 AMI (same filter as aws-backend's Terraform). */
 const latestAl2023Arm64 = async ({ ec2 }: AwsClients): Promise<string> => {
-  if (cachedAmi) return cachedAmi;
+  const region = await ec2.config.region();
+  const hit = cachedAmi.get(region);
+  if (hit) return hit;
   const { Images = [] } = await ec2.send(
     new DescribeImagesCommand({
       Owners: ['amazon'],
@@ -36,7 +39,8 @@ const latestAl2023Arm64 = async ({ ec2 }: AwsClients): Promise<string> => {
   );
   const newest = Images.filter((i) => i.ImageId && i.CreationDate).sort((a, b) => b.CreationDate!.localeCompare(a.CreationDate!))[0];
   if (!newest?.ImageId) throw new Error('No Amazon Linux 2023 arm64 AMI found');
-  return (cachedAmi = newest.ImageId);
+  cachedAmi.set(region, newest.ImageId);
+  return newest.ImageId;
 };
 
 const gameTags = (name: string) => [

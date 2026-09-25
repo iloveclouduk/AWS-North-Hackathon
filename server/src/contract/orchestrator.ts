@@ -76,7 +76,9 @@ export const createOrchestrator = (deps: {
   llm: Llm;
   runner: AgentRunner;
   snapshot: () => Promise<WorldSnapshot>;
-  uploads: UploadStore;
+  uploads: Pick<UploadStore, 'get'>;
+  /** Whose screenshots this orchestrator may read (the signed-in player; 'local' for the local server). */
+  owner?: string;
   /** Time the agent gets to walk to its landmark before work starts (mock uses ~4.5 s). */
   walkMs?: number;
   paceMs?: number;
@@ -222,7 +224,7 @@ export const createOrchestrator = (deps: {
 
   const classifyPage = async (cmd: Omit<PageClassify, 'action'>, emit: Emit) => {
     const { requestId, context } = cmd;
-    const image = context.screenshotKey ? deps.uploads.get(context.screenshotKey) : undefined;
+    const image = context.screenshotKey ? await deps.uploads.get(context.screenshotKey, deps.owner ?? 'local') : undefined;
     if (!image && !context.url && !context.title) {
       return emit({ type: 'error', message: 'page.classify needs a screenshotKey (uploaded) or a url/title', requestId });
     }
@@ -231,7 +233,7 @@ export const createOrchestrator = (deps: {
         const content: Anthropic.ContentBlockParam[] = [];
         if (image) content.push({ type: 'image', source: { type: 'base64', media_type: image.contentType, data: image.bytes.toString('base64') } });
         content.push({ type: 'text', text: `${describeContext(context) || 'No URL or title.'}\n\nWhat is this page about?` });
-        const msg = await deps.llm.create({ max_tokens: 16000, system: lookoutPrompt, tools: [REPORT_TOOL], messages: [{ role: 'user', content }] });
+        const msg = await deps.llm.create({ max_tokens: 16000, system: lookoutPrompt, tools: [REPORT_TOOL], messages: [{ role: 'user', content }] }, { light: true });
         return toolInput(msg, REPORT_TOOL.name, Report);
       });
 

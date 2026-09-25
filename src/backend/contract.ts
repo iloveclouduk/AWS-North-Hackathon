@@ -110,6 +110,7 @@ export interface AccountLink {
 export interface AccountVerify {
   action: 'account.verify';
   requestId: string;
+  /** The stack's RoleArn output, or just the 12-digit account id (the role name is fixed per region). */
   roleArn: string;
 }
 
@@ -270,7 +271,7 @@ export interface ProgressStateEvent {
 export interface AccountLinkUrlEvent {
   type: 'account.linkUrl';
   requestId: string;
-  /** CloudFormation quick-create URL for backend/player-role.yaml with a per-player ExternalId. */
+  /** CloudFormation quick-create URL for infra/player-role/player-role.yaml with a per-player ExternalId. */
   url: string;
   externalId: string;
 }
@@ -345,6 +346,12 @@ export interface ErrorEvent {
   message: string;
   taskId?: string;
   requestId?: string;
+  /**
+   * v2.2, optional: why, so the UI can explain it kindly. quota = the player's daily AI calls are used up;
+   * paused = the city's AI is switched off (kill switch or global cap); auth = sign in again;
+   * unlinked = connect an AWS account first.
+   */
+  code?: 'quota' | 'paused' | 'auth' | 'unlinked';
 }
 
 export type ServerEvent =
