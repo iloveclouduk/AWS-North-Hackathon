@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8" /><title>Instances | EC2 | us-west-2</title>
+<!-- A stand-in for the EC2 "Launch an instance" wizard, with Cloudscape-like markup: hashed awsui_ class
+     names, form fields whose inputs are aria-labelledby their label, radio tiles, and a custom select
+     (a button with aria-haspopup=listbox that opens on mousedown; its options select on mouseup, as in
+     Cloudscape's select/utils/use-select.ts). Controls marked data-risky record any click on <body>. -->
+<link rel="stylesheet" href="/awscity-fixture/cloudscape.css" />
+<style>.summary{width:300px}</style></head>
+<body>
+<header>aws · EC2</header>
+<main id="app">
+  <div class="col"><div class="awsui_container_x1"><h1>Instances (0)</h1>
+    <p>You don't have any instances in this Region.</p>
+    <button class="awsui_button_x4 secondary" type="button" data-risky>Terminate (delete) instance</button>
+    <button class="awsui_button_x4" id="launch-start" type="button">Launch instances</button>
+  </div></div>
+</main>
+<script src="/awscity-fixture/cloudscape.js"></script>
+<script>
+const app = document.getElementById('app');
+document.getElementById('launch-start').addEventListener('click', () => {
+  history.pushState({}, '', '/ec2/home?region=us-west-2#LaunchInstances:');
+  app.innerHTML = `
+  <div class="col">
+    <h1>Launch an instance</h1>
+    <div class="awsui_container_x1"><h2>Name and tags</h2>
+      <div class="awsui_form-field_x2"><label id="nm-label" for="nm">Name</label>
+        <input class="awsui_input_x3" id="nm" aria-labelledby="nm-label" placeholder="e.g. My Web Server" /></div>
+    </div>
+    <div class="awsui_container_x1"><h2>Application and OS Images (Amazon Machine Image)</h2>
+      <div class="awsui_tiles_xa" role="radiogroup" aria-label="Quick Start">
+        <label class="awsui_tile-container_xb"><input class="awsui_radio-native_xc" type="radio" name="os" checked /> Amazon Linux<span class="awsui_description_x9">Amazon Linux 2023 AMI · Free tier eligible</span></label>
+        <label class="awsui_tile-container_xb"><input class="awsui_radio-native_xc" type="radio" name="os" /> Ubuntu<span class="awsui_description_x9">Ubuntu Server 24.04 LTS</span></label>
+        <label class="awsui_tile-container_xb"><input class="awsui_radio-native_xc" type="radio" name="os" /> Windows<span class="awsui_description_x9">Microsoft Windows Server 2025</span></label>
+      </div>
+    </div>
+    <div class="awsui_container_x1"><h2>Instance type</h2><div id="type-field"></div></div>
+    <div class="awsui_container_x1"><h2>Key pair (login)</h2><div id="kp-field"></div>
+      <button class="awsui_button_x4 secondary" type="button">Create new key pair</button></div>
+    <div class="awsui_container_x1"><h2>Network settings</h2>
+      <div class="awsui_tiles_xa" role="radiogroup" aria-label="Firewall (security groups)">
+        <label class="awsui_tile-container_xb"><input class="awsui_radio-native_xc" type="radio" name="sg" checked /> Create security group</label>
+        <label class="awsui_tile-container_xb"><input class="awsui_radio-native_xc" type="radio" name="sg" /> Select existing security group</label>
+      </div>
+    </div>
+  </div>
+  <div class="summary"><div class="awsui_container_x1"><h2>Summary</h2>
+    <p>Number of instances: 1</p>
+    <button class="awsui_button_x4 secondary" type="button" data-risky>Purchase a Savings Plan</button>
+    <button class="awsui_button_x4 secondary" type="button">Cancel</button>
+    <button class="awsui_button_x4" id="launch" type="button">Launch instance</button>
+  </div></div>`;
+  customSelect(document.getElementById('type-field'), { id: 'it', label: 'Instance type', value: 't2.micro', options: [
+    { label: 't2.micro', description: 'Family: t2 · 1 vCPU · 1 GiB Memory · Free tier eligible' },
+    { label: 't3.micro', description: 'Family: t3 · 2 vCPU · 1 GiB Memory · Free tier eligible' },
+    { label: 't4g.micro', description: 'Family: t4g · 2 vCPU · 1 GiB Memory · Arm (Graviton) · Free tier eligible' },
+    { label: 'm5.large', description: 'Family: m5 · 2 vCPU · 8 GiB Memory' },
+    { label: 'p5.48xlarge', description: 'Reserved Instance purchase required', risky: true },
+  ] });
+  customSelect(document.getElementById('kp-field'), { id: 'kp', label: 'Key pair name', value: 'Select', options: [
+    { label: 'Proceed without a key pair (Not recommended)', description: 'Use EC2 Instance Connect or Session Manager' },
+  ] });
+  document.getElementById('launch').addEventListener('click', () => {
+    const name = document.getElementById('nm').value || 'unnamed';
+    const type = document.getElementById('type-field').dataset.value;
+    // a short "Launching…" with a Cloudscape spinner, like the real wizard
+    app.innerHTML = '<div class="col"><div class="awsui_container_x1"><span class="awsui_spinner_xf">⏳</span> Launching instance…</div></div>';
+    setTimeout(() => {
+      document.body.dataset.created = name + ' (' + type + ')';
+      app.innerHTML = '<div class="col"><div class="awsui_flash_xd">Success — Successfully initiated launch of instance "' + name + '" (' + type + ')</div>' +
+        '<div class="awsui_container_x1"><h1>Launch status</h1><p id="created">' + name + ' · ' + type + '</p></div></div>';
+    }, 900);
+  });
+});
+</script>
+</body></html>

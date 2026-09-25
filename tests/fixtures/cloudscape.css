@@ -1,0 +1,24 @@
+body{font:14px "Amazon Ember",Arial,sans-serif;margin:0;background:#f2f3f3;color:#16191f}
+ header{background:#232f3e;color:#fff;padding:10px 16px;font-weight:bold}
+ main{padding:20px 32px;display:flex;gap:20px;align-items:flex-start}
+ .col{flex:1;max-width:780px}
+ .awsui_container_x1{background:#fff;border:1px solid #d5dbdb;border-radius:8px;padding:16px 18px;margin-bottom:14px}
+ .awsui_container_x1 h2{font-size:16px;margin:0 0 10px}
+ .awsui_form-field_x2{margin:8px 0 12px}
+ .awsui_form-field_x2 label{display:block;font-weight:bold;margin-bottom:4px}
+ .awsui_input_x3{width:320px;padding:6px;border:1px solid #879596;border-radius:6px}
+ .awsui_button_x4{background:#ff9900;border:none;border-radius:16px;padding:6px 16px;font-weight:bold;cursor:pointer}
+ .awsui_button_x4.secondary{background:#fff;border:1px solid #545b64}
+ .awsui_select_x5{position:relative;width:340px}
+ .awsui_button-trigger_x6{width:100%;text-align:left;background:#fff;border:1px solid #879596;border-radius:6px;padding:6px 8px;cursor:pointer}
+ .awsui_dropdown_x7{position:absolute;left:0;right:0;top:36px;background:#fff;border:1px solid #879596;border-radius:6px;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+ .awsui_dropdown_x7 ul{list-style:none;margin:0;padding:4px 0}
+ .awsui_selectable-item_x8{padding:6px 10px;cursor:pointer}
+ .awsui_selectable-item_x8:hover{background:#f1faff}
+ .awsui_description_x9{display:block;color:#5f6b7a;font-size:12px}
+ .awsui_tiles_xa{display:flex;gap:10px;flex-wrap:wrap}
+ .awsui_tile-container_xb{border:2px solid #d5dbdb;border-radius:8px;padding:10px 12px;width:150px;cursor:pointer;position:relative}
+ .awsui_tile-container_xb:has(input:checked){border-color:#0972d3;background:#f1faff}
+ .awsui_radio-native_xc{position:absolute;opacity:0;width:1px;height:1px}
+ .awsui_flash_xd{background:#e9f5e9;border-left:4px solid #1d8102;padding:10px;margin-bottom:14px}
+ .summary{width:300px}
