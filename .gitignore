@@ -7,3 +7,7 @@ dist
 .DS_Store
 public/assets/kenney/_zips
 .cache
+
+# local AWS backend state
+server/.data
+.omc
