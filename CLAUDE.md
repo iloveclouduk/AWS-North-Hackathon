@@ -9,6 +9,18 @@ The frontend is complete against a mock backend; the AWS backend plugs in throug
   CloudFormation and `iam:CreateRole`, so there's no AgentCore or Lambda; the AgentCore/Strands
   backend is parked on the `parked/agentcore-backend` branch. Proof: `cd server && npm test` (the
   server imports `src/backend/contract.ts`, so contract drift breaks its build: `npx tsc --noEmit -p server`).
+- **Two deployments of one server:** local (`AUTH_MODE=token`, workshop profile, files; loopback
+  only) and hosted (`AWS_CITY_MODE=hosted`: Cognito JWT in the WebSocket subprotocol, one tenant
+  per player, DynamoDB/S3, each player's own account via `AWSCityPlayerRole-<region>` + ExternalId).
+  `server/src/config.ts` refuses unsafe mixes. Proof: `cd server && npx vitest run test/hosted.test.ts`.
+- **The player role allows exactly what the server calls, and trusts only our account.** The trust is
+  fixed at publish time, not a parameter. Proof: `cd server && npx vitest run test/player-role.test.ts`.
+- **Infra is CDK with cdk-nag AwsSolutions clean.** Every acknowledgement carries a reason.
+  Proof: `cd infra && npm test && npx cdk synth -q`.
+- **Agents are grounded, never unrestricted:** docs come from the read-only AWS Knowledge MCP server
+  (allow-listed tools, `<aws_docs>` treated as data, official AWS hosts only). There's no AWS CLI tool
+  and no managed AWS MCP Server (`aws___run_script`). Strands TS was evaluated and not adopted
+  (`.claude/references/cached-sources.md`). Proof: `cd server && npx vitest run test/knowledge.test.ts`.
 - **Every AWS write needs the player's approval** (contract v2 `deploy.preview` → `deploy.approve`).
   Proof: `server/test/approvals.test.ts`, `server/test/http.test.ts` ("player approvals").
 - **One seam to the backend.** Only `src/backend/` does network I/O. `contract.ts` is the source of
@@ -41,6 +53,9 @@ The frontend is complete against a mock backend; the AWS backend plugs in throug
 npm run check     # tsc --noEmit && vitest run
 npm run smoke     # build + Playwright Chromium demo run; screenshots in .output/smoke; must print "no page errors"
 npm run dev       # WXT dev with Chrome
+npm run live      # local server with real AWS (workshop profile) + the extension wired to it
+npm run smoke:copilot  # the 4 Console Copilot flows against fixtures; must print "no page errors"
+cd infra && npx cdk synth -q   # hosting (must pass cdk-nag)
 npm run assets    # refetch Kenney packs into .cache/ and copy the listed files into public/assets/kenney
 ```
 

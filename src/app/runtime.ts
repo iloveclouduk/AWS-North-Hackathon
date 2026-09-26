@@ -182,11 +182,24 @@ export function signIn() {
 }
 
 /** Optional backend methods (added to the AgentBackend contract separately) — read defensively. */
-type MaybeRecoverable = { reconnect?: () => void | Promise<void>; signOut?: () => void | Promise<void> };
+type MaybeRecoverable = { reconnect?: () => void | Promise<void>; signOut?: () => void | Promise<void>; deleteAccount?: () => Promise<void> };
 const optional = () => backend as (AgentBackend & MaybeRecoverable) | undefined;
 
 export const canSignIn = () => typeof backend?.signIn === 'function';
 export const canReconnect = () => typeof optional()?.reconnect === 'function';
+export const canDeleteAccount = () => typeof optional()?.deleteAccount === 'function';
+
+/** Deletes everything the server stores about the player (privacy policy: "Delete my account"). */
+export async function deleteAccount() {
+  const b = optional();
+  if (!b?.deleteAccount) return;
+  try {
+    await b.deleteAccount();
+    store().toast('🧾', 'Your AWS City account and progress were deleted. Delete the AWSCity stack in CloudFormation to remove the role.');
+  } catch (e) {
+    store().log({ kind: 'system', text: `⚠️ Couldn’t delete your account: ${String(e)}` });
+  }
+}
 
 export function reconnect() {
   void Promise.resolve(optional()?.reconnect?.()).catch((e) => store().log({ kind: 'system', text: `⚠️ Reconnect failed: ${String(e)}` }));

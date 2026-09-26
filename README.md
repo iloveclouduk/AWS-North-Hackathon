@@ -57,6 +57,7 @@ The contract is **[docs/backend-contract.md](docs/backend-contract.md)**; its so
 |---|---|
 | `WXT_BACKEND=mock` (default) | Scripted agents in the browser. No AWS needed; good for demos. |
 | `WXT_BACKEND=aws` | **`server/`**: the team's local Node server. It uses a real workshop AWS account and Claude on Bedrock. |
+| `WXT_BACKEND=hosted` | **Production**: `server/` on AWS (ECS Fargate, `infra/`). Players sign in (Cognito + Google) and connect their own AWS account; see [docs/runbook.md](docs/runbook.md). |
 | `WXT_BACKEND=agentcore` | A Strands swarm on Bedrock AgentCore Runtime (branch `parked/agentcore-backend`). It needs an account that allows IAM roles. |
 
 ```bash
@@ -84,6 +85,26 @@ The workshop account blocks CloudFormation and IAM roles, which is why the serve
 Workshop keys expire after a few hours. When that happens, paste fresh ones into the file; the server
 picks them up within a minute.
 
+## Production (hosted)
+
+The same server runs on AWS for public players: HTTPS + WAF → ECS Fargate → DynamoDB / S3 / Bedrock.
+- **Sign-in:** Cognito with Google or email.
+- **Accounts:** each player connects **their own AWS account** with a one-click CloudFormation role
+  (`infra/player-role/player-role.yaml`). The role is least-privilege, tag- and prefix-scoped and
+  region-locked, and we never see keys.
+- **Limits:** a daily AI quota per player, plus a budget kill switch.
+- **Grounded agents:** answers come from the AWS documentation (AWS Knowledge MCP server) with links,
+  and a Well-Architected review tool is available.
+
+```bash
+cd infra && npm ci && npx cdk synth -c env=staging    # cdk-nag AwsSolutions must pass
+npx cdk deploy --all -c env=staging                    # see docs/runbook.md first
+```
+
+CI (`.github/workflows`) runs the checks and smoke tests on every PR. Merging to `main` deploys
+staging through GitHub OIDC; prod deploys after approval; tagging `v*` builds the store zip.
+Also see [docs/privacy-policy.md](docs/privacy-policy.md) and [docs/store-listing.md](docs/store-listing.md).
+
 ## Where things live
 
 ```
@@ -94,7 +115,8 @@ src/backend/      contract.ts, MockBackend, ServerBackend (server/), AgentCoreBa
 src/learning/     spaced repetition, Well-Architected scoring
 src/game/         Phaser 4 (pixelArt): city, HQ rooms, mini-games, citizens, day/night, audio
 src/ui/           React panels: feed, quests, cards, builder, deploy, map, place, chat
-server/           the team's local AWS backend (Node + Bedrock), with player approvals
+server/           the AWS City backend (Node + Bedrock): local or hosted, player approvals, tenants
+infra/            CDK for hosting + the player role template players install
 ```
 
 ## Credits

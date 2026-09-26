@@ -1,4 +1,4 @@
-import { Duration, RemovalPolicy, SecretValue, Stack, type StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, SecretValue, Stack, type StackProps } from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { ack } from './nag.js';
 import type { Construct } from 'constructs';
@@ -77,6 +77,10 @@ export class AuthStack extends Stack {
       useCognitoProvidedValues: true,
     });
     this.domainUrl = domain.baseUrl();
+    // The extension's build settings (WXT_COGNITO_DOMAIN / WXT_COGNITO_CLIENT_ID).
+    new CfnOutput(this, 'CognitoDomain', { value: this.domainUrl });
+    new CfnOutput(this, 'CognitoClientId', { value: this.client.userPoolClientId });
+    new CfnOutput(this, 'UserPoolId', { value: this.userPool.userPoolId });
 
     ack(this.userPool, [
       { id: 'AwsSolutions::AwsSolutions-COG2', reason: 'MFA is optional (TOTP) for a learning game; players can turn it on.' },

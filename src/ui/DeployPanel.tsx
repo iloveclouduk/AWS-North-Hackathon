@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { decideDeploy, linkAccount, openUrl, planDeploy, signIn, teardownDeploy, verifyAccount } from '@/app/runtime';
+import { canDeleteAccount, decideDeploy, deleteAccount, linkAccount, openUrl, planDeploy, signIn, signOut, teardownDeploy, verifyAccount } from '@/app/runtime';
 import { useCity, type DeployView } from '@/state/store';
 import { GUARDED_BLUEPRINTS } from '@/backend/ServerBackend';
 import { TEMPLATES } from '@/world/content';
@@ -266,6 +266,25 @@ export function DeployPanel() {
           </div>
         );
       })}
+      {canDeleteAccount() && status !== 'signed-out' && (
+        <div className="card">
+          <h3>🧾 Your data</h3>
+          <p className="muted">Progress, your account link and sign-in are stored for you. Screenshots expire after a day.</p>
+          <div className="row">
+            <button className="btn" onClick={signOut}>
+              Sign out
+            </button>
+            <button
+              className="btn warn"
+              onClick={() => {
+                if (confirm('Delete your AWS City account and saved progress? This can’t be undone.')) void deleteAccount();
+              }}
+            >
+              Delete my account
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

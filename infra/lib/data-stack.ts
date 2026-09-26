@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
@@ -78,6 +78,7 @@ export class DataStack extends Stack {
       contentType: 'text/yaml',
     });
     this.playerRoleTemplateUrl = `https://${templates.bucketRegionalDomainName}/${PLAYER_ROLE_KEY}`;
+    new CfnOutput(this, 'PlayerRoleTemplateUrl', { value: this.playerRoleTemplateUrl });
 
     ack(templates, [{ id: 'AwsSolutions::AwsSolutions-S2', reason: "Public read of player-role/* is required for CloudFormation quick-create in players' accounts (ACLs stay blocked)." }]);
     const IAM5 = 'AwsSolutions-IAM5';
