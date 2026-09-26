@@ -1,0 +1,9 @@
+**/node_modules
+**/.output
+**/.cache
+**/.wxt
+**/dist
+.git
+.claude
+server/.data
+*.log

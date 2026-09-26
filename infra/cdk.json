@@ -1,0 +1,40 @@
+{
+  "app": "npx tsx bin/app.ts",
+  "context": {
+    "@aws-cdk/core:newStyleStackSynthesis": true,
+    "staging": {
+      "region": "us-west-2",
+      "domainName": "",
+      "hostedZoneId": "",
+      "zoneName": "",
+      "cognitoDomainPrefix": "aws-city-staging",
+      "extensionIds": [],
+      "googleClientId": "",
+      "sesFromEmail": "",
+      "alarmEmail": "",
+      "monthlyBudgetUsd": 50,
+      "dailyModelCalls": 100,
+      "globalDailyModelCalls": 5000,
+      "minTasks": 1,
+      "maxTasks": 3
+    },
+    "prod": {
+      "region": "us-west-2",
+      "domainName": "",
+      "hostedZoneId": "",
+      "zoneName": "",
+      "cognitoDomainPrefix": "aws-city",
+      "extensionIds": [],
+      "googleClientId": "",
+      "sesFromEmail": "",
+      "alarmEmail": "",
+      "monthlyBudgetUsd": 300,
+      "dailyModelCalls": 100,
+      "globalDailyModelCalls": 20000,
+      "minTasks": 2,
+      "maxTasks": 10
+    },
+    "githubRepo": "",
+    "@aws-cdk/core:defaultCrossStackReferences": "strong"
+  }
+}
