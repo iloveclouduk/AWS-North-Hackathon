@@ -48,7 +48,7 @@ describe('player role template', () => {
     expect(template).not.toMatch(/PassRole/);
     // Trust needs both our role and the player's ExternalId.
     expect(template).toContain("'sts:ExternalId': !Ref ExternalId");
-    expect(template).toContain("'aws:PrincipalArn': 'arn:aws:iam::__AWS_CITY_ACCOUNT_ID__:role/AWSCityTaskRole'");
+    expect(template).toContain("'aws:PrincipalArn': 'arn:aws:iam::__AWS_CITY_ACCOUNT_ID__:role/__AWS_CITY_TASK_ROLE__'");
     // The trusted account can't be a parameter: a crafted setup link could otherwise trust anyone.
     expect(template).not.toMatch(/Trusted\w*:\s*\n\s*Type:/);
     expect(template).not.toMatch(/\$\{Trusted/);
@@ -59,7 +59,8 @@ describe('player role template', () => {
 
   it('role name matches what account linking expects', async () => {
     const { playerRoleName } = await import('../src/accounts/link.js');
-    expect(template).toContain('RoleName: !Sub AWSCityPlayerRole-${AWS::Region}');
+    expect(template).toContain('RoleName: !Sub __AWS_CITY_PLAYER_ROLE__-${AWS::Region}');
     expect(playerRoleName('eu-west-1')).toBe('AWSCityPlayerRole-eu-west-1');
+    expect(playerRoleName('eu-west-1', 'AWSCityPlayerRole-staging')).toBe('AWSCityPlayerRole-staging-eu-west-1');
   });
 });

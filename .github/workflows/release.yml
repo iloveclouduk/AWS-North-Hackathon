@@ -18,6 +18,7 @@ jobs:
         run: npm run zip
         env:
           WXT_BACKEND: hosted
+          WXT_STORE_BUILD: 'true'
           WXT_AWS_WS_URL: ${{ vars.WXT_AWS_WS_URL }}
           WXT_AWS_API_URL: ${{ vars.WXT_AWS_API_URL }}
           WXT_COGNITO_DOMAIN: ${{ vars.WXT_COGNITO_DOMAIN }}

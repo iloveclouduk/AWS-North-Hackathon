@@ -41,6 +41,8 @@ export interface Config {
   /** Our hosting account and the task role name players trust (hosted). */
   selfAccountId?: string;
   taskRoleName: string;
+  /** Players' role name before -<region> (AWSCityPlayerRole in prod, AWSCityPlayerRole-staging in staging). */
+  playerRolePrefix: string;
   /** SSM parameter: "false" turns every model call off (manual kill switch). */
   killSwitchParam?: string;
   dailyModelCalls: number;
@@ -83,7 +85,8 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config => {
     screenshotBucket: env.SCREENSHOT_BUCKET,
     playerRoleTemplateUrl: env.PLAYER_ROLE_TEMPLATE_URL,
     selfAccountId: env.SELF_ACCOUNT_ID,
-    taskRoleName: env.TASK_ROLE_NAME ?? 'AWSCityTaskRole',
+    taskRoleName: env.TASK_ROLE_NAME ?? 'AWSCityTaskRole-prod',
+    playerRolePrefix: env.PLAYER_ROLE_PREFIX ?? 'AWSCityPlayerRole',
     killSwitchParam: env.KILL_SWITCH_PARAM,
     dailyModelCalls: Number(env.DAILY_MODEL_CALLS ?? 100),
     globalDailyModelCalls: Number(env.GLOBAL_DAILY_MODEL_CALLS ?? 20_000),

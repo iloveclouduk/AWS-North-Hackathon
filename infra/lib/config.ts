@@ -41,5 +41,9 @@ export const loadEnv = (app: App): EnvConfig => {
   };
 };
 
-/** The task role players' AWSCityPlayerRole trusts (fixed name: see infra/player-role/player-role.yaml). */
-export const TASK_ROLE_NAME = 'AWSCityTaskRole';
+/**
+ * Role names, one set per environment, so staging and prod can share an account. Players' role
+ * trusts exactly this environment's task role (baked into the published template).
+ */
+export const taskRoleName = (env: Pick<EnvConfig, 'name'>) => `AWSCityTaskRole-${env.name}`;
+export const playerRolePrefix = (env: Pick<EnvConfig, 'name'>) => (env.name === 'prod' ? 'AWSCityPlayerRole' : `AWSCityPlayerRole-${env.name}`);

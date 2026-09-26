@@ -7,9 +7,10 @@
 #       DynamoDB tables named city-*, tagged managed-by=aws-city
 #       S3 buckets named aws-city-<your account id>-*
 #   - only in the region you installed it in; no IAM, no billing, no passing roles
-# Who can use it: only the AWS City service role (AWSCityTaskRole in the AWS City account), and only with
-# your personal ExternalId. The trusted account is fixed in the published template (infra substitutes
-# __AWS_CITY_ACCOUNT_ID__ when it uploads it), so a setup link can't be edited to trust someone else. Every change still needs your Approve in the game.
+# Who can use it: only the AWS City service role (AWSCityTaskRole-<env> in the AWS City account), and only with
+# your personal ExternalId. The trusted account and role are fixed in the published template (infra
+# substitutes the __AWS_CITY_*__ placeholders when it uploads it), so a setup link can't be edited to
+# trust someone else. Every change still needs your Approve in the game.
 # Remove access any time: delete the "AWSCity" stack.
 AWSTemplateFormatVersion: '2010-09-09'
 Description: AWS City player role (least privilege, game-owned resources only). v1
@@ -27,7 +28,7 @@ Resources:
   PlayerRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub AWSCityPlayerRole-${AWS::Region}
+      RoleName: !Sub __AWS_CITY_PLAYER_ROLE__-${AWS::Region}
       Description: Lets AWS City agents build small, tagged learning resources after you approve them.
       MaxSessionDuration: 3600
       AssumeRolePolicyDocument:
@@ -40,7 +41,7 @@ Resources:
             Action: sts:AssumeRole
             Condition:
               StringEquals: { 'sts:ExternalId': !Ref ExternalId }
-              ArnEquals: { 'aws:PrincipalArn': 'arn:aws:iam::__AWS_CITY_ACCOUNT_ID__:role/AWSCityTaskRole' }
+              ArnEquals: { 'aws:PrincipalArn': 'arn:aws:iam::__AWS_CITY_ACCOUNT_ID__:role/__AWS_CITY_TASK_ROLE__' }
       Tags:
         - { Key: managed-by, Value: aws-city }
       Policies:

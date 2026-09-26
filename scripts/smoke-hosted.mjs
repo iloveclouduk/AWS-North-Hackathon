@@ -42,6 +42,6 @@ if (!refused) fail('WebSocket accepted a forged token');
 ok('WebSocket refuses forged tokens');
 
 const yaml = await (await fetch(template)).text();
-if (!/AWSCityPlayerRole-/.test(yaml) || /__AWS_CITY_ACCOUNT_ID__/.test(yaml) || /Trusted\w*:\s*\n\s*Type:/.test(yaml)) fail('player-role template is not published correctly');
+if (!/AWSCityPlayerRole-/.test(yaml) || /__AWS_CITY_\w+__/.test(yaml) || /Trusted\w*:\s*\n\s*Type:/.test(yaml)) fail('player-role template is not published correctly');
 ok('player-role template published with a fixed trust');
 console.log(`hosted smoke passed (${env})`);

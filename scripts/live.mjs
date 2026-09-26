@@ -13,8 +13,10 @@ if (!fs.existsSync(credsFile) || !fs.readFileSync(credsFile, 'utf8').includes(`[
   process.exit(1);
 }
 
-// The unpacked extension's id is derived from its folder path, so it is stable on this machine.
-const EXT_ID = process.env.AWS_CITY_EXTENSION_ID ?? 'bfmjkijhblakkkkpejochcffebmbkdff';
+import { DEV_EXTENSION_ID } from './extension-id.mjs';
+
+// Fixed by the manifest key (extension.pubkey), so it's the same on every machine.
+const EXT_ID = process.env.AWS_CITY_EXTENSION_ID ?? DEV_EXTENSION_ID;
 const PORT = process.env.PORT ?? '8787';
 const env = { ...process.env, WXT_BACKEND: 'aws', WXT_AWS_WS_URL: `ws://127.0.0.1:${PORT}/ws`, WXT_AWS_API_URL: `http://127.0.0.1:${PORT}` };
 

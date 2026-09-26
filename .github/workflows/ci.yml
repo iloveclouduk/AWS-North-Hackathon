@@ -61,5 +61,5 @@ jobs:
         # Lint it as published (infra/lib/data-stack.ts substitutes our account id).
         run: |
           pip install cfn-lint
-          sed 's/__AWS_CITY_ACCOUNT_ID__/123456789012/g' infra/player-role/player-role.yaml > "$RUNNER_TEMP/player-role.yaml"
+          sed -e 's/__AWS_CITY_ACCOUNT_ID__/123456789012/g' -e 's/__AWS_CITY_TASK_ROLE__/AWSCityTaskRole-prod/g' -e 's/__AWS_CITY_PLAYER_ROLE__/AWSCityPlayerRole/g' infra/player-role/player-role.yaml > "$RUNNER_TEMP/player-role.yaml"
           cfn-lint "$RUNNER_TEMP/player-role.yaml"

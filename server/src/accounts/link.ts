@@ -5,7 +5,7 @@ import { assumedRole } from '../aws.js';
 import type { AccountRecord, AccountStore } from '../store/types.js';
 
 /** The player role's fixed name (infra/player-role/player-role.yaml): players only need their account id. */
-export const playerRoleName = (region: string) => `AWSCityPlayerRole-${region}`;
+export const playerRoleName = (region: string, prefix = 'AWSCityPlayerRole') => `${prefix}-${region}`;
 const REGION = /^[a-z]{2}(-gov)?-[a-z]+-\d$/;
 const ROLE_ARN = /^arn:aws:iam::(\d{12}):role\/(AWSCityPlayerRole-[a-z0-9-]+)$/;
 
@@ -22,6 +22,8 @@ export const createAccountLinker = (deps: {
   accounts: AccountStore;
   templateUrl: string;
   selfAccountId: string;
+  /** AWSCityPlayerRole (prod) or AWSCityPlayerRole-<env>. */
+  playerRolePrefix?: string;
   /** Test seam: credentials for a role. */
   credentialsFor?: (o: { roleArn: string; externalId: string; sub: string; region: string }) => AwsCredentialIdentityProvider;
   /** Test seam: GetCallerIdentity with those credentials. */
@@ -57,9 +59,10 @@ export const createAccountLinker = (deps: {
       const record = await deps.accounts.get(sub);
       if (!record) throw new LinkError('Start with “Get my setup link” first.');
       const trimmed = input.trim();
-      const roleArn = /^\d{12}$/.test(trimmed) ? `arn:aws:iam::${trimmed}:role/${playerRoleName(record.region)}` : trimmed;
+      const prefix = deps.playerRolePrefix ?? 'AWSCityPlayerRole';
+      const roleArn = /^\d{12}$/.test(trimmed) ? `arn:aws:iam::${trimmed}:role/${playerRoleName(record.region, prefix)}` : trimmed;
       const m = ROLE_ARN.exec(roleArn);
-      if (!m) throw new LinkError('Paste your 12-digit AWS account id (or the RoleArn from the AWSCity stack).');
+      if (!m || !m[2]!.startsWith(`${prefix}-`)) throw new LinkError('Paste your 12-digit AWS account id (or the RoleArn from the AWSCity stack).');
       if (m[1] === deps.selfAccountId) throw new LinkError('That’s the city’s own account — use your account.');
       let id: { Account?: string; Arn?: string };
       try {

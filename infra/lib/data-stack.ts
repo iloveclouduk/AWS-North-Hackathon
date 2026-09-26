@@ -6,7 +6,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import { ack, nagAccount } from './nag.js';
 import type { Construct } from 'constructs';
-import type { EnvConfig } from './config.js';
+import { type EnvConfig, playerRolePrefix, taskRoleName } from './config.js';
 
 export const PLAYER_ROLE_KEY = 'player-role/v1.yaml';
 
@@ -70,7 +70,10 @@ export class DataStack extends Stack {
       new iam.PolicyStatement({ actions: ['s3:GetObject'], principals: [new iam.AnyPrincipal()], resources: [templates.arnForObjects('player-role/*')] }),
     );
     // Our account id is written into the published template, so a setup link can't be edited to trust anyone else.
-    const template = readFileSync(new URL('../player-role/player-role.yaml', import.meta.url), 'utf8').replaceAll('__AWS_CITY_ACCOUNT_ID__', this.account);
+    const template = readFileSync(new URL('../player-role/player-role.yaml', import.meta.url), 'utf8')
+      .replaceAll('__AWS_CITY_ACCOUNT_ID__', this.account)
+      .replaceAll('__AWS_CITY_TASK_ROLE__', taskRoleName(env))
+      .replaceAll('__AWS_CITY_PLAYER_ROLE__', playerRolePrefix(env));
     new s3deploy.BucketDeployment(this, 'PublishPlayerRole', {
       destinationBucket: templates,
       sources: [s3deploy.Source.data(PLAYER_ROLE_KEY, template)],

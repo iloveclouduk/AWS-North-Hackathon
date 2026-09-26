@@ -1,6 +1,9 @@
 import { fileURLToPath } from 'node:url';
 import { Annotations, CfnOutput, Duration, IgnoreMode, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as cfOrigins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as cr from 'aws-cdk-lib/custom-resources';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as cwActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import type * as cognito from 'aws-cdk-lib/aws-cognito';
@@ -20,7 +23,7 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
 import { ack } from './nag.js';
 import type { Construct } from 'constructs';
-import { type EnvConfig, TASK_ROLE_NAME } from './config.js';
+import { type EnvConfig, playerRolePrefix, taskRoleName } from './config.js';
 
 export interface ServiceDeps {
   table: dynamodb.TableV2;
@@ -50,7 +53,11 @@ export class ServiceStack extends Stack {
       // Explicit AZs: no account lookup needed at synth time (CI synthesises without credentials).
       availabilityZones: [`${env.region}a`, `${env.region}b`],
       natGateways: 0,
-      subnetConfiguration: [{ name: 'public', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 }],
+      subnetConfiguration: [
+        { name: 'public', subnetType: ec2.SubnetType.PUBLIC, cidrMask: 24 },
+        // For the internal load balancer behind CloudFront VPC origins (no route to the internet).
+        { name: 'alb', subnetType: ec2.SubnetType.PRIVATE_ISOLATED, cidrMask: 24 },
+      ],
       gatewayEndpoints: { S3: { service: ec2.GatewayVpcEndpointAwsService.S3 }, DynamoDB: { service: ec2.GatewayVpcEndpointAwsService.DYNAMODB } },
       flowLogs: { rejected: { trafficType: ec2.FlowLogTrafficType.REJECT } },
     });
@@ -65,7 +72,7 @@ export class ServiceStack extends Stack {
 
     // Fixed name + retained: every player's AWSCityPlayerRole trusts exactly this role.
     this.taskRole = new iam.Role(this, 'TaskRole', {
-      roleName: TASK_ROLE_NAME,
+      roleName: taskRoleName(env),
       assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
       description: "AWS City server: Bedrock, its own table and bucket, and assuming players' AWSCityPlayerRole.",
     });
@@ -87,7 +94,7 @@ export class ServiceStack extends Stack {
       new iam.PolicyStatement({
         sid: 'AssumePlayerRoles',
         actions: ['sts:AssumeRole'],
-        resources: ['arn:aws:iam::*:role/AWSCityPlayerRole-*'],
+        resources: [`arn:aws:iam::*:role/${playerRolePrefix(env)}-*`],
         // Never a role in our own account, even if someone creates one with that name here.
         conditions: { StringNotEquals: { 'aws:ResourceAccount': this.account } },
       }),
@@ -105,6 +112,72 @@ export class ServiceStack extends Stack {
       taskRole: this.taskRole,
       runtimePlatform: { cpuArchitecture: ecs.CpuArchitecture.ARM64, operatingSystemFamily: ecs.OperatingSystemFamily.LINUX },
     });
+    // Two ways in:
+    //  - a custom domain (Route 53 zone given): a public HTTPS load balancer at api.<domain>;
+    //  - no domain: CloudFront (free https://xxxx.cloudfront.net, WebSockets supported) in front of an
+    //    INTERNAL load balancer through a CloudFront VPC origin, so nothing is exposed to the internet.
+    const https = Boolean(env.domainName && env.hostedZoneId && env.zoneName);
+    const zone = https ? route53.HostedZone.fromHostedZoneAttributes(this, 'Zone', { hostedZoneId: env.hostedZoneId, zoneName: env.zoneName }) : undefined;
+    const certificate = zone ? new acm.Certificate(this, 'Cert', { domainName: env.domainName, validation: acm.CertificateValidation.fromDns(zone) }) : undefined;
+    let internalAlb: elbv2.ApplicationLoadBalancer | undefined;
+    let cdn: cloudfront.Distribution | undefined;
+    if (!https) {
+      internalAlb = new elbv2.ApplicationLoadBalancer(this, 'InternalAlb', { vpc, internetFacing: false, vpcSubnets: { subnetGroupName: 'alb' } });
+      // Only CloudFront's origin-facing addresses may reach it (looked up at deploy time; no synth-time lookup).
+      const prefixList = new cr.AwsCustomResource(this, 'CloudFrontPrefixList', {
+        onUpdate: {
+          service: 'EC2',
+          action: 'describeManagedPrefixLists',
+          parameters: { Filters: [{ Name: 'prefix-list-name', Values: ['com.amazonaws.global.cloudfront.origin-facing'] }] },
+          physicalResourceId: cr.PhysicalResourceId.of('cloudfront-origin-facing'),
+          outputPaths: ['PrefixLists.0.PrefixListId'],
+        },
+        policy: cr.AwsCustomResourcePolicy.fromStatements([new iam.PolicyStatement({ actions: ['ec2:DescribeManagedPrefixLists'], resources: ['*'] })]),
+        installLatestAwsSdk: false,
+      });
+      internalAlb.connections.allowFrom(ec2.Peer.prefixList(prefixList.getResponseField('PrefixLists.0.PrefixListId')), ec2.Port.tcp(80), 'CloudFront VPC origin');
+      const cdnLogs = new s3.Bucket(this, 'CdnLogs', {
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        encryption: s3.BucketEncryption.S3_MANAGED,
+        enforceSSL: true,
+        objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_PREFERRED, // CloudFront standard logs need ACLs
+        lifecycleRules: [{ expiration: Duration.days(90) }],
+        removalPolicy: RemovalPolicy.RETAIN,
+      });
+      cdn = new cloudfront.Distribution(this, 'Cdn', {
+        comment: `AWS City ${env.name} API`,
+        defaultBehavior: {
+          origin: cfOrigins.VpcOrigin.withApplicationLoadBalancer(internalAlb, {
+            protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+            httpPort: 80,
+            readTimeout: Duration.seconds(60),
+          }),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          // Forwards Host, Origin, Authorization and the Sec-WebSocket-* headers (the JWT rides in one).
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
+        },
+        httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
+        priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+        enableLogging: true,
+        logBucket: cdnLogs,
+        logFilePrefix: 'cdn/',
+      });
+    }
+    if (cdn) {
+      ack(cdn, [
+        { id: 'AwsSolutions::AwsSolutions-CFR1', reason: 'A learning game for everyone: no geo restriction.' },
+        { id: 'AwsSolutions::AwsSolutions-CFR2', reason: 'The regional WAF on the load balancer inspects every request (a CloudFront-scope ACL would need a us-east-1 stack).' },
+        { id: 'AwsSolutions::AwsSolutions-CFR4', reason: 'The free *.cloudfront.net domain uses CloudFront’s certificate, where the minimum TLS version cannot be set; use a custom domain for TLS 1.2+.'.replace('’', "'") },
+      ]);
+      ack(this, [
+        { id: 'AwsSolutions-IAM5[Resource::*]', reason: 'ec2:DescribeManagedPrefixLists has no resource-level permissions (deploy-time lookup of the CloudFront prefix list).' },
+        { id: 'AwsSolutions-IAM4[Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]', reason: "CDK's AwsCustomResource helper Lambda logging." },
+      ]);
+    }
+    const publicHost = https ? env.domainName : cdn!.distributionDomainName;
+
     const origins = env.extensionIds.map((i) => `chrome-extension://${i}`);
     if (!origins.length) Annotations.of(this).addWarning('extensionIds is empty: set the Chrome extension id(s) in cdk.json before players can connect.');
     const container = taskDef.addContainer('server', {
@@ -121,8 +194,8 @@ export class ServiceStack extends Stack {
       environment: {
         AWS_CITY_MODE: 'hosted',
         AWS_CITY_REGION: this.region,
-        PUBLIC_HOSTS: env.domainName || 'localhost',
-        PUBLIC_URL: env.domainName ? `https://${env.domainName}` : 'http://localhost',
+        PUBLIC_HOSTS: publicHost,
+        PUBLIC_URL: `https://${publicHost}`,
         EXTENSION_ORIGIN: origins.join(',') || 'chrome-extension://not-configured',
         COGNITO_USER_POOL_ID: deps.userPool.userPoolId,
         COGNITO_CLIENT_ID: deps.client.userPoolClientId,
@@ -130,7 +203,8 @@ export class ServiceStack extends Stack {
         SCREENSHOT_BUCKET: deps.screenshots.bucketName,
         PLAYER_ROLE_TEMPLATE_URL: deps.playerRoleTemplateUrl,
         SELF_ACCOUNT_ID: this.account,
-        TASK_ROLE_NAME,
+        TASK_ROLE_NAME: taskRoleName(env),
+        PLAYER_ROLE_PREFIX: playerRolePrefix(env),
         KILL_SWITCH_PARAM: this.killSwitch.parameterName,
         DAILY_MODEL_CALLS: String(env.dailyModelCalls),
         GLOBAL_DAILY_MODEL_CALLS: String(env.globalDailyModelCalls),
@@ -141,10 +215,6 @@ export class ServiceStack extends Stack {
     });
     container.addPortMappings({ containerPort: 8787 });
 
-    const https = Boolean(env.domainName && env.hostedZoneId && env.zoneName);
-    if (!https) Annotations.of(this).addWarning('No domain configured: the ALB serves plain HTTP. Set domainName/hostedZoneId/zoneName for HTTPS (required for the store build).');
-    const zone = https ? route53.HostedZone.fromHostedZoneAttributes(this, 'Zone', { hostedZoneId: env.hostedZoneId, zoneName: env.zoneName }) : undefined;
-    const certificate = zone ? new acm.Certificate(this, 'Cert', { domainName: env.domainName, validation: acm.CertificateValidation.fromDns(zone) }) : undefined;
 
     const service = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
       cluster,
@@ -152,7 +222,7 @@ export class ServiceStack extends Stack {
       desiredCount: env.minTasks,
       assignPublicIp: true,
       taskSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      publicLoadBalancer: true,
+      ...(internalAlb ? { loadBalancer: internalAlb, publicLoadBalancer: false, openListener: false } : { publicLoadBalancer: true }),
       ...(zone && certificate
         ? { domainName: env.domainName, domainZone: zone, certificate, protocol: elbv2.ApplicationProtocol.HTTPS, redirectHTTP: true, sslPolicy: elbv2.SslPolicy.RECOMMENDED_TLS }
         : {}),
@@ -192,7 +262,12 @@ export class ServiceStack extends Stack {
           name: 'RatePerIp',
           priority: 10,
           action: { block: {} },
-          statement: { rateBasedStatement: { limit: 600, aggregateKeyType: 'IP', evaluationWindowSec: 300 } },
+          // Behind CloudFront every request comes from a CloudFront address: count per viewer instead.
+          statement: {
+            rateBasedStatement: https
+              ? { limit: 600, aggregateKeyType: 'IP', evaluationWindowSec: 300 }
+              : { limit: 600, aggregateKeyType: 'FORWARDED_IP', forwardedIpConfig: { headerName: 'X-Forwarded-For', fallbackBehavior: 'MATCH' }, evaluationWindowSec: 300 },
+          },
           visibilityConfig: { cloudWatchMetricsEnabled: true, metricName: 'RatePerIp', sampledRequestsEnabled: true },
         },
       ],
@@ -224,14 +299,14 @@ export class ServiceStack extends Stack {
       ],
     });
 
-    const apiUrl = https ? `https://${env.domainName}` : `http://${service.loadBalancer.loadBalancerDnsName}`;
+    const apiUrl = `https://${publicHost}`;
     new CfnOutput(this, 'ApiUrl', { value: apiUrl });
     new CfnOutput(this, 'WsUrl', { value: apiUrl.replace(/^http/, 'ws') + '/ws' });
     new CfnOutput(this, 'KillSwitchParam', { value: this.killSwitch.parameterName });
 
     const IAM5 = 'AwsSolutions-IAM5';
     ack(this.taskRole, [
-      { id: `${IAM5}[Resource::arn:aws:iam::*:role/AWSCityPlayerRole-*]`, reason: "Player roles live in every player's own account; our own account is excluded by an aws:ResourceAccount condition." },
+      { id: `${IAM5}[Resource::arn:aws:iam::*:role/${playerRolePrefix(env)}-*]`, reason: "Player roles live in every player's own account; our own account is excluded by an aws:ResourceAccount condition." },
       ...models.map((m) => ({ id: `${IAM5}[Resource::arn:aws:bedrock:*::foundation-model/${m.replace(/^us\./, '')}*]`, reason: 'Cross-region inference profiles route to the model in several US regions.' })),
       { id: `${IAM5}[Resource::AWSCity-${env.name}-Data:ExportsOutputFnGetAttScreenshotsA7A7D8A0Arn0675524A/screenshots/*]`, reason: 'Objects under the screenshots/ prefix only (one folder per player).' },
     ]);

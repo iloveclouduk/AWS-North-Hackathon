@@ -63,7 +63,7 @@ const tenants = createTenants({
   awsFor,
   linker:
     config.awsMode === 'assume-role'
-      ? createAccountLinker({ accounts: stores.accounts, templateUrl: config.playerRoleTemplateUrl!, selfAccountId: config.selfAccountId! })
+      ? createAccountLinker({ accounts: stores.accounts, templateUrl: config.playerRoleTemplateUrl!, selfAccountId: config.selfAccountId!, playerRolePrefix: config.playerRolePrefix })
       : undefined,
   onDelete: cognito ? async (sub) => void (await cognito.send(new AdminDeleteUserCommand({ UserPoolId: config.cognito!.userPoolId, Username: sub }))) : undefined,
 });

@@ -30,8 +30,8 @@ Everything is defined in `infra/` (CDK).
 - **Manual, instant (~30 s):** `aws ssm put-parameter --name /aws-city/<env>/ai-enabled --value false --overwrite`
   (players see "the city's AI is resting"; everything else works). Turn back on with `--value true`.
 - **Automatic:** at 100% of the monthly budget, AWS Budgets attaches `AWSCityDenyBedrock-<env>` to
-  `AWSCityTaskRole`. Re-enable after review:
-  `aws iam detach-role-policy --role-name AWSCityTaskRole --policy-arn arn:aws:iam::<acct>:policy/AWSCityDenyBedrock-<env>`
+  `AWSCityTaskRole-<env>`. Re-enable after review:
+  `aws iam detach-role-policy --role-name AWSCityTaskRole-<env> --policy-arn arn:aws:iam::<acct>:policy/AWSCityDenyBedrock-<env>`
   and reset the budget action in the Budgets console.
 - Per-player daily cap: `dailyModelCalls` in `cdk.json` (redeploy); global daily cap: `globalDailyModelCalls`.
 

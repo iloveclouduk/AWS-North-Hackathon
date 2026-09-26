@@ -3,13 +3,13 @@ import * as budgets from 'aws-cdk-lib/aws-budgets';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { ack } from './nag.js';
 import type { Construct } from 'constructs';
-import { type EnvConfig, TASK_ROLE_NAME } from './config.js';
+import { type EnvConfig, taskRoleName } from './config.js';
 
 /**
  * Cost guard rails (we pay for Bedrock): e-mail at 50% and 80% of the monthly budget, and at 100% an
  * automatic AWS Budgets action attaches a Deny-Bedrock policy to the task role. Agents then answer
  * "the city's AI is resting"; everything else keeps working. Re-enable: detach AWSCityDenyBedrock-<env>
- * from AWSCityTaskRole (docs/runbook.md).
+ * from AWSCityTaskRole-<env> (docs/runbook.md).
  */
 export class BudgetStack extends Stack {
   constructor(scope: Construct, id: string, env: EnvConfig, props?: StackProps) {
@@ -37,7 +37,7 @@ export class BudgetStack extends Stack {
     actionRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ['iam:AttachRolePolicy', 'iam:DetachRolePolicy'],
-        resources: [`arn:aws:iam::${this.account}:role/${TASK_ROLE_NAME}`],
+        resources: [`arn:aws:iam::${this.account}:role/${taskRoleName(env)}`],
         conditions: { ArnEquals: { 'iam:PolicyARN': deny.managedPolicyArn } },
       }),
     );
@@ -50,7 +50,7 @@ export class BudgetStack extends Stack {
         approvalModel: 'AUTOMATIC',
         notificationType: 'ACTUAL',
         executionRoleArn: actionRole.roleArn,
-        definition: { iamActionDefinition: { policyArn: deny.managedPolicyArn, roles: [TASK_ROLE_NAME] } },
+        definition: { iamActionDefinition: { policyArn: deny.managedPolicyArn, roles: [taskRoleName(env)] } },
         subscribers: subscribers.map((s) => ({ type: s.subscriptionType, address: s.address })),
       }).node.addDependency(this.node.findChild('Monthly'));
     }

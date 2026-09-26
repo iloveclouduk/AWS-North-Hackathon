@@ -3,7 +3,7 @@ import { Match, Template } from 'aws-cdk-lib/assertions';
 import { describe, expect, it } from 'vitest';
 import { AuthStack } from '../lib/auth-stack.js';
 import { BudgetStack } from '../lib/budget-stack.js';
-import { type EnvConfig, TASK_ROLE_NAME } from '../lib/config.js';
+import { type EnvConfig, taskRoleName } from '../lib/config.js';
 import { DataStack } from '../lib/data-stack.js';
 import { ServiceStack } from '../lib/service-stack.js';
 
@@ -14,13 +14,14 @@ const env: EnvConfig = {
   minTasks: 2, maxTasks: 4, models: { main: 'us.anthropic.claude-opus-5', light: 'us.anthropic.claude-sonnet-5' },
 };
 
-const build = () => {
+const build = (over: Partial<EnvConfig> = {}) => {
   const app = new App();
+  const env2 = { ...env, ...over };
   const where = { env: { account: '111122223333', region: 'us-west-2' } };
-  const data = new DataStack(app, 'D', env, where);
-  const auth = new AuthStack(app, 'A', env, where);
-  const svc = new ServiceStack(app, 'S', env, { table: data.table, screenshots: data.screenshots, playerRoleTemplateUrl: data.playerRoleTemplateUrl, userPool: auth.userPool, client: auth.client }, where);
-  const budget = new BudgetStack(app, 'B', env, where);
+  const data = new DataStack(app, 'D', env2, where);
+  const auth = new AuthStack(app, 'A', env2, where);
+  const svc = new ServiceStack(app, 'S', env2, { table: data.table, screenshots: data.screenshots, playerRoleTemplateUrl: data.playerRoleTemplateUrl, userPool: auth.userPool, client: auth.client }, where);
+  const budget = new BudgetStack(app, 'B', env2, where);
   return { data: Template.fromStack(data), auth: Template.fromStack(auth), svc: Template.fromStack(svc), budget: Template.fromStack(budget) };
 };
 
@@ -28,11 +29,11 @@ describe('infrastructure guarantees', () => {
   const t = build();
 
   it('task role: fixed name, may only assume player roles outside our own account', () => {
-    t.svc.hasResourceProperties('AWS::IAM::Role', { RoleName: TASK_ROLE_NAME });
+    t.svc.hasResourceProperties('AWS::IAM::Role', { RoleName: taskRoleName(env) });
     t.svc.hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: {
         Statement: Match.arrayWith([
-          Match.objectLike({ Sid: 'AssumePlayerRoles', Action: 'sts:AssumeRole', Resource: 'arn:aws:iam::*:role/AWSCityPlayerRole-*', Condition: { StringNotEquals: { 'aws:ResourceAccount': '111122223333' } } }),
+          Match.objectLike({ Sid: 'AssumePlayerRoles', Action: 'sts:AssumeRole', Resource: 'arn:aws:iam::*:role/AWSCityPlayerRole-staging-*', Condition: { StringNotEquals: { 'aws:ResourceAccount': '111122223333' } } }),
         ]),
       },
     });
@@ -70,5 +71,36 @@ describe('infrastructure guarantees', () => {
 
   it('budget action cuts off Bedrock automatically at 100%', () => {
     t.budget.hasResourceProperties('AWS::Budgets::BudgetsAction', { ActionType: 'APPLY_IAM_POLICY', ApprovalModel: 'AUTOMATIC', ActionThreshold: { Type: 'PERCENTAGE', Value: 100 } });
+  });
+});
+
+describe('no custom domain: CloudFront in front of a private load balancer', () => {
+  const t = build({ domainName: '', hostedZoneId: '', zoneName: '' });
+
+  it('CloudFront (HTTPS only, no caching) reaches an internal ALB through a VPC origin', () => {
+    t.svc.resourceCountIs('AWS::CloudFront::VpcOrigin', 1);
+    t.svc.hasResourceProperties('AWS::CloudFront::Distribution', {
+      DistributionConfig: Match.objectLike({ DefaultCacheBehavior: Match.objectLike({ ViewerProtocolPolicy: 'https-only', AllowedMethods: Match.arrayWith(['POST', 'DELETE']) }) }),
+    });
+    t.svc.hasResourceProperties('AWS::ElasticLoadBalancingV2::LoadBalancer', { Scheme: 'internal' });
+    // Nothing is open to the internet inbound: only CloudFront's origin-facing prefix list reaches the ALB.
+    const inbound = JSON.stringify([
+      ...Object.values(t.svc.findResources('AWS::EC2::SecurityGroup')).map((r) => r.Properties?.SecurityGroupIngress ?? []),
+      ...Object.values(t.svc.findResources('AWS::EC2::SecurityGroupIngress')),
+    ]);
+    expect(inbound).not.toContain('0.0.0.0/0');
+    t.svc.hasResourceProperties('AWS::EC2::SecurityGroupIngress', { SourcePrefixListId: Match.anyValue(), FromPort: 80, ToPort: 80 });
+  });
+
+  it('the server accepts exactly the CloudFront host, and rate limits per viewer', () => {
+    const task = JSON.stringify(t.svc.findResources('AWS::ECS::TaskDefinition'));
+    expect(task).toMatch(/"Name":"PUBLIC_HOSTS","Value":\{"Fn::GetAtt":\["Cdn[0-9A-F]+","DomainName"\]\}/);
+    t.svc.hasResourceProperties('AWS::WAFv2::WebACL', {
+      Rules: Match.arrayWith([Match.objectLike({ Name: 'RatePerIp', Statement: { RateBasedStatement: Match.objectLike({ AggregateKeyType: 'FORWARDED_IP' }) } })]),
+    });
+  });
+
+  it('staging and prod use different role names (one account can host both)', () => {
+    t.svc.hasResourceProperties('AWS::IAM::Role', { RoleName: 'AWSCityTaskRole-staging' });
   });
 });
