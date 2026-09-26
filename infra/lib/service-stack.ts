@@ -22,10 +22,13 @@ import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
 import { ack } from './nag.js';
+import { visibility, wafRules } from './waf.js';
 import type { Construct } from 'constructs';
 import { type EnvConfig, playerRolePrefix, taskRoleName } from './config.js';
 
 export interface ServiceDeps {
+  /** CloudFront-scope WAF from EdgeStack (us-east-1), used when there's no custom domain. */
+  edgeWebAclArn?: string;
   table: dynamodb.TableV2;
   screenshots: s3.Bucket;
   playerRoleTemplateUrl: string;
@@ -160,6 +163,7 @@ export class ServiceStack extends Stack {
         },
         httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
         priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+        webAclId: deps.edgeWebAclArn,
         enableLogging: true,
         logBucket: cdnLogs,
         logFilePrefix: 'cdn/',
@@ -168,7 +172,6 @@ export class ServiceStack extends Stack {
     if (cdn) {
       ack(cdn, [
         { id: 'AwsSolutions::AwsSolutions-CFR1', reason: 'A learning game for everyone: no geo restriction.' },
-        { id: 'AwsSolutions::AwsSolutions-CFR2', reason: 'The regional WAF on the load balancer inspects every request (a CloudFront-scope ACL would need a us-east-1 stack).' },
         { id: 'AwsSolutions::AwsSolutions-CFR4', reason: 'The free *.cloudfront.net domain uses CloudFront’s certificate, where the minimum TLS version cannot be set; use a custom domain for TLS 1.2+.'.replace('’', "'") },
       ]);
       ack(this, [
@@ -248,29 +251,14 @@ export class ServiceStack extends Stack {
     scaling.scaleOnCpuUtilization('Cpu', { targetUtilizationPercent: 60 });
     scaling.scaleOnMemoryUtilization('Memory', { targetUtilizationPercent: 70 });
 
-    // WAF sees the HTTP requests and WebSocket upgrades; frame-level limits live in the app.
+    // WAF sees the HTTP requests and WebSocket upgrades; frame-level limits live in the app. With a
+    // public load balancer it also rate-limits per IP; behind CloudFront that happens at the edge
+    // (EdgeStack), because here every request would come from a CloudFront address.
     const waf = new wafv2.CfnWebACL(this, 'Waf', {
       scope: 'REGIONAL',
       defaultAction: { allow: {} },
-      visibilityConfig: { cloudWatchMetricsEnabled: true, metricName: `aws-city-${env.name}`, sampledRequestsEnabled: true },
-      rules: [
-        // Saved progress can exceed the rule set's 8 KB body limit; the server caps bodies at 64 KB itself.
-        managedRule('Common', 1, 'AWSManagedRulesCommonRuleSet', ['SizeRestrictions_BODY']),
-        managedRule('KnownBad', 2, 'AWSManagedRulesKnownBadInputsRuleSet'),
-        managedRule('IpReputation', 3, 'AWSManagedRulesAmazonIpReputationList'),
-        {
-          name: 'RatePerIp',
-          priority: 10,
-          action: { block: {} },
-          // Behind CloudFront every request comes from a CloudFront address: count per viewer instead.
-          statement: {
-            rateBasedStatement: https
-              ? { limit: 600, aggregateKeyType: 'IP', evaluationWindowSec: 300 }
-              : { limit: 600, aggregateKeyType: 'FORWARDED_IP', forwardedIpConfig: { headerName: 'X-Forwarded-For', fallbackBehavior: 'MATCH' }, evaluationWindowSec: 300 },
-          },
-          visibilityConfig: { cloudWatchMetricsEnabled: true, metricName: 'RatePerIp', sampledRequestsEnabled: true },
-        },
-      ],
+      visibilityConfig: visibility(`aws-city-${env.name}`),
+      rules: wafRules({ ratePerIp: https }),
     });
     new wafv2.CfnWebACLAssociation(this, 'WafAlb', { resourceArn: service.loadBalancer.loadBalancerArn, webAclArn: waf.attrArn });
 
@@ -319,13 +307,3 @@ export class ServiceStack extends Stack {
     ]);
   }
 }
-
-const managedRule = (name: string, priority: number, rule: string, countOnly: string[] = []): wafv2.CfnWebACL.RuleProperty => ({
-  name,
-  priority,
-  overrideAction: { none: {} },
-  statement: {
-    managedRuleGroupStatement: { vendorName: 'AWS', name: rule, ruleActionOverrides: countOnly.map((n) => ({ name: n, actionToUse: { count: {} } })) },
-  },
-  visibilityConfig: { cloudWatchMetricsEnabled: true, metricName: name, sampledRequestsEnabled: true },
-});

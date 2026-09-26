@@ -1,6 +1,6 @@
 {
   "name": "aws-city",
-  "description": "AWS City — learn AWS by exploring a pixel-art city of agents (Chrome extension)",
+  "description": "AWS City \u2014 learn AWS by exploring a pixel-art city of agents (Chrome extension)",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -17,7 +17,10 @@
     "open": "wxt build && node scripts/open.mjs",
     "art": "python3 art/pack/import_agentic.py && python3 art/characters/aws_city.py && python3 art/tiles/generate_tiles.py",
     "smoke:copilot": "wxt build && node scripts/smoke-copilot.mjs",
-    "live": "node scripts/live.mjs"
+    "live": "node scripts/live.mjs",
+    "icons": "node scripts/fetch-aws-icons.mjs",
+    "smoke:city": "wxt build && node scripts/smoke-city.mjs",
+    "setup": "npm --prefix infra ci --no-audit --no-fund --loglevel=error && node infra/setup/setup.mjs"
   },
   "dependencies": {
     "phaser": "^4.2.1",

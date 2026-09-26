@@ -1,4 +1,9 @@
+import { existsSync, readFileSync } from 'node:fs';
 import type { App } from 'aws-cdk-lib';
+
+/** Written by `npm run setup` (infra/setup/setup.mjs) at the repo root; gitignored, no secrets in it. */
+export const SETUP_FILE = new URL('../../aws-city.config.json', import.meta.url);
+export const readSetupFile = (): Record<string, unknown> => (existsSync(SETUP_FILE) ? JSON.parse(readFileSync(SETUP_FILE, 'utf8')) : {});
 
 /** Per-environment settings from cdk.json context ("staging" / "prod"). Empty strings = not set up yet. */
 export interface EnvConfig {
@@ -28,10 +33,15 @@ export interface EnvConfig {
 export const loadEnv = (app: App): EnvConfig => {
   const name = (app.node.tryGetContext('env') ?? 'staging') as EnvConfig['name'];
   if (name !== 'staging' && name !== 'prod') throw new Error(`-c env=${name}: use staging or prod`);
-  // From cdk.json it's an object; from `-c prod='{...}'` on the command line it's a JSON string.
+  // Precedence: `-c prod='{...}'` on the command line > aws-city.config.json (the setup wizard) > cdk.json defaults.
   const ctx = app.node.tryGetContext(name) as unknown;
-  const raw = (typeof ctx === 'string' ? JSON.parse(ctx) : ctx) as Omit<EnvConfig, 'name' | 'models'>;
-  if (!raw) throw new Error(`No "${name}" settings in cdk.json context`);
+  const fromCli = typeof ctx === 'string' ? (JSON.parse(ctx) as Record<string, unknown>) : undefined;
+  const defaults = (typeof ctx === 'object' && ctx) || {};
+  const fromSetup = (readSetupFile()[name] as Record<string, unknown> | undefined) ?? {};
+  const raw = { ...defaults, ...fromSetup, ...fromCli } as Omit<EnvConfig, 'name' | 'models'>;
+  if (!Object.keys(raw).length) throw new Error(`No "${name}" settings (cdk.json, aws-city.config.json or -c ${name}=...)`);
+  // Cognito rejects prefix domains containing reserved words: fail at synth, not 10 minutes into a deploy.
+  if (/aws|amazon|cognito/.test(raw.cognitoDomainPrefix ?? '')) throw new Error(`cognitoDomainPrefix "${raw.cognitoDomainPrefix}" can't contain aws, amazon or cognito`);
   return {
     ...raw,
     name,

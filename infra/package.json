@@ -11,6 +11,16 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1141.0",
+    "@aws-sdk/client-cloudformation": "^3.1141.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1141.0",
+    "@aws-sdk/client-iam": "^3.1141.0",
+    "@aws-sdk/client-route-53": "^3.1141.0",
+    "@aws-sdk/client-secrets-manager": "^3.1141.0",
+    "@aws-sdk/client-sesv2": "^3.1141.0",
+    "@aws-sdk/client-sts": "^3.1141.0",
+    "@aws-sdk/credential-providers": "^3.1141.0",
+    "@clack/prompts": "^1.8.1",
     "aws-cdk-lib": "^2.271.0",
     "cdk-nag": "^3.0.2",
     "constructs": "^10.8.1"

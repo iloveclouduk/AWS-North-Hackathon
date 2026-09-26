@@ -5,11 +5,12 @@ import { AuthStack } from '../lib/auth-stack.js';
 import { BudgetStack } from '../lib/budget-stack.js';
 import { type EnvConfig, taskRoleName } from '../lib/config.js';
 import { DataStack } from '../lib/data-stack.js';
+import { EdgeStack } from '../lib/edge-stack.js';
 import { ServiceStack } from '../lib/service-stack.js';
 
 const env: EnvConfig = {
   name: 'staging', region: 'us-west-2', domainName: 'api.example.com', hostedZoneId: 'Z1', zoneName: 'example.com',
-  cognitoDomainPrefix: 'aws-city-test', extensionIds: ['abcdefghijklmnopabcdefghijklmnop'], googleClientId: 'g.apps.googleusercontent.com',
+  cognitoDomainPrefix: 'cloud-city-test', extensionIds: ['abcdefghijklmnopabcdefghijklmnop'], googleClientId: 'g.apps.googleusercontent.com',
   sesFromEmail: '', alarmEmail: 'ops@example.com', monthlyBudgetUsd: 50, dailyModelCalls: 100, globalDailyModelCalls: 5000,
   minTasks: 2, maxTasks: 4, models: { main: 'us.anthropic.claude-opus-5', light: 'us.anthropic.claude-sonnet-5' },
 };
@@ -92,11 +93,17 @@ describe('no custom domain: CloudFront in front of a private load balancer', () 
     t.svc.hasResourceProperties('AWS::EC2::SecurityGroupIngress', { SourcePrefixListId: Match.anyValue(), FromPort: 80, ToPort: 80 });
   });
 
-  it('the server accepts exactly the CloudFront host, and rate limits per viewer', () => {
+  it('the server accepts exactly the CloudFront host; per-IP limits run at the edge, never on X-Forwarded-For', () => {
     const task = JSON.stringify(t.svc.findResources('AWS::ECS::TaskDefinition'));
     expect(task).toMatch(/"Name":"PUBLIC_HOSTS","Value":\{"Fn::GetAtt":\["Cdn[0-9A-F]+","DomainName"\]\}/);
-    t.svc.hasResourceProperties('AWS::WAFv2::WebACL', {
-      Rules: Match.arrayWith([Match.objectLike({ Name: 'RatePerIp', Statement: { RateBasedStatement: Match.objectLike({ AggregateKeyType: 'FORWARDED_IP' }) } })]),
+    const regional = JSON.stringify(t.svc.findResources('AWS::WAFv2::WebACL'));
+    expect(regional).not.toContain('FORWARDED_IP'); // a client could spoof it
+    expect(regional).not.toContain('RatePerIp'); // behind CloudFront every source is a CloudFront address
+    const app = new App();
+    const edge = Template.fromStack(new EdgeStack(app, 'E', env, { env: { account: '111122223333', region: 'us-east-1' } }));
+    edge.hasResourceProperties('AWS::WAFv2::WebACL', {
+      Scope: 'CLOUDFRONT',
+      Rules: Match.arrayWith([Match.objectLike({ Name: 'RatePerIp', Statement: { RateBasedStatement: Match.objectLike({ AggregateKeyType: 'IP' }) } })]),
     });
   });
 
