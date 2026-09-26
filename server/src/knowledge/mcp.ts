@@ -21,16 +21,25 @@ export interface Knowledge {
   search(phrase: string, limit?: number): Promise<DocHit[]>;
 }
 
-/** Only links to AWS's own sites are passed on (shown to players as sources). */
-const AWS_HOST = /(^|\.)((docs\.)?aws\.amazon\.com|repost\.aws|amazon\.com)$/;
+/**
+ * Only AWS's own official pages are passed on (shown to players as sources). Not re:Post or other
+ * community content: anyone can write that, so it's a prompt-injection channel.
+ */
+const AWS_HOSTS = new Set(['docs.aws.amazon.com', 'aws.amazon.com']);
 const safeUrl = (raw: unknown): string | undefined => {
   try {
     const u = new URL(String(raw));
-    return u.protocol === 'https:' && AWS_HOST.test(u.hostname) ? u.toString() : undefined;
+    return u.protocol === 'https:' && AWS_HOSTS.has(u.hostname) && !u.username && !u.password ? u.toString() : undefined;
   } catch {
     return undefined;
   }
 };
+
+/**
+ * Doc text is untrusted: remove anything tag-like so it can't close our <aws_docs> wrapper or open a
+ * fake <city_snapshot>/system block, and collapse whitespace.
+ */
+export const neutralise = (s: string) => s.replace(/[<>]/g, ' ').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim();
 
 /** Parses aws___search_documentation's text payload: {"content":{"result":[{title,url,context}]}}. */
 export const parseSearch = (result: unknown, maxChars = 700): DocHit[] => {
@@ -48,8 +57,8 @@ export const parseSearch = (result: unknown, maxChars = 700): DocHit[] => {
     for (const row of rows as { title?: unknown; url?: unknown; context?: unknown }[]) {
       const url = safeUrl(row.url);
       if (!url || typeof row.title !== 'string') continue;
-      const text = String(row.context ?? '').replace(/\s+/g, ' ').trim().slice(0, maxChars);
-      hits.push({ title: row.title.slice(0, 160), url, text });
+      const text = neutralise(String(row.context ?? '')).slice(0, maxChars);
+      hits.push({ title: neutralise(row.title).slice(0, 160), url, text });
     }
   }
   return hits;
@@ -128,5 +137,5 @@ export const noKnowledge: Knowledge = { search: async () => [] };
 /** How docs are shown to the model: data, never instructions. */
 export const docsBlock = (hits: DocHit[]) =>
   hits.length
-    ? `<aws_docs>\n${hits.map((h, i) => `[${i + 1}] ${h.title} — ${h.url}\n${h.text}`).join('\n\n')}\n</aws_docs>\n\n`
+    ? `<aws_docs>\n${hits.map((h, i) => `[${i + 1}] ${neutralise(h.title)} — ${h.url}\n${neutralise(h.text)}`).join('\n\n')}\n</aws_docs>\n\n`
     : '';

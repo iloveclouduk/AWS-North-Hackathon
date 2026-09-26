@@ -236,3 +236,19 @@ describe('mock flows are routed by goal, then by the console URL', () => {
     expect(flowFor('serverless', '')).toBe('lambda');
   });
 });
+
+describe('risk checks can’t be dodged by nesting or long text', () => {
+  it('a span inside a Delete button is a Delete click', async () => {
+    const { mayAct } = await import('@/console/safety');
+    document.body.innerHTML = `<button aria-label="Delete bucket"><span id="ic" role="button" tabindex="0">🗑</span></button>`;
+    const span = document.getElementById('ic')!;
+    expect(mayAct({ id: 'x', role: 'button', name: '🗑' }, 'click', span)).toMatchObject({ ok: false, reason: 'risky' });
+  });
+
+  it('a risky word late in a long tile description still counts', async () => {
+    const { mayAct } = await import('@/console/safety');
+    document.body.innerHTML = `<div id="tile" role="button" tabindex="0">Standard ${'lorem ipsum '.repeat(60)} this will delete all existing data</div>`;
+    const tile = document.getElementById('tile')!;
+    expect(mayAct({ id: 'x', role: 'button', name: 'Standard' }, 'click', tile)).toMatchObject({ ok: false, reason: 'risky' });
+  });
+});

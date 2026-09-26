@@ -57,8 +57,19 @@ export function riskSignals(el: Element): string {
     el.getAttribute('class'),
   ]
     .filter(Boolean)
-    .map((s) => s!.replace(/\s+/g, ' ').trim().slice(0, 300))
+    // Generous per-signal cap: a long tile or card description must not push "delete" out of the check.
+    .map((s) => s!.replace(/\s+/g, ' ').trim().slice(0, 4000))
     .join(' ');
+}
+
+/** The control a click really lands on: a click on an icon or span inside a "Delete" button is a Delete click. */
+const CONTROL = 'button, a[href], [role=button], [role=menuitem], [role=menuitemradio], [role=option], [role=tab], [role=link], label, summary';
+export function controlsAround(el: Element): Element[] {
+  const out: Element[] = [];
+  for (let p: Element | null = el.parentElement, depth = 0; p && depth < 6; p = p.parentElement, depth++) {
+    if (p.matches(CONTROL)) out.push(p);
+  }
+  return out;
 }
 
 /** Links that leave the AWS console are never followed by the agent. */
@@ -97,7 +108,8 @@ export function mayChoose(option: Element, fieldName = ''): Verdict {
 export function mayAct(item: SnapshotItem | undefined, action: string, el?: Element, value?: string): Verdict {
   if (!item) return { ok: false, reason: 'missing', message: 'I can’t find that on the page.' };
   if (el && (action === 'click' || action === 'select')) {
-    if (isRisky(riskSignals(el)) || DANGER_CLASS.test(el.getAttribute('class') ?? ''))
+    const around = controlsAround(el);
+    if (isRisky(riskSignals(el)) || DANGER_CLASS.test(el.getAttribute('class') ?? '') || around.some((c) => isRisky(riskSignals(c)) || DANGER_CLASS.test(c.getAttribute('class') ?? '')))
       return { ok: false, reason: 'risky', message: `“${item.name}” looks like it can change or delete something important — your turn to click it.` };
     if (leavesConsole(el)) return { ok: false, reason: 'risky', message: 'That link leaves the AWS console — your turn if you want to follow it.' };
     // Check the option that will actually be chosen, not just the value sent: value="2" can label "Disable…".

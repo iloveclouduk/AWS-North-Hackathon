@@ -1,4 +1,4 @@
-# Backend contract v2
+# Backend contract v2.2
 
 **Source of truth:** `src/backend/contract.ts`. If this doc and that file disagree, the file wins,
 so fix this doc. Both backends import or mirror that file:
@@ -13,6 +13,7 @@ so fix this doc. Both backends import or mirror that file:
 |---|---|---|---|
 | `mock` (default) | `src/backend/MockBackend.ts`, runs in the browser | none | Simulated curated templates |
 | `aws` | **`server/`**, the team's local Node server with a real account and Claude on Bedrock | WebSocket `/ws` + REST `/progress`, `/screenshots`; the Origin allowlist is `EXTENSION_ORIGIN` | **Guarded actions** (EC2 t4g, DynamoDB, S3); every write needs the player's approval |
+| `hosted` | **`server/`** deployed by `infra/` (ECS Fargate): players sign in with Cognito (JWT in `Sec-WebSocket-Protocol`, `Authorization: Bearer` on REST) and link their own AWS account | Same as `aws` | Guarded actions in the **player's own account** through `AWSCityPlayerRole-<region>` (ExternalId), each needing approval |
 | `agentcore` | Strands swarm on Bedrock AgentCore Runtime (branch `parked/agentcore-backend`) | A single WebSocket. The Cognito JWT goes in `Sec-WebSocket-Protocol` and is never put in the URL. | Curated CloudFormation templates into the player's own account |
 
 The workshop account denies CloudFormation and `iam:CreateRole`, so `aws` is the backend in use.
@@ -27,7 +28,9 @@ The workshop account denies CloudFormation and `iam:CreateRole`, so `aws` is the
 | `deploy.approve` / `deploy.reject` | `deployId` | The player's answer to a `deploy.preview`. Nothing changes in AWS without `deploy.approve`. |
 | `deploy.plan` | `requestId, templateId` | On `aws`, `ServerBackend` sends it to the matching agent as a prompt (`GUARDED_BLUEPRINTS`). |
 | `deploy.teardown` | `deployId` | On `aws`, it asks the agent to demolish what was built (that also needs approval). |
-| `progress.get/put`, `screenshot.presign`, `account.link/verify`, `quest.start` | | On `aws`, handled over REST or locally by `ServerBackend`. |
+| `account.link` | `requestId, region` | Hosted: returns `account.linkUrl` (CloudFormation quick-create for `infra/player-role/player-role.yaml`, with the player's ExternalId). |
+| `account.verify` | `requestId, roleArn` | `roleArn` may be just the 12-digit account id. The server assumes the role and checks the caller identity before linking. |
+| `progress.get/put`, `screenshot.presign`, `quest.start` | | On `aws`/`hosted`, handled over REST (`/progress`, `/screenshots`) or locally by `ServerBackend`. `DELETE /me` removes everything stored for the player. |
 
 ## Server → client
 
@@ -43,6 +46,11 @@ The workshop account denies CloudFormation and `iam:CreateRole`, so `aws` is the
 | `agent.level {agentId, level, skill?}` | The agent gets faster and announces its new skill. |
 | `account.status`, `account.linkUrl` | These drive the Deploy tab's account section. |
 | `page.classified`, `chat.answer` (streamed), `screenshot.url`, `progress.state`, `error` | The same as in v1. |
+
+**v2.2 additions (all optional):**
+- `error.code`: `quota` (the player's daily AI calls are used up), `paused` (the city's AI is switched off), `auth` (sign in again) or `unlinked` (connect an AWS account first). The UI shows friendly text for each.
+- `sources: [{title, url}]` on `task.done` and on the final `chat.answer`: the AWS documentation pages (docs.aws.amazon.com / aws.amazon.com only) the answer was grounded in, from the AWS Knowledge MCP server.
+- WebSocket close codes: `4401` = reconnect with a fresh token, `1012` = server restarting (reconnect with jitter), `4429` = too many tabs.
 
 ### The one rule that makes it feel alive
 
@@ -76,5 +84,5 @@ Agents act in the player's live, logged-in AWS console, one visible step at a ti
 - There's a limit of 25 steps, and it stops after 3 failures.
 
 **Backends:**
-- The mock (`src/backend/consoleMock.ts`) has a scripted S3 "Create bucket" walkthrough driven by the live snapshot.
+- The mock (`src/backend/consoleMock.ts`) has scripted walkthroughs driven by the live snapshot: S3 create bucket, EC2 launch instance, DynamoDB create table and Lambda create function (`npm run smoke:copilot` runs all four against fixtures).
 - The server (`server/src/contract/console.ts`) uses Claude on Bedrock with the `next_console_step` tool, validated with zod, so it works on any console page.
