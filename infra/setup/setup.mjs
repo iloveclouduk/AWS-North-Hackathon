@@ -69,7 +69,8 @@ p.note(
   [
     'This deploys AWS City into YOUR AWS account:',
     '  CloudFront/ALB → ECS Fargate server → DynamoDB, S3, Amazon Bedrock (Claude), Cognito sign-in.',
-    'Rough cost while idle: ~$35–60/month (2 small Fargate tasks, load balancer, CloudFront);',
+    'Rough cost while idle: prod ~$60–85/month (2 small Fargate tasks, load balancer, WAF, logs);',
+    'staging ~$45–60/month (1 task). Check the AWS Pricing Calculator for your region.',
     'Claude on Bedrock is pay-per-use and capped by a daily quota + a budget kill switch.',
     'You can remove everything later with: npm run setup -- --destroy',
   ].join('\n'),
@@ -218,7 +219,19 @@ if (useSes) {
 
 // ── 7. Chrome extension ids ──────────────────────────────────────────────────
 const storeId = await ask('text', { message: 'Chrome Web Store extension id (leave empty until you have one)', initialValue: (prev.extensionIds ?? []).find((i) => i !== DEV_EXTENSION_ID) ?? '', validate: (v) => (!v || /^[a-p]{32}$/.test(v) ? undefined : '32 letters a–p') }, (prev.extensionIds ?? []).find((i) => i !== DEV_EXTENSION_ID) ?? '');
-const extensionIds = [DEV_EXTENSION_ID, ...(storeId ? [storeId] : [])];
+// The local build's id comes from a public key in this repo, so ANY unpacked extension could claim it.
+// Fine for staging; for prod it's opt-in (it lets that id sign in and talk to your server).
+const hadDev = (prev.extensionIds ?? []).includes(DEV_EXTENSION_ID);
+const allowDev = await ask(
+  'confirm',
+  {
+    message: `Allow the local (unpacked) build to sign in? ${envName === 'prod' ? '(not recommended for prod: anyone can build an extension with this id)' : '(handy for testing)'}`,
+    initialValue: prev.extensionIds ? hadDev : envName !== 'prod',
+  },
+  prev.extensionIds ? hadDev : envName !== 'prod',
+);
+const extensionIds = [...(allowDev ? [DEV_EXTENSION_ID] : []), ...(storeId ? [storeId] : [])];
+if (!extensionIds.length) p.log.warn('No extension can sign in yet: publish to the Chrome Web Store and re-run setup with its id (or allow the local build).');
 
 // ── 8. GitHub CI/CD (optional) ───────────────────────────────────────────────
 let githubRepo = saved.githubRepo ?? '';
@@ -281,8 +294,7 @@ p.note(
     `Server:   ${pick('Service', 'ApiUrl')}`,
     `Sign-in:  ${pick('Auth', 'CognitoDomain')}`,
     '',
-    'Try it now: chrome://extensions → Developer mode → Load unpacked → .output/chrome-mv3',
-    `  (its id is ${DEV_EXTENSION_ID}, already allowed to sign in).`,
+    allowDev ? `Try it now: chrome://extensions → Developer mode → Load unpacked → .output/chrome-mv3 (id ${DEV_EXTENSION_ID}).` : 'The local build is not allowed to sign in (prod); use the store build.',
     'Publish:   upload .output/*-chrome.zip in the Chrome Web Store dashboard (docs/chrome-web-store.md),',
     '           then run setup again with the store id so store users can sign in too.',
     alarmEmail ? `Confirm:   click the AWS Notification emails sent to ${alarmEmail}.` : '',
