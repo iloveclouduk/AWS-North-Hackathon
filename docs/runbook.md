@@ -49,6 +49,22 @@ Rolling deploys are safe: a stopping task fails `/health`, tells players "the ci
 waits up to 100 s for running agent turns, then closes sockets with 1012; the extension reconnects
 with jitter to a healthy task. The circuit breaker rolls back a bad image automatically.
 
+## Restore player data (DynamoDB point-in-time recovery)
+
+The table `aws-city-<env>` keeps continuous backups for 35 days. To recover from a bad deploy or an
+accidental delete:
+1. Restore to a **new** table at a time before the incident:
+   `aws dynamodb restore-table-to-point-in-time --source-table-name aws-city-<env> --target-table-name aws-city-<env>-restored --restore-date-time <ISO-8601 time>`
+   Or restore to the latest restorable time with `--use-latest-restorable-time`.
+2. Wait until `aws dynamodb describe-table --table-name aws-city-<env>-restored` shows `ACTIVE`.
+3. Check a few players' items (`USER#<sub>` / `PROGRESS`), then copy them back into the live table
+   with a script, or point the service at the restored table: set `TABLE_NAME` in
+   `infra/lib/service-stack.ts` and redeploy.
+4. Turn on PITR and deletion protection for the restored table if it becomes the live one.
+   Restores don't copy those settings.
+
+Screenshots in S3 expire after a day and aren't backed up; that's by design.
+
 ## Player support
 
 - "Can't link my account": they must create the stack from the link in the *same* region, then paste

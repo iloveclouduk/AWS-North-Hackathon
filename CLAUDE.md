@@ -21,6 +21,11 @@ The frontend is complete against a mock backend; the AWS backend plugs in throug
   (allow-listed tools, `<aws_docs>` treated as data, official AWS hosts only). There's no AWS CLI tool
   and no managed AWS MCP Server (`aws___run_script`). Strands TS was evaluated and not adopted
   (`.claude/references/cached-sources.md`). Proof: `cd server && npx vitest run test/knowledge.test.ts`.
+- **AWS plugins for Claude Code** (`.claude/settings.json`): `aws-core` and `aws-agents` from
+  `claude-plugins-official` (Agent Toolkit for AWS). Use their skills (aws-cdk, aws-iam, aws-containers,
+  aws-networking, aws-security, aws-well-architected-review…) when changing infra or the server. The
+  aws-core MCP server's `aws___run_script` acts with the *developer's* credentials: it's for the dev
+  session only, and it's never wired into the game's agents. Proof: `docs/well-architected.md`.
 - **Every AWS write needs the player's approval** (contract v2 `deploy.preview` → `deploy.approve`).
   Proof: `server/test/approvals.test.ts`, `server/test/http.test.ts` ("player approvals").
 - **One seam to the backend.** Only `src/backend/` does network I/O. `contract.ts` is the source of
