@@ -15,6 +15,7 @@ import json
 import math
 import os
 import shutil
+import sys
 
 from PIL import Image, ImageChops, ImageDraw
 
@@ -23,6 +24,12 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 PACK = os.path.join(ROOT, "art", "pack")
 OUT = os.path.join(ROOT, "public", "assets", "city")
 CACHE = os.path.join(ROOT, ".cache", "art")
+
+# Bespoke landmark modules (landmarks_aws*.py, culture_art.py) import this module by name; when it runs
+# as a script, make that name resolve to *this* copy so they share SPRITES/PACKIMG.
+if __name__ == "__main__":
+    sys.modules.setdefault("generate_tiles", sys.modules["__main__"])
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 HW, HH = 16, 8
 CLEAR = (0, 0, 0, 0)
@@ -664,18 +671,27 @@ def workshop():
     return c
 
 
+def drawer_for(service):
+    """Every service has its own drawer lm_<id> (landmarks_aws*.py); the generic KINDS are only a fallback."""
+    import landmarks_aws
+    return landmarks_aws.BESPOKE.get(service["id"]) or KINDS[service["kind"]]
+
+
 def build_landmarks(world):
+    import culture_art
     colors = {d["id"]: rgb(d["color"]) for d in world["districts"]}
     for fw, fh in ((3, 3), (2, 2), (1, 1)):
         add(f"construction{fw}x{fh}", construction(fw, fh), lights=False)
     for s in world["services"]:
+        draw = drawer_for(s)
         for tier in (1, 2, 3, 4):
-            add(f"lm:{s['id']}:{tier}", KINDS[s["kind"]](3, 3, tier, colors[s["districtId"]], f"{s['id']}{tier}"))
+            add(f"lm:{s['id']}:{tier}", draw(3, 3, tier, colors[s["districtId"]], f"{s['id']}{tier}"))
     for d in world["districts"]:
         add(f"hq:{d['id']}", hq(colors[d["id"]], d["id"]))
     add("spheres", spheres())
     add("lookout", lookout_tower())
     add("workshop", workshop())
+    culture_art.build(add)
 
 
 # ── interior bits the pack doesn't have ───────────────────────────────────────
@@ -786,6 +802,9 @@ def preview():
     for name, gx, gy in sorted(items, key=lambda t: t[1] + t[2]):
         put(name, gx, gy)
     canvas.resize((canvas.width * 3 // 2, canvas.height * 3 // 2), Image.NEAREST).save(os.path.join(CACHE, "city-preview.png"))
+    import preview_landmarks
+    preview_landmarks.contact_sheet(SPRITES, [n for n in SPRITES if n.startswith("lm:")], os.path.join(CACHE, "landmarks-preview.png"))
+    preview_landmarks.contact_sheet(SPRITES, [n for n in SPRITES if n.startswith("culture:")], os.path.join(CACHE, "culture-preview.png"), per_row=6)
 
 
 if __name__ == "__main__":

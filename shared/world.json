@@ -12,12 +12,12 @@
     ]
   },
   "districts": [
-    { "id": "compute", "name": "Compute Quarter", "color": "#e8912d", "hq": "Compute HQ", "tagline": "Where work gets done — servers, containers and functions." },
-    { "id": "storage", "name": "Data Lake Shores", "color": "#3f9b4f", "hq": "Data Lake HQ", "tagline": "Store anything, then catalogue and query it where it lies." },
-    { "id": "database", "name": "Database Row", "color": "#3a6fd8", "hq": "Database HQ", "tagline": "The right database for every access pattern." },
-    { "id": "networking", "name": "Network Junction", "color": "#8b5cf6", "hq": "Networking HQ", "tagline": "Roads, addresses and messengers that connect it all." },
-    { "id": "security", "name": "Security Keep", "color": "#d64545", "hq": "Security HQ", "tagline": "Identity, encryption, defence and the eyes that watch." },
-    { "id": "aiml", "name": "AI Heights", "color": "#14b8a6", "hq": "AI HQ", "tagline": "Models, agents and machines that see and read." }
+    { "id": "compute", "name": "Compute Quarter", "color": "#ED7100", "hq": "Compute HQ", "tagline": "Where work gets done — servers, containers and functions." },
+    { "id": "storage", "name": "Data Lake Shores", "color": "#7AA116", "hq": "Data Lake HQ", "tagline": "Store anything, then catalogue and query it where it lies." },
+    { "id": "database", "name": "Database Row", "color": "#C925D1", "hq": "Database HQ", "tagline": "The right database for every access pattern." },
+    { "id": "networking", "name": "Network Junction", "color": "#8C4FFF", "hq": "Networking HQ", "tagline": "Roads, addresses and messengers that connect it all." },
+    { "id": "security", "name": "Security Keep", "color": "#DD344C", "hq": "Security HQ", "tagline": "Identity, encryption, defence and the eyes that watch." },
+    { "id": "aiml", "name": "AI Heights", "color": "#01A88D", "hq": "AI HQ", "tagline": "Models, agents and machines that see and read." }
   ],
   "special": {
     "concierge": { "name": "Connie the Concierge", "activity": "check", "color": "#f2c94c", "role": "Receives your requests at Console Plaza and dispatches the right agent." },
