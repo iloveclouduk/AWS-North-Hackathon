@@ -1,6 +1,6 @@
 {
   "name": "aws-city",
-  "description": "AWS City \u2014 learn AWS by exploring a pixel-art city of agents (Chrome extension)",
+  "description": "AWS City — learn AWS by exploring a pixel-art city of agents (Chrome extension)",
   "private": true,
   "version": "0.1.0",
   "type": "module",
