@@ -5,10 +5,10 @@ The frontend is complete against a mock backend; the AWS backend plugs in throug
 
 ## Decisions (each with the command that proves it)
 
-- **Backend in use: `server/`** (the team's local Node server). The workshop account denies
-  CloudFormation and `iam:CreateRole`, so there's no AgentCore or Lambda; the AgentCore/Strands
-  backend is parked on the `parked/agentcore-backend` branch. Proof: `cd server && npm test` (the
-  server imports `src/backend/contract.ts`, so contract drift breaks its build: `npx tsc --noEmit -p server`).
+- **Backend: `server/`** (Node + TS, Claude on Bedrock). It runs locally against the workshop
+  account, which denies CloudFormation and `iam:CreateRole`, or hosted in our own account via `infra/`.
+  The AgentCore/Strands backend is parked on `parked/agentcore-backend`. Proof: `cd server && npm test`
+  (the server imports `src/backend/contract.ts`, so contract drift breaks its build: `npx tsc --noEmit -p server`).
 - **Two deployments of one server:** local (`AUTH_MODE=token`, workshop profile, files; loopback
   only) and hosted (`AWS_CITY_MODE=hosted`: Cognito JWT in the WebSocket subprotocol, one tenant
   per player, DynamoDB/S3, each player's own account via `AWSCityPlayerRole-<region>` + ExternalId).
