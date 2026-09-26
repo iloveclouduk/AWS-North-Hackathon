@@ -11,8 +11,8 @@
     "**/node_modules",
     ".output",
     "infra",
+    "server",
     ".claude",
-    "**/cdk.out",
-    "server/dist"
+    "**/cdk.out"
   ]
 }
