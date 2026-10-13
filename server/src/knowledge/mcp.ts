@@ -70,24 +70,37 @@ type CallTool = (name: string, args: Record<string, unknown>) => Promise<unknown
  * Remote client with a small cache, a timeout and a circuit breaker. It fails open: if the docs
  * service is slow or down, agents answer from what they know (and say less, not wrong).
  */
-export const createKnowledge = (opts: { url?: string; timeoutMs?: number; call?: CallTool; now?: () => number; cacheSize?: number } = {}): Knowledge => {
+type DocsClient = Pick<Client, 'callTool' | 'close'>;
+
+export const createKnowledge = (
+  opts: { url?: string; timeoutMs?: number; call?: CallTool; now?: () => number; cacheSize?: number; connect?: () => Promise<DocsClient> } = {},
+): Knowledge => {
   const now = opts.now ?? Date.now;
   const timeoutMs = opts.timeoutMs ?? 4000;
   const cache = new Map<string, { at: number; hits: DocHit[] }>();
   const cacheSize = opts.cacheSize ?? 200;
   let failures = 0;
   let openUntil = 0;
-  let client: Promise<Client> | undefined;
+  let client: Promise<DocsClient> | undefined;
 
-  const connect = () =>
-    (client ??= (async () => {
+  const open =
+    opts.connect ??
+    (async () => {
       const c = new Client({ name: 'aws-city', version: '1.0.0' });
       await c.connect(new StreamableHTTPClientTransport(new URL(opts.url ?? KNOWLEDGE_URL)));
       return c;
-    })().catch((err) => {
+    });
+  const connect = () =>
+    (client ??= open().catch((err) => {
       client = undefined;
       throw err;
     }));
+  /** Forget the client and close it (and its transport), best-effort: a dropped client must not leak its connection. */
+  const drop = () => {
+    const old = client;
+    client = undefined;
+    old?.then((c) => c.close()).catch(() => {});
+  };
 
   const call: CallTool =
     opts.call ??
@@ -122,7 +135,7 @@ export const createKnowledge = (opts: { url?: string; timeoutMs?: number; call?:
         if (++failures >= 3) {
           openUntil = now() + 60_000;
           failures = 0;
-          client = undefined;
+          drop();
         }
         log.warn('knowledge search failed', { err: (err as Error).message.slice(0, 80) });
         return [];

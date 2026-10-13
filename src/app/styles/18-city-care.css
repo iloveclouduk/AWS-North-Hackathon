@@ -1,0 +1,430 @@
+/* ── City care (v2.3): the citizens' findings ── */
+.side {
+  position: relative;
+}
+.care {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.care .label {
+  margin-bottom: var(--s-2);
+}
+.care-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  text-align: left;
+  color: var(--ink);
+  transition: border-color var(--dur-2), background-color var(--dur-2);
+}
+.care-row:hover {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+}
+.care-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+}
+.care-text .muted {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sev {
+  flex: none;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  line-height: 18px;
+  color: var(--accent-ink);
+}
+.sev-high {
+  background: var(--bad);
+}
+.sev-medium {
+  background: var(--accent);
+}
+.sev-low {
+  background: var(--info);
+}
+.finding-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: flex-end;
+  padding: var(--s-4);
+  background: var(--scrim);
+  animation: enter var(--dur-2) var(--ease-out);
+}
+.finding-card {
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-float);
+}
+.finding-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.finding-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-sm);
+}
+.finding-who b {
+  color: var(--ink-hi);
+  font-size: var(--fs-md);
+}
+.finding-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.finding-title-row h3 {
+  margin: 0;
+  font-size: var(--fs-lg);
+  color: var(--ink-hi);
+}
+.finding-where,
+.finding-text,
+.finding-fix p,
+.finding-fixed p {
+  margin: 0;
+  line-height: 1.45;
+}
+.finding-where code {
+  overflow-wrap: anywhere;
+}
+.finding-fix,
+.finding-fixed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+  background: var(--panel-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.finding-fixed b {
+  color: var(--good);
+}
+.finding-answer {
+  overflow-wrap: anywhere;
+}
+.finding-gate {
+  margin: 0;
+  padding: var(--s-4) var(--s-5);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.finding-actions {
+  display: flex;
+  gap: var(--s-4);
+}
+.finding-actions .btn {
+  flex: 1;
+}
+.finding-learn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-sm);
+}
+.confirm-type {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+.confirm-type code {
+  overflow-wrap: anywhere;
+}
+.finding-greeting {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.finding-why {
+  margin: 0;
+  padding: var(--s-3) var(--s-5);
+  border-left: 2px solid var(--info);
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.finding-why b {
+  color: var(--info-ink);
+}
+.finding-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  background: var(--panel-3);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-md);
+}
+.finding-preview p {
+  margin: 0;
+  line-height: 1.45;
+}
+.preview-changes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+.teach {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-md);
+}
+.teach-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-4);
+  font-size: var(--fs-sm);
+}
+.teach-head b {
+  color: var(--ink-hi);
+}
+.teach .meter {
+  margin: 0;
+}
+.teach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+/* A locked Fix stays readable: it says what it needs, it isn't greyed into the background. */
+.finding-actions .btn.locked:disabled {
+  opacity: 1;
+  color: var(--ink-soft);
+  background: var(--panel-2);
+  border: 1px dashed var(--line-strong);
+}
+.chip-link {
+  padding: var(--s-1) var(--s-4);
+  border: 1px solid var(--info);
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--info-ink);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+.chip-link:hover {
+  background: var(--panel-2);
+}
+.care-more {
+  align-self: flex-start;
+}
+.fix-history {
+  margin: 0;
+  padding: 0 0 0 var(--s-5);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+.next.compact {
+  flex-direction: row;
+  align-items: center;
+  padding: var(--s-4) var(--s-5);
+}
+.next.compact .next-line {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* City health (Home): the citizens' daily summary and the learning streak. */
+.health {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.health.compact {
+  padding: 0;
+}
+.health-line {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  width: 100%;
+  min-width: 0;
+  padding: var(--s-4) var(--s-5);
+  background: none;
+  border: 0;
+  border-radius: var(--r-lg);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.health-line:hover {
+  background: var(--panel-2);
+}
+.health-sum {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+}
+.health-chev {
+  flex: none;
+  color: var(--muted);
+}
+.health-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.health-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.health-top {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.health-score {
+  flex: none;
+  min-width: 28px;
+  padding: 0 var(--s-3);
+  border-radius: var(--r-pill);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  color: var(--accent-ink);
+  background: var(--good);
+}
+.health-score.warn {
+  background: var(--warn);
+}
+.health-score.bad {
+  background: var(--bad);
+}
+.health-score.big {
+  min-width: 44px;
+  font-size: var(--fs-lg);
+  line-height: 28px;
+}
+.health-say {
+  flex: 1;
+  font-size: var(--fs-md);
+  line-height: 1.4;
+}
+.health-meter {
+  height: 6px;
+  background: var(--sunken);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.health-meter span {
+  display: block;
+  height: 100%;
+  background: var(--good);
+  border-radius: inherit;
+}
+.health.warn .health-meter span {
+  background: var(--warn);
+}
+.health.bad .health-meter span {
+  background: var(--bad);
+}
+.health-pillars {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.health-pillars li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  opacity: 0.55;
+}
+.health-pillars li.has {
+  opacity: 1;
+}
+.health-count {
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  color: var(--ink-hi);
+}
+.health-lead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+.health-lead:hover {
+  border-color: var(--line-strong);
+}
+.health-streak {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+.health-line:focus-visible,
+.health-lead:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

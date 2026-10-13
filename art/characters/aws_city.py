@@ -349,6 +349,16 @@ def export(name, anims):
 
 CITIZEN_EXTRA = 10
 
+# AWS "squid ink" navy, with its shade and highlight.
+NAVY = dict(top=(35, 47, 62), top_s=(22, 30, 41), top_h=(62, 80, 102))
+
+
+def player_looks():
+    """Kai's two sheets: `player` (navy jacket) and `player-gold` (the team's golden jacket, once every cert is earned)."""
+    g.LOOKS["player-gold"] = g.LOOKS["kai"]
+    g.LOOKS["player"] = dict(g.LOOKS["kai"], colors=dict(g.LOOKS["kai"]["colors"], **NAVY))
+    return {"player": ("player", PLAYER_ANIMS), "player-gold": ("player", PLAYER_ANIMS)}
+
 
 def main():
     with open(os.path.join(ROOT, "shared", "world.json")) as f:
@@ -356,9 +366,9 @@ def main():
     colors = {d["id"]: d["color"] for d in world["districts"]}
 
     roster = {}  # id -> (role, anims)
-    # Player: Kai exactly as designed by the team.
-    g.LOOKS["player"] = g.LOOKS["kai"]
-    roster["player"] = ("player", PLAYER_ANIMS)
+    # Player: Kai as designed by the team. The team's gold jacket is earned (the real AWS Golden Jacket goes to people
+    # who hold every current AWS certification), so Kai starts in the same jacket in AWS squid-ink navy.
+    roster.update(player_looks())
     # Service agents + specials, coloured by district.
     for s in world["services"]:
         g.LOOKS[s["id"]] = make_look(s["id"], colors[s["districtId"]], s["activity"])
@@ -369,6 +379,13 @@ def main():
     # Citizens: the team's other seven looks + generated extras.
     for name in ["mia", "dre", "noah", "zed", "victor", "sky", "luna"]:
         roster[name] = ("citizen", CITIZEN_ANIMS)
+    # Amazonian roles (shared/culture.json): the city-care citizens and the role pedestrians wear these.
+    with open(os.path.join(ROOT, "shared", "culture.json")) as f:
+        roles = json.load(f)["amazonians"]["roles"]
+    role_colors = {"sde": "#3b82f6", "sa": "#8b5cf6", "tam": "#14b8a6", "sre": "#ef4444", "pm": "#f59e0b", "delivery": "#0ea5e9", "warehouse": "#f97316"}
+    for r in roles:
+        g.LOOKS[r["sheet"]] = make_look(r["sheet"], role_colors.get(r["id"], "#64748b"), "none")
+        roster[r["sheet"]] = ("citizen", CITIZEN_ANIMS)
     palette = ["#ef4444", "#f59e0b", "#10b981", "#06b6d4", "#6366f1", "#ec4899", "#84cc16", "#f97316", "#0ea5e9", "#a855f7"]
     for i in range(CITIZEN_EXTRA):
         cid = f"citizen{i}"

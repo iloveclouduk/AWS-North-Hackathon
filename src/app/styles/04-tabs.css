@@ -1,0 +1,155 @@
+/* ── tabs: line icons + plain labels ── */
+.tabs {
+  display: flex;
+  padding: 0 var(--s-3);
+  border-bottom: 1px solid var(--line);
+}
+.tabs button {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: var(--s-4) var(--s-1) var(--s-3);
+  background: none;
+  border: none;
+  color: var(--muted);
+  transition: color var(--dur-2);
+}
+.tabs button::after {
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: transparent;
+  transition: background-color var(--dur-2);
+}
+.tabs button:hover {
+  color: var(--ink);
+}
+.tabs button.on {
+  color: var(--ink-hi);
+}
+.tabs button.on::after {
+  background: var(--accent);
+}
+.tabs button.on .icon {
+  color: var(--accent);
+}
+.tabs button:focus-visible {
+  outline-offset: -3px;
+}
+.tabs .tl {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tabs .badge {
+  position: absolute;
+  top: var(--s-3);
+  right: calc(50% - 14px);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+.tabs .badge-count {
+  position: absolute;
+  top: var(--s-2);
+  left: calc(50% + 6px);
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  background: var(--panel-hi);
+  color: var(--ink);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+/* quest progress: one segment per step */
+.segs {
+  display: flex;
+  gap: 3px;
+}
+.segs i {
+  flex: 1;
+  height: 4px;
+  max-width: 28px;
+  border-radius: 2px;
+  background: var(--line-strong);
+}
+.segs i.done {
+  background: var(--district, var(--accent));
+}
+.segs i.now {
+  background: var(--district, var(--accent));
+  opacity: 0.55;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+/* Toasts sit over the city: two at most in the side panel, three in the full tab (newest last). */
+.app-panel .toast:not(:nth-last-child(-n + 2)),
+.app-full .toast:not(:nth-last-child(-n + 3)) {
+  display: none;
+}
+.tab-body {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: var(--s-5) var(--s-5) var(--s-6);
+  scrollbar-gutter: stable;
+}
+.tab-body > * {
+  animation: enter var(--dur-2) var(--ease-out);
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+/* segmented switch (Learn: Flashcards | Architecture) */
+.seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  margin-bottom: var(--s-5);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+.seg button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  background: none;
+  border: 0;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+.seg button[aria-pressed='true'] {
+  background: var(--panel-hi);
+  color: var(--ink-hi);
+}
+.seg-count {
+  font-size: 10px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.back-link {
+  margin: 0 0 var(--s-4) calc(-1 * var(--s-4));
+}

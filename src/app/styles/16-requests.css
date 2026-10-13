@@ -1,0 +1,126 @@
+/* ── pass 3: character requests, hints, quieter lists ── */
+.request {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  text-align: left;
+  transition: border-color var(--dur-2), background-color var(--dur-2);
+}
+.request:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+}
+.request-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+.request-text b {
+  display: block;
+  color: var(--ink);
+}
+.request-go {
+  flex: none;
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.request:hover .request-go {
+  background: var(--accent-soft);
+}
+.arch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+}
+.arch-row .arch-label {
+  margin: 0;
+}
+.tpl > div {
+  flex: 1;
+  min-width: 0;
+}
+.tpl > .btn {
+  flex: none;
+}
+.hint-say {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+.svc.hinted {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  animation: pulse 1.2s ease-in-out 3;
+}
+.qt-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.nav-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.nav-name small {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.nav-row.todo {
+  background: none;
+  border-style: dashed;
+}
+.todo-icons {
+  display: inline-flex;
+  gap: var(--s-2);
+}
+.nav-head h4 .lock {
+  display: inline-flex;
+  margin-right: var(--s-3);
+  vertical-align: -1px;
+  color: var(--muted);
+}
+.nav-district.closed .nav-head h4::before {
+  display: none;
+}
+.teaches li.got .lvl {
+  color: var(--ink-soft);
+}
+.teaches li.now .lvl {
+  color: var(--accent);
+}
+.deck-progress .meter {
+  height: 4px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--panel-2);
+}
+.deck-progress .meter i {
+  border-radius: inherit;
+  background: var(--good);
+}
+.deploy > p.muted {
+  margin: 0;
+}
+
+/* One line over the composer: the console mode, or why sending is off (PromptBar.tsx). */
+.composer-note {
+  margin: 0;
+  padding: var(--s-2) var(--s-4);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+}
+.composer-note.on {
+  background: var(--accent-soft);
+  color: var(--ink);
+}

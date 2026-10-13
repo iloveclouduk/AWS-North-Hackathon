@@ -7,7 +7,7 @@ import type { Approvals } from '../src/contract/approvals.js';
 import type { Orchestrator } from '../src/contract/orchestrator.js';
 import { createProgressStore } from '../src/contract/progress.js';
 import { createUploadStore } from '../src/contract/uploads.js';
-import { createHttpServer } from '../src/http.js';
+import { createHttpServer, rateLimiter } from '../src/http.js';
 import type { Poller } from '../src/state/poller.js';
 import type { ServerEvent } from '../src/world.js';
 import { snapshot } from './fixtures.js';
@@ -18,12 +18,19 @@ let base: string;
 let port: number;
 let close: () => void;
 const received: ServerEvent[] = [];
+/** taskId → whether its turn was told the socket closed. */
+const stopped = new Map<string, boolean>();
 
 beforeAll(async () => {
   const snap = snapshot([]);
   const poller = { current: () => snap, refresh: async () => snap, start() {}, stop() {} } as Poller;
   const orchestrator = {
-    submitTask: async (cmd: { taskId: string; prompt: string }, emit: (e: ServerEvent) => void, approvals?: Approvals) => {
+    submitTask: async (cmd: { taskId: string; prompt: string }, emit: (e: ServerEvent) => void, approvals?: Approvals, signal?: AbortSignal) => {
+      if (cmd.prompt === 'hang') {
+        stopped.set(cmd.taskId, false);
+        signal?.addEventListener('abort', () => stopped.set(cmd.taskId, true));
+        return new Promise<void>((r) => setTimeout(r, 1000));
+      }
       // 'approve-me' simulates an agent write that needs the player's OK (contract v2).
       const ok = cmd.prompt === 'approve-me' && approvals
         ? await approvals.request(cmd.taskId, { action: { type: 'create_table', name: 'city-x' } as never, summary: 'Create DynamoDB table "city-x"', destructive: false }, emit)
@@ -159,11 +166,96 @@ describe('player approvals over the socket (contract v2)', () => {
     ws!.close();
   });
 
+  it('city care commands are validated, and need a linked account', async () => {
+    const { ws } = await openWs(TOKEN);
+    const bad = next(ws!, 'error');
+    ws!.send(JSON.stringify({ action: 'finding.fix', requestId: 'c1' }));
+    expect(await bad).toMatchObject({ message: expect.stringContaining('Bad command') });
+    const unlinked = next(ws!, 'error');
+    ws!.send(JSON.stringify({ action: 'finding.explain', requestId: 'c2', findingId: 'f-1' }));
+    expect(await unlinked).toMatchObject({ requestId: 'c2', code: 'unlinked' });
+    ws!.close();
+  });
+
+  it('bill.enable is validated strictly (v2.5) and answered with city.bill', async () => {
+    const { ws } = await openWs(TOKEN);
+    for (const bad of [{ action: 'bill.enable' }, { action: 'bill.enable', on: 'yes' }, { action: 'bill.enable', on: true, budget: 100 }]) {
+      const err = next(ws!, 'error');
+      ws!.send(JSON.stringify(bad));
+      expect(await err).toMatchObject({ message: expect.stringContaining('Bad command') });
+    }
+    const bill = next(ws!, 'city.bill');
+    ws!.send(JSON.stringify({ action: 'bill.enable', on: true }));
+    expect(await bill).toMatchObject({ type: 'city.bill', unavailable: expect.any(String) });
+    ws!.close();
+  });
+
   it('closing the socket rejects pending approvals', async () => {
     const { ws } = await openWs(TOKEN);
     const preview = next(ws!, 'deploy.preview');
     ws!.send(JSON.stringify({ action: 'task.submit', taskId: 'appr-2', prompt: 'approve-me', context: {} }));
     await preview;
     ws!.close();
+  });
+
+  it("closing a socket stops its own agent turns, not another tab's", async () => {
+    const a = (await openWs(TOKEN)).ws!;
+    const b = (await openWs(TOKEN)).ws!;
+    a.send(JSON.stringify({ action: 'task.submit', taskId: 'hang-a', prompt: 'hang', context: {} }));
+    b.send(JSON.stringify({ action: 'task.submit', taskId: 'hang-b', prompt: 'hang', context: {} }));
+    await until(() => stopped.has('hang-a') && stopped.has('hang-b'));
+    a.close();
+    await until(() => stopped.get('hang-a') === true);
+    expect(stopped.get('hang-a')).toBe(true);
+    expect(stopped.get('hang-b')).toBe(false);
+    b.close();
+  });
+
+  it('a rejected upgrade never echoes internal error text', async () => {
+    const res = await new Promise<string>((resolve) => {
+      const s = connect(port, '127.0.0.1', () => s.write(`GET /ws HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n`));
+      let data = '';
+      s.on('data', (d) => (data += d));
+      s.on('end', () => resolve(data));
+    });
+    expect(res).toMatch(/^HTTP\/1.1 401 Missing or wrong token\r\n/);
+  });
+});
+
+describe('per-socket frame rate', () => {
+  it('allows a burst, then refills over time', () => {
+    let t = 0;
+    const ok = rateLimiter(3, 2, () => t);
+    expect([ok(), ok(), ok(), ok()]).toEqual([true, true, true, false]);
+    t = 500;
+    expect([ok(), ok()]).toEqual([true, false]);
+  });
+});
+
+describe('extension origins per browser', () => {
+  it('exact Chrome origins, and whole-scheme wildcards for Firefox/Safari (random per install)', async () => {
+    const { originMatches } = await import('../src/config.js');
+    const allowed = ['chrome-extension://abc', 'moz-extension://*', 'safari-web-extension://*'];
+    expect(originMatches('chrome-extension://abc', allowed)).toBe(true);
+    expect(originMatches('chrome-extension://other', allowed)).toBe(false);
+    expect(originMatches('moz-extension://1b2c3d4e-0000-4000-8000-000000000000', allowed)).toBe(true);
+    expect(originMatches('safari-web-extension://ABCD-1234', allowed)).toBe(true);
+    expect(originMatches('moz-extension://x/../evil', allowed)).toBe(false);
+    expect(originMatches('https://evil.example', allowed)).toBe(false);
+    // No list (local dev): any extension origin, never a web page.
+    expect(originMatches('safari-web-extension://X', [])).toBe(true);
+    expect(originMatches('https://evil.example', [])).toBe(false);
+  });
+
+  it('a wildcard never authenticates by Origin alone, and only scheme wildcards are accepted', async () => {
+    const { ConfigError, loadConfig } = await import('../src/config.js');
+    const { tokenAuth } = await import('../src/auth.js');
+    const config = loadConfig({ EXTENSION_ORIGIN: 'chrome-extension://abc,moz-extension://*' });
+    const auth = tokenAuth(config);
+    const req = (origin: string) => ({ headers: { origin } }) as never;
+    expect(await auth(req('chrome-extension://abc'), new URL('http://x/'))).toEqual({ sub: 'local' });
+    expect(await auth(req('moz-extension://any-firefox-extension'), new URL('http://x/'))).toBeUndefined();
+    expect(() => loadConfig({ EXTENSION_ORIGIN: 'chrome-extension://*' })).toThrow(ConfigError);
+    expect(() => loadConfig({ EXTENSION_ORIGIN: 'https://*.example.com' })).toThrow(ConfigError);
   });
 });

@@ -1,0 +1,30 @@
+{
+  "asOf": "2026-10-12",
+  "note": "Data carriers (src/game/DataTraffic.ts): vehicles that drive only for real data. Plain text for players; facts from the linked docs.",
+  "carriers": {
+    "tanker": {
+      "name": "Replication tanker",
+      "simple": "Carries a copy of your data to another Region, so a second copy is ready if one Region has trouble.",
+      "more": "Cross-Region replication (for example DynamoDB global tables or S3 Replication) copies changes to another Region, usually within seconds. Data sent to another Region is billed as data transfer out.",
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html"
+    },
+    "armoured": {
+      "name": "Standby van",
+      "simple": "Keeps a spare copy of your database in another Availability Zone, ready to take over if the first fails.",
+      "more": "A Multi-AZ database writes every change to a standby in a second AZ (synchronous replication). If the primary fails, Amazon RDS fails over to the standby. This replication isn't billed as data transfer.",
+      "source": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZSingleStandby.html"
+    },
+    "request": {
+      "name": "Request car",
+      "simple": "One of your users' requests driving in, shared out to a server in one of the Availability Zones.",
+      "more": "A load balancer spreads incoming requests across healthy targets in the Availability Zones you enabled, so one AZ failing doesn't stop your app.",
+      "source": "https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html"
+    },
+    "courier": {
+      "name": "Agent courier",
+      "simple": "An agent's call to another service, carried across town. Tap a building to see what it does with it.",
+      "more": "Each call is one real AWS API request the agent makes for you (shown as it happens), and only after you approve anything that changes your account.",
+      "source": "https://docs.aws.amazon.com/general/latest/gr/aws-apis.html"
+    }
+  }
+}

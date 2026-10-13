@@ -283,6 +283,28 @@ def flowers_deco(c, r):
         c.d.point([(x, y)], fill=A([(250, 250, 250), (255, 204, 60), (240, 110, 150)][r(3)]))
 
 
+def paver_deco(c, r):
+    """Block pavers for the LP Walk: a grid of joints with a few warmer stones."""
+    for t in (0.25, 0.5, 0.75):
+        c.d.line([c.P(t, 0), c.P(t, 1)], fill=A((164, 152, 136)))
+    for i, t in enumerate((0.33, 0.66)):
+        for k in range(4):
+            a = k * 0.25 + (0.125 if i else 0)
+            c.d.point([c.P(min(0.99, a), t)], fill=A((164, 152, 136)))
+    for _ in range(3):
+        x, y = c.P((r(70) + 15) / 100, (r(70) + 15) / 100)
+        c.d.point([(x, y), (x + 1, y)], fill=A((214, 196, 170)))
+
+
+def lot_deco(c, r):
+    """An empty, graded lot: compacted gravel with a dashed survey line round the edge."""
+    specks((150, 144, 128), 9)(c, r)
+    for k in range(4):
+        a = 0.08 + k * 0.24
+        c.d.line([c.P(a, 0.08), c.P(a + 0.12, 0.08)], fill=A((236, 200, 120)))
+        c.d.line([c.P(0.08, a), c.P(0.08, a + 0.12)], fill=A((236, 200, 120)))
+
+
 def build_ground():
     g = PACKIMG
     add("grass0", g["grass"][0], (16, 0))
@@ -304,6 +326,8 @@ def build_ground():
     ground("floorWood", WOOD, lambda c, r: [c.d.line([c.P(t, 0), c.P(t, 1)], fill=A(WOOD_D)) for t in (0.25, 0.5, 0.75)])
     for f in range(4):
         ground(f"water{f}", WATER, water(f))
+    ground("paver", (196, 184, 166), paver_deco)
+    ground("lotPad", (186, 180, 164), lot_deco)
     for side in ("L", "R"):
         c = Canvas(1, 1, 0, pad=0)
         c.h += 10
@@ -366,11 +390,62 @@ def build_props():
             c.d.line([(x, y - 3 - f), (x + round(math.cos(ang) * 7), y + 5 + round(math.sin(ang) * 3))], fill=(210, 240, 255, 255))
         c.d.rectangle((x, y - 6 - f, x, y - 1), fill=(236, 248, 255, 255))
         add(f"fountain{f}", c)
+    build_site_props()
     glow = Image.new("RGBA", (64, 40), CLEAR)
     gd = ImageDraw.Draw(glow)
     for i in range(10, 0, -1):
         gd.ellipse((32 - i * 3, 20 - i * 1.8, 32 + i * 3, 20 + i * 1.8), fill=(255, 220, 140, int(8 + (10 - i) * 5)))
     add("glow", glow, (32, 20))
+
+
+def build_site_props():
+    """Locked districts and empty lots: hoardings, a billboard, cones and a 'lot' sign."""
+    # Friendly construction fencing: light timber posts, a white board with an AWS-orange chevron band (no window-like
+    # squares), knee-to-shoulder height so a locked plot reads as "coming soon", not as a row of dark buildings.
+    for name, along_u in (("hoardingX", True), ("hoardingY", False)):
+        c = Canvas(1, 1, 18)
+        face = (lambda ua, ub, za, zb, col: c.lface(0.53, ua, ub, za, zb, col)) if along_u else (lambda va, vb, za, zb, col: c.rface(0.53, va, vb, za, zb, col))
+        for t in (0.06, 0.94):  # timber posts
+            if along_u:
+                c.box(t - 0.04, 0.45, t + 0.04, 0.53, 0, 12, WOOD)
+            else:
+                c.box(0.45, t - 0.04, 0.53, t + 0.04, 0, 12, WOOD)
+        if along_u:
+            c.box(0.02, 0.47, 0.98, 0.53, 2, 11, WHITE)
+        else:
+            c.box(0.47, 0.02, 0.53, 0.98, 2, 11, WHITE)
+        for k in range(5):  # the chevron band: alternating orange and white blocks
+            a = 0.04 + k * 0.184
+            if k % 2 == 0:
+                face(a, a + 0.184, 5, 9, ORANGE)
+        face(0.02, 0.98, 10, 11, ORANGE_D)  # top rail
+        add(name, c, lights=False)
+    c = Canvas(2, 1, 56)
+    for u in (0.35, 1.65):
+        c.box(u - 0.05, 0.45, u + 0.05, 0.55, 0, 26, CON_D)
+    c.box(0.0, 0.42, 2.0, 0.58, 24, 46, NAVY)
+    c.lface(0.58, 0.0, 2.0, 24, 26, ORANGE)
+    c.lface(0.58, 0.0, 2.0, 44, 46, ORANGE)
+    c.lface(0.58, 0.15, 0.9, 30, 40, shade(GLASS, 0.9))
+    for k, w in enumerate((0.75, 0.55, 0.65)):
+        c.lface(0.58, 1.05, 1.05 + w, 38 - k * 4, 39 - k * 4, WHITE)
+    add("billboard", c, lights=False)
+    c = Canvas(1, 1, 16)
+    c.box(0.3, 0.3, 0.7, 0.7, 0, 1, ORANGE_D)
+    x, y = c.P(0.5, 0.5, 1)
+    c.d.polygon([(x - 4, y), (x + 4, y), (x + 1, y - 10), (x - 1, y - 10)], fill=A(ORANGE))
+    c.d.line([(x - 3, y - 4), (x + 3, y - 4)], fill=A(WHITE))
+    c.d.polygon([(x, y), (x + 4, y), (x + 1, y - 10)], fill=A(ORANGE_D))
+    c.d.line([(x + 1, y - 4), (x + 3, y - 4)], fill=A(shade(WHITE, 0.8)))
+    add("cone", c, lights=False)
+    c = Canvas(1, 1, 28)
+    c.box(0.46, 0.46, 0.54, 0.54, 0, 18, WOOD_D)
+    c.box(0.18, 0.46, 0.82, 0.56, 10, 22, WHITE)
+    c.lface(0.56, 0.18, 0.82, 10, 12, ORANGE)
+    x, y = c.P(0.42, 0.56, 20)
+    for dx, dy in ((0, 0), (1, 0), (2, 1), (1, 2), (1, 4)):  # a '?'
+        c.d.point([(x + dx, y + dy)], fill=A(NAVY))
+    add("lotSign", c, lights=False)
 
 
 # ── landmarks (data-centre style) ─────────────────────────────────────────────
@@ -584,64 +659,323 @@ KINDS = dict(building=k_building, tower=k_tower, dome=k_dome, lake=k_lake, wall=
              dock=k_dock, factory=k_factory, warehouse=k_warehouse, station=k_station)
 
 
+# Metric frame for ray-cast curves: one tile side is TILE_M units, a z pixel is 1/Z_PX units, and the eye looks down
+# EYE (u, v, up). Orthographic 2:1 dimetric: x = 0.7071 (U - V), y = 0.3536 (U + V) - 0.866 Z.
+TILE_M = HW * math.sqrt(2)
+Z_PX = math.sqrt(3) / 2
+EYE = (math.sqrt(3 / 8), math.sqrt(3 / 8), 0.5)
+SUN = (0.27, 0.72, 0.64)  # lights the left (+v) faces most, the right (+u) least, as the boxes do
+_h = [SUN[i] + EYE[i] for i in range(3)]
+GLINT = tuple(x / math.sqrt(sum(y * y for y in _h)) for x in _h)
+STEEL = (228, 234, 240)
+STEEL_M = (176, 188, 200)
+STEEL_D = (98, 112, 128)
+LEAF_L = (124, 200, 96)
+LEAF = (78, 168, 76)
+LEAF_D = (42, 118, 62)
+JUNGLE = (44, 96, 80)
+
+
+def glass_domes(c, domes, base, wall):
+    """The Spheres' glass: domes = [(u, v, R tiles, inner-seed)], each a sphere whose centre sits 0.3 R above the
+    top of a concrete ring wall (base..base+wall px), so it reads as a bulging dome, wider than tall. Every pixel is
+    ray-cast against every dome in one frame and the nearest hit wins, so the joints intersect and the paint order is
+    always right. Returns the night glow (warm, only on the glass) as its own layer, so the caller can cut it where
+    nearer things are drawn over the domes."""
+    zb, zt = base / Z_PX, (base + wall) / Z_PX
+    spheres = []
+    for (u, v, rt, _) in domes:
+        rs = rt * TILE_M
+        hc = 0.3 * rs
+        spheres.append((u * TILE_M, v * TILE_M, zt + hc, rs, math.sqrt(rs * rs - hc * hc)))
+    hits = {}
+    for y in range(c.h):
+        b = (y - c.oy) / 0.35355  # U + V on the plane Z = 0
+        for x in range(c.w):
+            a = (x - c.ox) / 0.7071  # U - V
+            p0 = ((a + b) / 2, (b - a) / 2, 0.0)
+            best = None
+            for i, (cu, cv, cz, rs, rb) in enumerate(spheres):
+                w = (p0[0] - cu, p0[1] - cv, p0[2] - cz)
+                bd = w[0] * EYE[0] + w[1] * EYE[1] + w[2] * EYE[2]
+                disc = bd * bd - (w[0] * w[0] + w[1] * w[1] + w[2] * w[2] - rs * rs)
+                if disc >= 0:
+                    t = -bd + math.sqrt(disc)
+                    pz = p0[2] + t * EYE[2]
+                    if pz >= zt and (best is None or t > best[0]):
+                        n = ((w[0] + t * EYE[0]) / rs, (w[1] + t * EYE[1]) / rs, (w[2] + t * EYE[2]) / rs)
+                        best = (t, i, "glass", n)
+                # the ring wall: an upright cylinder of the dome's base radius
+                wu, wv = p0[0] - cu, p0[1] - cv
+                A_, B_, C_ = 0.75, 2 * (wu * EYE[0] + wv * EYE[1]), wu * wu + wv * wv - rb * rb
+                disc = B_ * B_ - 4 * A_ * C_
+                if disc >= 0:
+                    t = (-B_ + math.sqrt(disc)) / (2 * A_)
+                    pz = p0[2] + t * EYE[2]
+                    if zb <= pz <= zt and (best is None or t > best[0]):
+                        best = (t, i, "wall", ((wu + t * EYE[0]) / rb, (wv + t * EYE[1]) / rb, 0.0), pz)
+            if best:
+                hits[(x, y)] = best
+
+    # Facets: latitude rows of near-equal panels, alternate rows offset half a panel and every panel split on a
+    # diagonal (alternating), which gives the Spheres' faceted, pentagon-ish steel pattern.
+    def facet(i, n):
+        rs = spheres[i][3]
+        step = 10.5 / rs
+        phi = math.asin(max(-1.0, min(1.0, n[2])))
+        th = math.atan2(n[1], n[0]) + 0.35 * i
+        row = math.floor((phi + math.pi / 2) / step)
+        mid = -math.pi / 2 + (row + 0.5) * step
+        cnt = max(5, round(2 * math.pi * rs * math.cos(mid) / 12))
+        f = (th / (2 * math.pi)) * cnt + 0.5 * (row % 2)
+        col = math.floor(f) % cnt
+        fu, fv = f - math.floor(f), (phi + math.pi / 2) / step - row
+        half = (fu + fv > 1) if (row + col) % 2 else (fu > fv)
+        cth = (col + 0.5 - 0.5 * (row % 2)) / cnt * 2 * math.pi - 0.35 * i
+        cn = (math.cos(mid) * math.cos(cth), math.cos(mid) * math.sin(cth), math.sin(mid))
+        return (i, row, col, half), cn
+
+    cells = {}
+    for xy, h in hits.items():
+        if h[2] == "glass":
+            cells[xy] = facet(h[1], h[3])
+
+    # What the glass shows: a cloud forest. Painted per dome, then clipped to the pixels that dome owns.
+    inside = Image.new("RGBA", (c.w, c.h), CLEAR)
+    idr = ImageDraw.Draw(inside)
+    for i, (u, v, rt, seed) in enumerate(domes):
+        cu, cv, cz, rs, rb = spheres[i]
+        bx, by = c.P(u, v, base + wall)
+        top = round(by - (cz - zt) * Z_PX - rs)
+        r = seeded(f"spheres-jungle{seed}")
+        idr.rectangle((bx - rs, top, bx + rs, by + rb), fill=A(JUNGLE))
+        # a tall tree whose canopy fills the crown (the big domes)
+        if rt >= 1.0:
+            tx = bx - round(rs * 0.18)
+            ty = round(top + rs * 0.42)
+            idr.line([(tx, by), (tx, ty)], fill=A(WOOD_D), width=2)
+            idr.line([(tx, ty + 6), (tx - 7, ty + 1)], fill=A(WOOD_D))
+            idr.line([(tx + 1, ty + 9), (tx + 8, ty + 3)], fill=A(WOOD_D))
+            for k in range(int(rs * 0.9)):
+                px = tx + r(round(rs * 1.0)) - round(rs * 0.5)
+                py = ty + r(round(rs * 0.5)) - round(rs * 0.22)
+                rr = 4 + r(3)
+                idr.ellipse((px - rr, py - rr + 1, px + rr, py + rr - 1), fill=A([LEAF_D, LEAF, LEAF_D][k % 3]))
+            for k in range(int(rs * 0.3)):
+                px = tx + r(round(rs * 0.8)) - round(rs * 0.45)
+                py = ty + r(round(rs * 0.3)) - round(rs * 0.25)
+                idr.rectangle((px, py, px + 1, py), fill=A(LEAF_L))
+        # layered understorey, back rows first
+        rows = max(3, round(rs * 0.42 / 4))
+        for row in range(rows, -1, -1):
+            yy = by - 2 - row * 4
+            xx = bx - rs + 2
+            while xx < bx + rs - 2:
+                rr = 3 + r(2)
+                col = LEAF_D if row > rows * 0.6 or r(4) == 0 else (LEAF if r(3) else LEAF_L)
+                idr.ellipse((xx - rr, yy - rr, xx + rr, yy + rr - 1), fill=A(col))
+                if r(9) == 0:
+                    idr.point([(xx, yy - 1)], fill=A([(250, 120, 140), ORANGE, (250, 236, 150)][r(3)]))
+                xx += 3 + r(4)
+
+    # Compose: glass over the forest (two-tone, flat per facet), steel on the facet edges, concrete for the walls.
+    out = c.img.load()
+    glow = Image.new("RGBA", (c.w, c.h), CLEAR)
+    lit = glow.load()
+    src = inside.load()
+
+    def mix(a, b, t):
+        return tuple(round(a[k] * t + b[k] * (1 - t)) for k in range(3)) + (255,)
+
+    for (x, y), h in hits.items():
+        i, kind = h[1], h[2]
+        n = h[3]
+        if kind == "wall":
+            dl = n[0] * SUN[0] + n[1] * SUN[1]
+            col = CON_L if dl > 0.55 else CON_M if dl > 0.1 else CON_D
+            if h[4] > zt - 1.6 / Z_PX:  # the coping
+                col = shade(col, 1.08)
+            out[x, y] = A(col)
+            continue
+        key, cn = cells[(x, y)]
+        nbs = [cells.get(q) for q in ((x + 1, y), (x, y + 1))]
+        if any(nb is not None and nb[0][0] != i for nb in nbs):  # where two domes meet: a heavy rib
+            out[x, y] = A(STEEL_D)
+            continue
+        edge = any(nb is not None and nb[0] != key for nb in nbs)
+        dl = cn[0] * SUN[0] + cn[1] * SUN[1] + cn[2] * SUN[2]
+        if edge:
+            out[x, y] = A(STEEL if dl > 0.9 else STEEL_M if dl > 0.55 else STEEL_D)
+            continue
+        if dl > 0.86:
+            g, t = GLASS, 0.44
+        elif dl > 0.62:
+            g, t = mix(GLASS, GLASS_D, 0.5), 0.34
+        elif dl > 0.35:
+            g, t = GLASS_D, 0.3
+        else:
+            g, t = shade(GLASS_D, 0.78), 0.34
+        spec = cn[0] * GLINT[0] + cn[1] * GLINT[1] + cn[2] * GLINT[2]
+        if spec > 0.985:
+            g, t = WHITE, 0.85
+        elif spec > 0.955:
+            g, t = mix(WHITE, GLASS, 0.6), 0.75
+        s = src[x, y]
+        under = s[:3] if s[3] else JUNGLE
+        leafy = s[3] and s[:3] != JUNGLE
+        out[x, y] = mix(g, under, t * 0.75 if leafy and t < 0.6 else t)
+        lit[x, y] = (200, 230, 140, 90) if leafy else (255, 210, 130, 150)
+    return glow
+
+
 def spheres():
-    """Amazon's The Spheres: three glass domes (lattice) full of plants, on a green plaza with trees."""
-    c = Canvas(4, 4, 90)
-    c.box(0.05, 0.05, 3.95, 3.95, 0, 3, CON_L, top=GRASS_D)
+    """Amazon's The Spheres (Seattle), as an impression: three joined glass domes of clearly different sizes on low
+    concrete ring walls, a faceted steel lattice over two-tone glass, a cloud forest and a tall tree inside, warm
+    light at night, on a paved plaza with planters, corner trees and a small glass entrance pavilion."""
+    base, wall = 3, 5
+    c = Canvas(4, 4, 28)
+    pave = (204, 198, 186)
+    c.box(0.05, 0.05, 3.95, 3.95, 0, base, CON_M, top=pave)
+    for k in range(1, 8):  # paving joints
+        c.line((k / 2, 0.08, base), (k / 2, 3.92, base), shade(pave, 0.93))
+        c.line((0.08, k / 2, base), (3.92, k / 2, base), shade(pave, 0.93))
     tree, anchor, _, _ = PACKIMG["tree"]
-    for u, v in ((0.4, 3.5), (3.5, 0.4)):
-        c.stamp(tree, u, v, anchor)
-
-    def sphere(u, v, r, lift=3):
-        cx, cy = c.P(u, v, lift)
-        rx, ry = round(r * HW * 1.25), round(r * HW * 1.15)
-        top = cy - ry * 2 + 4
-        box = (cx - rx, top, cx + rx, cy + 4)
-        c.d.ellipse(box, fill=A((64, 150, 96)))
-        r2 = seeded(f"sph{u}{v}")
-        for _ in range(int(r * 18)):
-            px = cx + r2(2 * rx - 6) - rx + 3
-            py = top + 6 + r2(max(1, ry * 2 - 8))
-            c.d.ellipse((px - 3, py - 3, px + 3, py + 3), fill=A([(80, 180, 88), (46, 130, 70), (120, 200, 110)][r2(3)]))
-        glass = Image.new("RGBA", c.img.size, CLEAR)
-        gd = ImageDraw.Draw(glass)
-        gd.ellipse(box, fill=(170, 224, 240, 120))
-        gd.ellipse((cx - rx // 2, top + 4, cx - rx // 6, top + ry // 2), fill=(255, 255, 255, 110))
-        c.img.alpha_composite(glass)
-        mask = Image.new("L", c.img.size, 0)
-        ImageDraw.Draw(mask).ellipse(box, fill=255)
-        net = Image.new("RGBA", c.img.size, CLEAR)
-        nd = ImageDraw.Draw(net)
-        step = 7
-        for i in range(-rx * 2, rx * 2, step):
-            nd.line([(cx + i, top), (cx + i + ry, cy + 4)], fill=A((210, 226, 236)))
-            nd.line([(cx + i, top), (cx + i - ry, cy + 4)], fill=A((210, 226, 236)))
-        for yy in range(top + step, cy + 4, step + 2):
-            nd.line([(cx - rx, yy), (cx + rx, yy)], fill=A((190, 210, 224)))
-        c.img.paste(net, (0, 0), ImageChops.multiply(mask, net.getchannel("A")))
-        c.d.ellipse(box, outline=A(NAVY))
-        c.d.line([(cx - rx + 2, cy + 3), (cx + rx - 2, cy + 3)], fill=A(CON_D))
-        c.ld.ellipse((cx - rx // 2, cy - ry, cx + rx // 2, cy), fill=(200, 255, 220, 120))  # warm glow at night
-
-    sphere(1.3, 3.0, 0.8)
-    sphere(1.5, 1.7, 1.25)  # middle, largest
-    sphere(3.0, 1.3, 0.85)
-    c.stamp(tree, 3.5, 3.5, anchor)
+    glow = glass_domes(c, [(1.55, 1.55, 1.5, 0), (2.95, 1.1, 1.05, 1), (1.3, 2.9, 0.78, 2)], base, wall)
+    domes = c.img.copy()
+    # the entrance pavilion: a low glass box on the front, lit doors, a navy roof with an orange fascia
+    u0, v0, u1, v1, z1 = 2.3, 2.55, 3.15, 3.2, base + 13
+    c.box(u0, v0, u1, v1, base, z1, NAVY_D)
+    for k in range(4):
+        a = u0 + 0.05 + k * (u1 - u0 - 0.1) / 4
+        c.lface(v1, a + 0.02, a + (u1 - u0 - 0.1) / 4 - 0.02, base + 1, z1 - 2, GLASS, light=k not in (1, 2))
+    for k in range(3):
+        a = v0 + 0.05 + k * (v1 - v0 - 0.1) / 3
+        c.rface(u1, a + 0.02, a + (v1 - v0 - 0.1) / 3 - 0.02, base + 1, z1 - 2, GLASS_D, light=True)
+    m = (u0 + u1) / 2
+    c.lface(v1, m - 0.2, m + 0.2, base, base + 9, (255, 226, 160), light=True)  # open doors, light spilling out
+    c.line((m, v1, base), (m, v1, base + 9), NAVY_D)
+    c.box(u0 - 0.06, v0 - 0.06, u1 + 0.06, v1 + 0.06, z1, z1 + 3, NAVY, top=shade(NAVY, 1.25))
+    c.lface(v1 + 0.06, u0 - 0.06, u1 + 0.06, z1, z1 + 1, ORANGE)
+    c.rface(u1 + 0.06, v0 - 0.06, v1 + 0.06, z1, z1 + 1, ORANGE_D)
+    # planters: a ring of low beds along the front edges, with a gap for the path to the doors
+    def planter(a0, b0, a1, b1):
+        c.box(a0, b0, a1, b1, base, base + 3, CON_L, top=LEAF_D)
+        r = seeded(f"planter{a0}{b0}")
+        for _ in range(int((a1 - a0 + b1 - b0) * 5)):
+            x, y = c.P(a0 + r(100) / 100 * (a1 - a0), b0 + r(100) / 100 * (b1 - b0), base + 3)
+            c.d.rectangle((x - 1, y - 2, x + 1, y), fill=A([LEAF, LEAF_L, (250, 120, 140)][r(3)]))
+    planter(0.25, 3.6, 2.0, 3.85)
+    planter(3.6, 0.25, 3.85, 2.2)
+    planter(3.45, 3.45, 3.85, 3.85)
+    planter(0.25, 2.0, 0.5, 3.4)
+    c.stamp(tree, 0.32, 3.68, anchor)
+    c.stamp(tree, 3.68, 0.32, anchor)
+    # the domes glow only where nothing nearer stands in front of them
+    covered = ImageChops.difference(domes, c.img).convert("L").point(lambda v: 0 if v else 255)
+    glow.putalpha(ImageChops.multiply(glow.getchannel("A"), covered))
+    glow.alpha_composite(c.lights)
+    c.lights, c.ld = glow, ImageDraw.Draw(glow)
     return c
 
 
 def hq(col, key):
-    c = Canvas(2, 2, 60)
-    c.box(0.12, 0.12, 1.88, 1.88, 0, 30, NAVY)
-    c.windows(0.12, 0.12, 1.88, 1.88, 3, 26, key, every=0.34, size=0.22, fh=7)
-    c.lface(1.88, 0.12, 1.88, 25, 28, col)
-    c.rface(1.88, 0.12, 1.88, 25, 28, shade(col, 0.8))
-    c.door(0.12, 1.88, 1.88, col=ORANGE, w=0.4, h=10)
-    c.box(0.08, 0.08, 1.92, 1.92, 30, 33, col)
-    c.box(1.3, 0.3, 1.6, 0.6, 33, 37, CON_M)
-    x, y = c.P(0.3, 0.3, 33)
-    c.d.line([(x, y), (x, y - 14)], fill=A(CON_L))
-    c.d.polygon([(x + 1, y - 14), (x + 10, y - 11), (x + 1, y - 8)], fill=A(col))
+    """A district's headquarters: a stone podium with a glass lobby and an orange canopy, a set-back glass-and-navy
+    tower (seeded lit windows between navy mullions, a corner fin and a crown band in the district colour), and a
+    rooftop that says which part of AWS lives there (the skyline's crowns, towers_art.py, at HQ scale):
+    compute fans, a storage water tank, a database disk stack, a networking mast, security battlements and crest,
+    an AI glass pyramid. key is the district id."""
+    from landmarks_aws_a import cyl
+    H = 62
+    c = Canvas(2, 2, H + 40)
+    pave = (204, 198, 186)
+    c.box(0.04, 0.04, 1.96, 1.96, 0, 2, CON_M, top=pave)
+    # podium + lobby
+    c.box(0.14, 0.14, 1.86, 1.86, 2, 15, CON_L)
+    c.lface(1.86, 0.26, 1.74, 3, 12, GLASS, light=True)
+    c.rface(1.86, 0.26, 1.74, 3, 12, GLASS_D, light=True)
+    for k in range(7):
+        t = 0.26 + k * 0.245
+        c.line((t, 1.86, 3), (t, 1.86, 12), NAVY_D)
+        c.line((1.86, t, 3), (1.86, t, 12), NAVY_D)
+    c.lface(1.86, 0.82, 1.18, 2, 10, (255, 226, 160), light=True)  # the doors, lit
+    c.line((1.0, 1.86, 2), (1.0, 1.86, 10), NAVY_D)
+    c.box(0.66, 1.84, 1.34, 1.99, 10, 12, ORANGE, top=shade(ORANGE, 1.06), left=ORANGE_D)  # canopy
+    c.box(0.12, 0.12, 1.88, 1.88, 15, 17, shade(CON_L, 0.86))
+    c.lface(1.88, 0.12, 1.88, 15, 16, col)
+    c.rface(1.88, 0.12, 1.88, 15, 16, shade(col, 0.8))
+    # tower
+    u0, u1 = 0.42, 1.58
+    c.box(u0, u0, u1, u1, 17, H, NAVY)
+    c.windows(u0, u0, u1, u1, 16, H - 2, key, every=0.29, size=0.18, fh=7)
+    c.lface(u1, u1 - 0.12, u1, 17, H, col)  # the corner fin
+    c.rface(u1, u1 - 0.12, u1, 17, H, shade(col, 0.78))
+    c.box(u0 - 0.04, u0 - 0.04, u1 + 0.04, u1 + 0.04, H, H + 4, col)
+    z = H + 4
+    c.poly([(u0, u0, z), (u1, u0, z), (u1, u1, z), (u0, u1, z)], shade(NAVY, 1.3))
+    r = seeded(key + "roof")
+    if key == "compute":
+        c.box(0.6, 0.6, 1.4, 1.4, z, z + 5, CON_M)
+        for u in (0.8, 1.2):
+            c.fan(u, 1.0, z + 5, r=0.2, frame=r(6))
+        for k in range(5):
+            c.lface(1.4, 0.66 + k * 0.14, 0.72 + k * 0.14, z + 1, z + 3, (120, 230, 120) if r(2) else ORANGE, light=True)
+    elif key == "storage":
+        for u, v in ((0.78, 0.78), (1.22, 0.78), (0.78, 1.22), (1.22, 1.22)):
+            c.box(u - 0.03, v - 0.03, u + 0.03, v + 0.03, z, z + 7, NAVY_D)
+        x, y = cyl(c, 1.0, 1.0, z + 7, z + 21, 0.36, col)
+        c.d.polygon([(x - 13, y), (x + 13, y), (x, y - 7)], fill=A(shade(col, 0.72)))
+        c.d.polygon([(x - 13, y), (x, y), (x, y - 7)], fill=A(shade(col, 0.86)))
+        for k in (5, 10):
+            c.d.line([(x - 12, y + k), (x + 12, y + k)], fill=A(shade(col, 0.7)))
+    elif key == "database":
+        for k in range(3):
+            x, y = c.P(1.0, 1.0, z + 3 + k * 7)
+            dc = col if k % 2 == 0 else shade(col, 1.25)
+            c.d.rectangle((x - 13, y - 4, x + 13, y + 2), fill=A(shade(dc, 0.72)))
+            c.d.ellipse((x - 13, y - 1, x + 13, y + 6), fill=A(shade(dc, 0.72)))
+            c.d.ellipse((x - 13, y - 8, x + 13, y), fill=A(dc))
+            c.d.line([(x - 9, y + 3), (x + 9, y + 3)], fill=A((255, 214, 120)))
+            c.ld.line([(x - 9, y + 3), (x + 9, y + 3)], fill=A((255, 214, 120)))
+    elif key == "networking":
+        c.box(0.7, 0.7, 1.3, 1.3, z, z + 5, CON_M)
+        c.box(0.96, 0.96, 1.04, 1.04, z + 5, z + 36, CON_L)
+        for k in range(z + 10, z + 34, 6):
+            c.line((0.9, 1.0, k), (1.1, 1.0, k), CON_M)
+        x, y = c.P(0.84, 1.0, z + 18)  # a dish
+        c.d.line([(x, y), (x + 4, y)], fill=A(CON_M))
+        c.d.ellipse((x - 5, y - 6, x + 1, y + 6), fill=A(CON_M))
+        c.d.ellipse((x - 4, y - 5, x, y + 5), fill=A(WHITE))
+        x, y = c.P(1.0, 1.0, z + 38)
+        c.d.rectangle((x - 1, y - 1, x + 1, y + 1), fill=A((230, 40, 40)))
+        c.ld.rectangle((x - 1, y - 1, x + 1, y + 1), fill=A((255, 80, 60)))
+    elif key == "security":
+        for k in range(5):
+            t = u0 + k * 0.27
+            c.box(t, u0 - 0.04, t + 0.13, u0 + 0.1, z, z + 7, shade(CON_L, 0.8))
+            c.box(u0 - 0.04, t, u0 + 0.1, t + 0.13, z, z + 7, shade(CON_L, 0.9))
+        for k in range(5):
+            t = u0 + k * 0.27
+            c.box(t, u1 - 0.1, t + 0.13, u1 + 0.04, z, z + 7, shade(CON_L, 0.9))
+            c.box(u1 - 0.1, t, u1 + 0.04, t + 0.13, z, z + 7, shade(CON_L, 0.8))
+        x, y = c.P(1.0, u1, H - 16)
+        c.d.polygon([(x - 7, y - 8), (x + 7, y - 8), (x + 7, y), (x, y + 7), (x - 7, y)], fill=A(col))
+        c.d.polygon([(x - 5, y - 6), (x + 5, y - 6), (x + 5, y), (x, y + 5), (x - 5, y)], outline=A(WHITE))
+        c.d.line([(x, y - 5), (x, y + 4)], fill=A(WHITE))
+    else:  # aiml
+        c.pyramid(u0, u0, u1, u1, z, 26, shade(col, 1.25))
+        apex = (1.0, 1.0, z + 26)
+        for k in range(1, 4):
+            t = k / 4
+            a = (u0 + (1.0 - u0) * t, u1 + (1.0 - u1) * t, z + 26 * t)
+            b = (u1 + (1.0 - u1) * t, u1 + (1.0 - u1) * t, z + 26 * t)
+            d = (u1 + (1.0 - u1) * t, u0 + (1.0 - u0) * t, z + 26 * t)
+            c.line(a, b, shade(col, 0.8))
+            c.line(b, d, shade(col, 0.6))
+        c.line((u1, u1, z), apex, shade(col, 0.7))
+        c.ld.polygon([c.P(u0 + 0.08, u1, z + 1), c.P(u1, u1, z + 1), c.P(1.0, 1.0, z + 22)], fill=(120, 255, 220, 150))
+        x, y = c.P(*apex)
+        c.d.rectangle((x - 1, y - 1, x + 1, y + 1), fill=A(WHITE))
+        c.ld.rectangle((x - 1, y - 1, x + 1, y + 1), fill=A(WHITE))
     return c
 
 
@@ -707,6 +1041,44 @@ def build_interior():
             c.poly([(0, 0, 0), (1, 0, 0), (1, 0, 66), (0, 0, 66)], shade(NAVY, 0.85))
             c.poly([(0, 0, 0), (1, 0, 0), (1, 0, 3), (0, 0, 3)], ORANGE_D)
         add(name, c, do_outline=False, lights=False)
+    # The Spheres' walls: the faceted steel lattice over glass, with the cloud forest behind it (same canvas as wallL/R)
+    for name, left in (("glassWallL", True), ("glassWallR", False)):
+        c = Canvas(1, 1, 70, pad=0)
+        c.h += 2
+        r = seeded(name)
+        face = (lambda a, b, z0, z1, col: c.poly([(0, a, z0), (0, b, z0), (0, b, z1), (0, a, z1)], col)) if left else \
+            (lambda a, b, z0, z1, col: c.poly([(a, 0, z0), (b, 0, z0), (b, 0, z1), (a, 0, z1)], col))
+        face(0, 1, 0, 66, JUNGLE)
+        for _ in range(26):  # foliage behind the glass, denser low down
+            t, z = r(100) / 100, r(48) if r(3) else r(64)
+            x, y = c.P(0, t, z) if left else c.P(t, 0, z)
+            rr = 2 + r(3)
+            c.d.ellipse((x - rr, y - rr, x + rr, y + rr), fill=A([LEAF_D, LEAF, LEAF_L][r(3)]))
+        tint = Image.new("RGBA", c.img.size, CLEAR)
+        td = ImageDraw.Draw(tint)
+        pts = [c.P(0, 0, 0), c.P(0, 1, 0), c.P(0, 1, 66), c.P(0, 0, 66)] if left else [c.P(0, 0, 0), c.P(1, 0, 0), c.P(1, 0, 66), c.P(0, 0, 66)]
+        td.polygon(pts, fill=A(GLASS if left else GLASS_D, 96))
+        c.img.alpha_composite(tint)
+        steel = STEEL_M if left else STEEL_D
+        for z in range(0, 67, 11):  # latitude ribs, and a diagonal in each panel (alternating)
+            c.line((0, 0, z) if left else (0, 0, z), (0, 1, z) if left else (1, 0, z), steel)
+        for k, z in enumerate(range(0, 66, 11)):
+            for j in range(3):
+                a0, a1 = j / 3, (j + 1) / 3
+                if left:
+                    c.line((0, a0, z), (0, a0, z + 11), steel)
+                    c.line((0, a0 if (j + k) % 2 else a1, z), (0, a1 if (j + k) % 2 else a0, z + 11), steel)
+                else:
+                    c.line((a0, 0, z), (a0, 0, z + 11), steel)
+                    c.line((a0 if (j + k) % 2 else a1, 0, z), (a1 if (j + k) % 2 else a0, 0, z + 11), steel)
+        if left:
+            c.poly([(0, 0, 0), (0, 1, 0), (0, 1, 3), (0, 0, 3)], CON_M)
+        else:
+            c.poly([(0, 0, 0), (1, 0, 0), (1, 0, 3), (0, 0, 3)], CON_D)
+        clip = Image.new("L", c.img.size, 0)
+        ImageDraw.Draw(clip).polygon(pts, fill=255)
+        c.img.putalpha(ImageChops.multiply(c.img.getchannel("A"), clip))
+        add(name, c, do_outline=False, lights=False)
     c = Canvas(2, 1, 30)
     c.box(0.1, 0.2, 1.9, 0.9, 0, 6, (58, 90, 150))
     c.box(0.1, 0.1, 1.9, 0.32, 6, 13, (48, 76, 130))
@@ -749,6 +1121,18 @@ def main():
     add_pack()
     build_ground()
     build_props()
+    import landscape_art
+    landscape_art.build(add)
+    import vehicles_art
+    vehicles_art.build(add)
+    import houses_art
+    houses_art.build(add)
+    import towers_art
+    towers_art.build(add)
+    import signatures_art
+    signatures_art.build(add)
+    import park_art
+    park_art.build(add)
     build_landmarks(world)
     build_interior()
 
@@ -775,6 +1159,7 @@ def main():
     with open(os.path.join(OUT, "sprites.json"), "w") as f:
         json.dump({"tile": {"halfW": HW, "halfH": HH}, "sprites": anchors}, f, separators=(",", ":"))
     shutil.copy(os.path.join(PACK, "props", "door_left.png"), os.path.join(OUT, "door_left.png"))
+    landscape_art.write_sea(OUT)
     print(f"{len(SPRITES)} sprites on {len(pages)} page(s) → {OUT}")
     preview()
 

@@ -15,7 +15,7 @@ const where = { account: env.account, region: env.region };
 const prefix = `AWSCity-${env.name}`;
 
 const data = new DataStack(app, `${prefix}-Data`, env, { env: where });
-const auth = new AuthStack(app, `${prefix}-Auth`, env, { env: where });
+const auth = new AuthStack(app, `${prefix}-Auth`, env, { env: where, authRelayUrl: data.authRelayUrl });
 // No custom domain → CloudFront; its WAF must live in us-east-1 (cross-region reference).
 const noDomain = !(env.domainName && env.hostedZoneId && env.zoneName);
 const edge = noDomain ? new EdgeStack(app, `${prefix}-Edge`, env, { env: { account: env.account, region: 'us-east-1' }, crossRegionReferences: true }) : undefined;

@@ -3,5 +3,10 @@
   "enabledPlugins": {
     "aws-core@claude-plugins-official": true,
     "aws-agents@claude-plugins-official": true
+  },
+  "permissions": {
+    "ask": [
+      "mcp__plugin_aws-core_aws-mcp__aws___run_script"
+    ]
   }
 }

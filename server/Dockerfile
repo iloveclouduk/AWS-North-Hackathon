@@ -1,7 +1,8 @@
 # AWS City server image. Build context = repo root (the server imports src/backend/contract.ts,
 # src/world/* and src/console/risk.ts from the extension):
 #   docker build -f server/Dockerfile -t aws-city-server .
-FROM --platform=$BUILDPLATFORM node:24-slim AS build
+# Base image pinned by digest (multi-arch index); Dependabot (.github/dependabot.yml) proposes updates.
+FROM --platform=$BUILDPLATFORM node:24-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS build
 WORKDIR /app
 COPY server/package.json server/package-lock.json server/
 RUN cd server && npm ci
@@ -12,7 +13,7 @@ COPY shared shared
 COPY server server
 RUN cd server && npm run build:bundle
 
-FROM node:24-slim
+FROM node:24-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20
 ENV NODE_ENV=production AWS_CITY_MODE=hosted HOST=0.0.0.0 PORT=8787 LOG_FORMAT=json
 WORKDIR /app
 COPY --from=build /app/server/dist ./dist

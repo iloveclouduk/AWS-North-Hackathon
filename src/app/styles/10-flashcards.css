@@ -1,0 +1,180 @@
+/* ── flashcards ── */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.deck-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  color: var(--muted);
+}
+.deck-progress .meter {
+  flex: 1;
+  margin: 0;
+}
+/* the card: paper with a hard shadow, flipped in 3D */
+.flash-wrap {
+  position: relative;
+  perspective: 900px;
+}
+.flash {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: var(--fs-lg);
+  transition: transform var(--dur-1);
+}
+.flash:has(.flash-hit:active) {
+  transform: translateY(2px);
+}
+/* The flip button fills its face under the text; the text lets taps through except on glossary terms. */
+.flash-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: inherit;
+  cursor: pointer;
+}
+.flash-face > :not(.flash-hit) {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.flash-face .term-wrap,
+.flash-face .tell-more > summary {
+  pointer-events: auto;
+}
+/* The full answer under the simple one: smaller, left-aligned, inside the card. */
+.flash-face .tell-more {
+  align-self: stretch;
+  text-align: left;
+  color: var(--paper-ink);
+}
+.flash-face .tell-more > summary {
+  text-align: center;
+  color: var(--paper-meta);
+}
+.flash-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.flash.back .flash-inner {
+  transform: rotateY(180deg);
+}
+.flash-face {
+  position: relative;
+  grid-area: 1 / 1;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-6) var(--s-5);
+  background: var(--paper);
+  color: var(--paper-ink);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pixel), inset 0 -4px 0 rgba(0, 0, 0, 0.06);
+  backface-visibility: hidden;
+  line-height: 1.45;
+}
+.flash-face.back-face {
+  background: var(--paper-back);
+  transform: rotateY(180deg);
+}
+.flash-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--paper-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.flash-hint {
+  font-size: var(--fs-sm);
+  color: var(--paper-hint);
+}
+.xp-float {
+  position: absolute;
+  top: var(--s-4);
+  right: var(--s-5);
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: var(--fs-pixel-lg);
+  color: var(--accent);
+  text-shadow: 0 2px 0 var(--black);
+  pointer-events: none;
+  animation: float-up 900ms var(--ease-step) forwards;
+}
+@keyframes float-up {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-28px);
+    opacity: 0;
+  }
+}
+.big-emoji {
+  font-size: 40px;
+  line-height: 1;
+}
+.grades {
+  justify-content: space-between;
+}
+.grades .btn {
+  flex: 1;
+}
+.source,
+.outputs a {
+  font-size: var(--fs-sm);
+  color: var(--info);
+}
+
+/* The building a deck grows, under the card (Flashcards.tsx GrowLine): a line and a slim meter that pulses on a reward. */
+.grow-line {
+  display: grid;
+  gap: var(--s-1);
+  margin-top: var(--s-3);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.grow-line .meter {
+  height: 6px;
+}
+.grow-line.bumped span:first-child {
+  color: var(--ink-hi);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .grow-line.bumped .meter {
+    animation: grow-pulse 600ms ease-out;
+  }
+}
+@keyframes grow-pulse {
+  0% {
+    transform: scaleY(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: scaleY(1.8);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: scaleY(1);
+    filter: brightness(1);
+  }
+}

@@ -12,54 +12,63 @@ jobs:
   extension:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run check
+      - name: Lint (rules of hooks, accessibility)
+        run: npm run lint -- --max-warnings 10
+      - name: Firefox and Safari builds (manifest + Mozilla's add-on linter)
+        run: npm run lint:firefox && npm run build:safari
       - run: npx playwright install --with-deps chromium
       - name: Smoke (city + Console Copilot flows)
         run: |
           npm run build
           xvfb-run -a node scripts/smoke.mjs
           xvfb-run -a node scripts/smoke-copilot.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with: { name: smoke-screenshots, path: .output/smoke, retention-days: 7 }
 
   server:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 24, cache: npm, cache-dependency-path: server/package-lock.json }
       - run: npm ci
+        working-directory: server
+      - run: npm audit --omit=dev --audit-level=high
         working-directory: server
       - run: npx tsc --noEmit && npm test && npm run build:bundle
         working-directory: server
       - name: Docker image builds (arm64, not pushed)
-        uses: docker/setup-buildx-action@v3
-      - uses: docker/setup-qemu-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - run: docker buildx build --platform linux/arm64 -f server/Dockerfile .
 
   infra:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 24, cache: npm, cache-dependency-path: infra/package-lock.json }
       - run: npm ci
+        working-directory: infra
+      - run: npm audit --omit=dev --audit-level=high
         working-directory: infra
       - run: npx tsc --noEmit && npm test
         working-directory: infra
       - name: cdk synth (cdk-nag AwsSolutions must pass)
         run: npx cdk synth -q -c env=staging && npx cdk synth -q -c env=prod
         working-directory: infra
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with: { python-version: '3.12' }
       - name: cfn-lint the player role players install
         # Lint it as published (infra/lib/data-stack.ts substitutes our account id).
         run: |
-          pip install cfn-lint
+          pip install cfn-lint==1.57.0 # pinned (released 2026-09-17); bump deliberately
           sed -e 's/__AWS_CITY_ACCOUNT_ID__/123456789012/g' -e 's/__AWS_CITY_TASK_ROLE__/AWSCityTaskRole-prod/g' -e 's/__AWS_CITY_PLAYER_ROLE__/AWSCityPlayerRole/g' infra/player-role/player-role.yaml > "$RUNNER_TEMP/player-role.yaml"
           cfn-lint "$RUNNER_TEMP/player-role.yaml"

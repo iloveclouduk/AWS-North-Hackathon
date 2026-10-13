@@ -54,7 +54,7 @@ document.getElementById('create-start').addEventListener('click', () => {
     <lambda-form-footer></lambda-form-footer>
   </div>`;
   customSelect(document.getElementById('rt-field'), { id: 'rt', label: 'Runtime', value: 'Python 3.13', options: [
-    { label: 'Node.js 22.x', description: 'Latest supported' }, { label: 'Node.js 20.x' },
+    { label: 'Node.js 24.x', description: 'Latest supported' }, { label: 'Node.js 22.x' },
     { label: 'Python 3.13' }, { label: 'Python 3.12' }, { label: 'Java 21' }, { label: 'Ruby 3.3' },
   ] });
   app.querySelector('lambda-form-footer').addEventListener('create', () => {

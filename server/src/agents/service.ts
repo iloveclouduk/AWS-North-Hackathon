@@ -6,6 +6,7 @@ import { type ExecutionResult, executeAction } from './executor.js';
 import { checkAction, describeAction } from './policy.js';
 import { memoryLocks } from '../store/local.js';
 import type { AccountLocks } from '../store/types.js';
+import { log } from '../log.js';
 
 export type SubmitOutcome =
   | { status: 'done'; result: ExecutionResult }
@@ -14,11 +15,11 @@ export type SubmitOutcome =
   | { status: 'invalid'; error: string };
 
 /**
- * Without an approval channel (an older client), actions that need the player's OK (terminate/delete)
- * are refused rather than run unattended. Contract v2 clients get deploy.preview → deploy.approve.
+ * Every AWS write needs the player's OK (contract v2 deploy.preview → deploy.approve). Without an approval
+ * channel, writes are refused rather than run unattended; only reads run.
  */
 export const NEEDS_APPROVAL_REASON =
-  "Demolishing needs the player's approval, and the city has no Approve button yet. Ask the player to do it in the AWS Console instead.";
+  "Changing AWS needs the player's approval, and there's no Approve button on this connection. Ask the player to do it in the AWS Console instead.";
 export const REJECTED_REASON = 'The player said no, so nothing was changed.';
 
 export interface ApprovalRequest {
@@ -45,7 +46,7 @@ export const createActionService = (deps: {
 }) => {
   const locks = deps.locks ?? memoryLocks();
   const accountKey = deps.accountKey ?? (() => deps.poller.current()?.accountId ?? 'local');
-  const serialised = <T>(fn: () => Promise<T>): Promise<T> => locks.withLock(accountKey(), fn);
+  const serialised = <T>(fn: (lease: AbortSignal) => Promise<T>): Promise<T> => locks.withLock(accountKey(), fn);
 
   const withJustCreated = async (snapshot: WorldSnapshot): Promise<WorldSnapshot> => {
     const seen = new Set(snapshot.resources.map(resourceKey));
@@ -62,18 +63,19 @@ export const createActionService = (deps: {
   };
 
   const run = (action: Action, confirmed: boolean) =>
-    serialised(async (): Promise<SubmitOutcome> => {
+    serialised(async (lease): Promise<SubmitOutcome> => {
       const snapshot = await withJustCreated(deps.poller.current() ?? (await deps.poller.refresh()));
       const decision = checkAction(action, snapshot, { confirmed });
       if (decision.verdict === 'deny') return { status: 'denied', reason: decision.reason };
       if (decision.verdict === 'confirm') return { status: 'denied', reason: NEEDS_APPROVAL_REASON };
 
-      const result = await executeAction(action, deps.clients, snapshot, deps.region);
+      const result = await executeAction(action, deps.clients, snapshot, deps.region, lease);
       await remember(action, result);
       if (result.ok && !READ_ONLY.has(action.type)) {
-        void deps.poller.refresh();
+        const refresh = () => void deps.poller.refresh().catch((err) => log.warn('refresh after write failed', { err: (err as Error).name })); // the next scheduled poll retries
+        refresh();
         // State transitions (pending → running, CREATING → ACTIVE) take a few seconds; look again soon.
-        setTimeout(() => void deps.poller.refresh(), 4_000).unref();
+        setTimeout(refresh, 4_000).unref();
       }
       return { status: result.ok ? 'done' : 'failed', result };
     });
@@ -81,14 +83,15 @@ export const createActionService = (deps: {
   return {
     /**
      * Validates untrusted input (a model's tool call) and runs it through policy.
-     * With `approve`, every write is shown to the player first; policy is checked before asking
+     * Every write is shown to the player first (no `approve` means no writes); policy is checked before asking
      * (don't ask about things that would be denied) and again inside the write lock after approval.
      */
     async submit(name: unknown, input: unknown, opts: { approve?: Approve } = {}): Promise<SubmitOutcome> {
       const parsed = parseAction(name, input);
       if (!parsed.ok) return { status: 'invalid', error: parsed.error };
       const action = parsed.action;
-      if (!opts.approve || READ_ONLY.has(action.type)) return run(action, false);
+      if (READ_ONLY.has(action.type)) return run(action, false);
+      if (!opts.approve) return { status: 'denied', reason: NEEDS_APPROVAL_REASON };
       const snapshot = await withJustCreated(deps.poller.current() ?? (await deps.poller.refresh()));
       const pre = checkAction(action, snapshot, { confirmed: true });
       if (pre.verdict === 'deny') return { status: 'denied', reason: pre.reason };

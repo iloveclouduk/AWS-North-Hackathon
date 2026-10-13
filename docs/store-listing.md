@@ -9,7 +9,7 @@
 **Description:**
 AWS City turns Amazon Web Services into a cosy pixel city. Every service is a place with an agent
 who does its job: Sally fishes objects out of S3 Lake, Sir Shieldon guards the Shield Wall, Eddie
-builds houses at the EC2 Factory.
+rents out computers at the EC2 Factory.
 
 - Browse the AWS Console and the city grows with you.
 - Ask anything: agents answer in plain words, grounded in the official AWS documentation, with links.
@@ -17,7 +17,7 @@ builds houses at the EC2 Factory.
   highlighting each button and explaining why. Risky buttons are always your click.
 - Build for real, safely: connect your own AWS account with a narrow, read-mostly role; every change
   needs your Approve; everything is small, tagged and easy to clean up.
-- Learn: 288 flashcards, architecture puzzles scored on the Well-Architected pillars, quests and
+- Learn: 300 flashcards, architecture puzzles scored on the Well-Architected pillars, quests and
   mini-games.
 
 **Single purpose:** Teaching AWS through a game that reacts to the AWS pages you visit.

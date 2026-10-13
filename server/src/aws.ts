@@ -1,5 +1,11 @@
 import { ApiGatewayV2Client } from '@aws-sdk/client-apigatewayv2';
+import { CloudTrailClient } from '@aws-sdk/client-cloudtrail';
+import { CloudWatchClient } from '@aws-sdk/client-cloudwatch';
+import { CostExplorerClient } from '@aws-sdk/client-cost-explorer';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { ResourceExplorer2Client } from '@aws-sdk/client-resource-explorer-2';
+import { ResourceGroupsTaggingAPIClient } from '@aws-sdk/client-resource-groups-tagging-api';
+import { S3ControlClient } from '@aws-sdk/client-s3-control';
 import { EC2Client } from '@aws-sdk/client-ec2';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { RDSClient } from '@aws-sdk/client-rds';
@@ -27,7 +33,7 @@ export const refreshingProfile = (profile: string): AwsCredentialIdentityProvide
 export const assumedRole = (opts: { roleArn: string; externalId: string; sub: string; region: string }): AwsCredentialIdentityProvider =>
   fromTemporaryCredentials({
     masterCredentials: fromNodeProviderChain(),
-    clientConfig: { region: opts.region },
+    clientConfig: { ...SDK_DEFAULTS, region: opts.region },
     params: {
       RoleArn: opts.roleArn,
       ExternalId: opts.externalId,
@@ -40,18 +46,56 @@ export const assumedRole = (opts: { roleArn: string; externalId: string; sub: st
 export const serviceCredentials = (config: Config): AwsCredentialIdentityProvider =>
   config.awsMode === 'profile' ? refreshingProfile(config.awsProfile) : fromNodeProviderChain();
 
+/**
+ * Every AWS SDK client gets bounded timeouts: the SDK's Node handler has none by default, and one hung
+ * call would freeze a player's poller (it coalesces with the call in flight) or hold their write lock.
+ * requestTimeout only warns unless throwOnRequestTimeout is set (@smithy/node-http-handler).
+ */
+export const SDK_DEFAULTS = {
+  maxAttempts: 3,
+  retryMode: 'adaptive',
+  requestHandler: { connectionTimeout: 3_000, requestTimeout: 10_000, throwOnRequestTimeout: true },
+} as const;
+
 export const createAwsClients = (config: Config) => clientsFor({ region: config.region, credentials: refreshingProfile(config.awsProfile) });
 
-export const clientsFor = (base: { region: string; credentials: AwsCredentialIdentityProvider }) => {
+/** Cost Explorer has one endpoint, in us-east-1, whatever the account's home Region. */
+export const COST_EXPLORER_REGION = 'us-east-1';
+
+export const clientsFor = (opts: { region: string; credentials: AwsCredentialIdentityProvider }) => {
+  const base = { ...SDK_DEFAULTS, ...opts };
+  const ec2 = new EC2Client(base);
+  /** Read-only EC2 clients for other Regions (their AZ maps), same credentials, made on first use. */
+  const ec2ByRegion = new Map<string, EC2Client>([[opts.region, ec2]]);
+  let ce: CostExplorerClient | undefined;
+  let cw: CloudWatchClient | undefined;
   return {
-    ec2: new EC2Client(base),
+    ec2,
+    ec2For(region: string): EC2Client {
+      let c = ec2ByRegion.get(region);
+      if (!c) ec2ByRegion.set(region, (c = new EC2Client({ ...base, region })));
+      return c;
+    },
+    /** Cost Explorer (the bill, only while the player has it on): $0.01 per request. */
+    costExplorer(): CostExplorerClient {
+      return (ce ??= new CostExplorerClient({ ...base, region: COST_EXPLORER_REGION }));
+    },
+    /** CloudWatch in the home Region (live traffic, only while the player has it on): GetMetricData only. */
+    cloudwatch(): CloudWatchClient {
+      return (cw ??= new CloudWatchClient(base));
+    },
     dynamodb: new DynamoDBClient(base),
     s3: new S3Client(base),
     lambda: new LambdaClient(base),
     rds: new RDSClient(base),
     apigw: new ApiGatewayV2Client(base),
     sts: new STSClient(base),
-    credentials: base.credentials,
+    // Read-only, for the city's mirror of the account and its Well-Architected checks.
+    s3control: new S3ControlClient(base),
+    cloudtrail: new CloudTrailClient(base),
+    explorer: new ResourceExplorer2Client(base),
+    tagging: new ResourceGroupsTaggingAPIClient(base),
+    credentials: opts.credentials,
   };
 };
 

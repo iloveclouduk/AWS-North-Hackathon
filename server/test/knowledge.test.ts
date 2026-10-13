@@ -52,6 +52,24 @@ describe('AWS Knowledge MCP client', () => {
     expect(failing).toHaveBeenCalledTimes(4);
   });
 
+  it('closes the dropped MCP client when the breaker opens, then reconnects', async () => {
+    let t = 0;
+    const clients: { callTool: ReturnType<typeof vi.fn>; close: ReturnType<typeof vi.fn> }[] = [];
+    const connect = vi.fn(async () => {
+      const c = { callTool: vi.fn(async () => Promise.reject(new Error('down'))), close: vi.fn(async () => Promise.reject(new Error('already closed'))) };
+      clients.push(c);
+      return c as never;
+    });
+    const k = createKnowledge({ connect, now: () => t });
+    for (let i = 0; i < 3; i++) expect(await k.search(`q${i}`)).toEqual([]);
+    await new Promise((r) => setImmediate(r));
+    expect(connect).toHaveBeenCalledTimes(1);
+    expect(clients[0]!.close).toHaveBeenCalledTimes(1); // closed, and its error swallowed
+    t += 61_000;
+    await k.search('again');
+    expect(connect).toHaveBeenCalledTimes(2); // a fresh client after the breaker
+  });
+
   it('agent turns carry the docs as data and report their sources', async () => {
     const { llm, calls } = fakeLlm([message([text('Keep Block Public Access on.')], 'end_turn')]);
     const knowledge = { search: vi.fn(async () => [{ title: 'Block Public Access', url: 'https://docs.aws.amazon.com/bpa', text: 'All new buckets block public access.' }]) };
@@ -88,5 +106,28 @@ describe('Well-Architected review', () => {
   it('is a read-only action any agent may call', () => {
     expect(parseAction('review_architecture', {})).toMatchObject({ ok: true });
     expect(parseAction('review_architecture', { region: 'x' })).toMatchObject({ ok: false });
+  });
+});
+
+describe('agents stay grounded, never unrestricted', () => {
+  it('no generic AWS tool anywhere in the server: no use_aws, no aws___run_script, no strands-agents/tools', async () => {
+    const { readdirSync, readFileSync, statSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const root = new URL('../src/', import.meta.url).pathname;
+    const files: string[] = [];
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const p = join(dir, name);
+        if (statSync(p).isDirectory()) walk(p);
+        else if (p.endsWith('.ts')) files.push(p);
+      }
+    };
+    walk(root);
+    for (const f of files) {
+      const src = readFileSync(f, 'utf8');
+      expect(src, f).not.toMatch(/use_aws|@strands-agents\/tools|vended-tools\/(shell|bash|http-request)/);
+      // The managed AWS MCP Server's run_script is named only to be refused.
+      if (!f.endsWith('knowledge/mcp.ts')) expect(src, f).not.toContain('aws___run_script');
+    }
   });
 });

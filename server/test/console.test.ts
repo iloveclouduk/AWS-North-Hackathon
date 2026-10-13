@@ -25,6 +25,9 @@ describe('Console Copilot (contract v2.1)', () => {
     const first = events.find((e) => e.type === 'console.step');
     expect(first).toMatchObject({ taskId: 'c1', index: 0, agentId: 's3', action: 'click', target: { id: 'e1' }, risk: 'safe', why: 'Buckets hold objects' });
     expect(JSON.stringify(calls[0].messages)).toContain('e1 | button | Create bucket');
+    // Bedrock rejects a forced tool_choice while thinking is on: ask, don't force.
+    expect(calls[0].tool_choice).toEqual({ type: 'auto' });
+    expect(calls[0].output_config).toEqual({ effort: 'low' });
     await cp.observe({ taskId: 'c1', index: 0, ok: true, snapshot }, (e) => events.push(e));
     expect(events.filter((e) => e.type === 'console.step').at(-1)).toMatchObject({ action: 'done' });
     expect(events.at(-1)).toMatchObject({ type: 'task.done', taskId: 'c1', ok: true });

@@ -1,0 +1,207 @@
+/* ── deploy ── */
+.deploy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.deploy .card + .card {
+  margin-top: 0;
+}
+.deploy h4 {
+  margin: var(--s-3) 0 0;
+}
+.tpl {
+  display: flex;
+  gap: var(--s-4);
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--s-3) var(--s-4);
+}
+.changes {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--s-3) 0;
+  font-size: var(--fs-sm);
+}
+.changes td {
+  padding: var(--s-1) var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+.chg.Add {
+  color: var(--good);
+  font-weight: 700;
+}
+.chg.Remove {
+  color: var(--bad);
+}
+.stack.creating,
+.stack.deleting {
+  border-color: var(--warn);
+}
+.stack.complete {
+  border-color: var(--good);
+}
+.stack.failed {
+  border-color: var(--bad);
+  background: linear-gradient(var(--bad-soft), var(--bad-soft)), var(--panel-3);
+}
+.stack.failed .stack-msg {
+  color: var(--bad-ink);
+}
+.stack.rejected,
+.stack.deleted {
+  border-style: dashed;
+}
+.outputs {
+  margin: var(--s-2) 0;
+  padding-left: var(--s-6);
+  font-size: var(--fs-sm);
+}
+/* account linking: three numbered pixel steps */
+.link-steps {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.link-step {
+  display: flex;
+  gap: var(--s-4);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+}
+.link-step.now {
+  background: var(--sunken);
+}
+.link-step.todo {
+  opacity: 0.55;
+}
+.step-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: var(--fs-pixel);
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+}
+.link-step.now .step-n {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.link-step.done .step-n {
+  background: var(--good);
+  color: var(--black);
+}
+.step-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+.step-body .prompt-row {
+  align-self: stretch;
+}
+.why {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  line-height: 1.5;
+}
+.why summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+.linked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+}
+.linked-badge {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: var(--fs-pixel);
+  padding: var(--s-2) var(--s-3);
+  background: var(--good);
+  color: var(--black);
+  border: 1px solid var(--line-strong);
+}
+/* building…: a striped bar that marches */
+.busy-bar {
+  height: 6px;
+  margin: var(--s-3) 0;
+  border: 1px solid var(--black);
+  background: repeating-linear-gradient(-45deg, var(--warn) 0 6px, var(--accent-soft) 6px 12px);
+  background-size: 17px 17px;
+  animation: march 0.6s steps(4) infinite;
+}
+@keyframes march {
+  to {
+    background-position: 17px 0;
+  }
+}
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  padding: var(--s-4);
+  border: 2px solid var(--bad);
+  border-radius: var(--r-md);
+  background: var(--bad-soft);
+  animation: enter var(--dur-2) var(--ease-step);
+}
+.field-hint {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  margin: var(--s-3) 0 var(--s-2);
+  display: block;
+}
+.field-error {
+  font-size: var(--fs-sm);
+  color: var(--bad-ink);
+  background: var(--bad-soft);
+  border: 1px solid var(--bad-line);
+  border-radius: var(--r-md);
+  padding: var(--s-2) var(--s-3);
+  margin: var(--s-2) 0;
+}
+
+/* Build for real, step by step (DeployPanel.tsx). */
+.build-path {
+  display: flex;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-4);
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.build-path li {
+  flex: 1;
+  padding: var(--s-2);
+  border-radius: var(--r-md);
+  background: var(--panel-3);
+  text-align: center;
+}
+.build-path li.done {
+  color: var(--ink-soft);
+}
+.build-path li.now {
+  background: var(--accent-soft);
+  color: var(--ink-hi);
+  font-weight: 800;
+}

@@ -369,7 +369,7 @@ def lm_cloudwatch(fw, fh, tier, col, key):
 # ── AI Heights ────────────────────────────────────────────────────────────────
 
 def lm_bedrock(fw, fh, tier, col, key):
-    """Bedrock Oracle: a mesa of rock strata with glowing seams (one layer per tier) crowned by an oracle shrine."""
+    """Bedrock Mesa: a mesa of rock strata with glowing seams (one layer per tier) crowned by a lantern shrine."""
     c = Canvas(fw, fh, 130)
     strata = [(150, 120, 96), (120, 110, 104), (170, 140, 108), (104, 96, 110)]
     z = 0

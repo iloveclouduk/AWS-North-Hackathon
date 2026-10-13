@@ -1,0 +1,163 @@
+{
+  "asOf": "2026-10-12",
+  "note": "Which one should I pick? Side-by-side cards for AWS services people mix up (src/ui/CompareCard.tsx). Facts from the AWS decision guides and each service's own docs (`source`); the wording is ours.",
+  "comparisons": [
+    {
+      "id": "queue-or-events",
+      "title": "SQS or EventBridge?",
+      "simple": "A queue holds work until a worker takes it. An event bus sends each event to every rule that wants it.",
+      "options": [
+        { "serviceId": "sqs", "pick": "Pick it when a worker should take jobs at its own pace, and no job may get lost." },
+        { "serviceId": "eventbridge", "pick": "Pick it when many services react to the same event, chosen by rules on what's in it." }
+      ],
+      "rows": [
+        { "label": "How it delivers", "values": { "sqs": "Workers pull (poll) messages", "eventbridge": "Rules push events to targets" } },
+        { "label": "Keeps messages", "values": { "sqs": "Until processed, up to 14 days", "eventbridge": "No: retries delivery for up to 24 hours" } },
+        { "label": "Order", "values": { "sqs": "FIFO queues keep strict order", "eventbridge": "No order guarantee" } },
+        { "label": "Filtering", "values": { "sqs": "None: one queue, its workers", "eventbridge": "Rich pattern matching on the content" } }
+      ],
+      "source": "https://docs.aws.amazon.com/decision-guides/latest/sns-or-sqs-or-eventbridge/sns-or-sqs-or-eventbridge.html"
+    },
+    {
+      "id": "containers",
+      "title": "ECS, EKS or Fargate?",
+      "simple": "ECS and EKS decide where your containers run. Fargate is the engine that runs them, with no servers to manage.",
+      "options": [
+        { "serviceId": "ecs", "pick": "Pick it for the simplest AWS-native way to run containers, with tight IAM and VPC integration." },
+        { "serviceId": "eks", "pick": "Pick it when your team already uses Kubernetes, or the app must stay portable to it." },
+        { "serviceId": "fargate", "pick": "Pick it under ECS or EKS when you don't want to patch or scale any servers." }
+      ],
+      "rows": [
+        { "label": "What it is", "values": { "ecs": "AWS's container orchestrator", "eks": "Managed Kubernetes", "fargate": "Serverless compute for containers" } },
+        { "label": "Runs on", "values": { "ecs": "Fargate or EC2 you choose", "eks": "Fargate or EC2 you choose", "fargate": "AWS-managed capacity" } },
+        { "label": "You learn", "values": { "ecs": "Tasks and services", "eks": "Kubernetes (pods, deployments)", "fargate": "Just the task's CPU and memory" } }
+      ],
+      "source": "https://docs.aws.amazon.com/decision-guides/latest/containers-on-aws-how-to-choose/choosing-aws-container-service.html"
+    },
+    {
+      "id": "storage",
+      "title": "S3, EBS or EFS?",
+      "simple": "EBS is one server's own disk. EFS is a shared folder for many servers. S3 is endless storage you reach by web calls.",
+      "options": [
+        { "serviceId": "ebs", "pick": "Pick it for a database or boot disk on one EC2 instance that needs fast, steady disk speed." },
+        { "serviceId": "efs", "pick": "Pick it when many servers or containers must read and write the same files at once." },
+        { "serviceId": "s3", "pick": "Pick it for files, backups, websites and data lakes: any amount, read over the internet." }
+      ],
+      "rows": [
+        { "label": "Kind of storage", "values": { "ebs": "Block (a disk)", "efs": "File system (NFS)", "s3": "Objects in buckets" } },
+        { "label": "Used by", "values": { "ebs": "One instance, in one AZ", "efs": "Many instances, across AZs", "s3": "Anything with an API call" } },
+        { "label": "Grows", "values": { "ebs": "You set the size", "efs": "Automatically", "s3": "Automatically, no limit" } }
+      ],
+      "source": "https://docs.aws.amazon.com/decision-guides/latest/storage-on-aws-how-to-choose/choosing-aws-storage-service.html"
+    },
+    {
+      "id": "databases",
+      "title": "RDS, Aurora or DynamoDB?",
+      "simple": "RDS and Aurora are tables you query with SQL. DynamoDB is a key-value store that stays fast at any size.",
+      "options": [
+        { "serviceId": "rds", "pick": "Pick it to run a familiar engine (MySQL, PostgreSQL, SQL Server, Oracle…) without managing it." },
+        { "serviceId": "aurora", "pick": "Pick it for MySQL or PostgreSQL that needs more speed, read replicas and fast failover." },
+        { "serviceId": "dynamodb", "pick": "Pick it when you look items up by key, need huge scale, and want nothing to run." }
+      ],
+      "rows": [
+        { "label": "Data model", "values": { "rds": "Relational (SQL)", "aurora": "Relational (MySQL or PostgreSQL)", "dynamodb": "Key-value and document" } },
+        { "label": "Copies", "values": { "rds": "Optional standby in another AZ", "aurora": "6 copies across 3 AZs", "dynamodb": "Spread across 3 AZs" } },
+        { "label": "Servers", "values": { "rds": "You pick an instance size", "aurora": "Instances, or Aurora Serverless", "dynamodb": "None: fully serverless" } }
+      ],
+      "source": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html"
+    },
+    {
+      "id": "compute",
+      "title": "EC2, Lambda or Fargate?",
+      "simple": "EC2 is a whole server you run. Lambda runs a function for each event. Fargate runs containers with no servers.",
+      "options": [
+        { "serviceId": "ec2", "pick": "Pick it when you need full control of the machine, or software that must run all the time." },
+        { "serviceId": "lambda", "pick": "Pick it for short, event-driven code (up to 15 minutes), paying only while it runs." },
+        { "serviceId": "fargate", "pick": "Pick it for long-running containers when you don't want to manage the servers under them." }
+      ],
+      "rows": [
+        { "label": "You manage", "values": { "ec2": "The OS, patches and scaling", "lambda": "Only your code", "fargate": "Your container image" } },
+        { "label": "Longest run", "values": { "ec2": "As long as you like", "lambda": "15 minutes per call", "fargate": "As long as you like" } },
+        { "label": "You pay for", "values": { "ec2": "Every second it's on", "lambda": "Requests and run time", "fargate": "The task's CPU and memory while it runs" } }
+      ],
+      "source": "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html"
+    },
+    {
+      "id": "analytics",
+      "title": "Athena, Redshift or Glue?",
+      "simple": "Glue gets data ready. Athena asks questions of files in S3. Redshift is a warehouse built for big repeated reports.",
+      "options": [
+        { "serviceId": "athena", "pick": "Pick it to query files in S3 with SQL right away, paying per data scanned." },
+        { "serviceId": "redshift", "pick": "Pick it for dashboards and reports that run all day over very large, organised data." },
+        { "serviceId": "glue", "pick": "Pick it to catalogue, clean and move data (ETL) so the others can query it." }
+      ],
+      "rows": [
+        { "label": "What it does", "values": { "athena": "Queries data where it lies", "redshift": "Stores and queries a warehouse", "glue": "Catalogues and transforms data" } },
+        { "label": "Where data lives", "values": { "athena": "Your S3 buckets", "redshift": "In Redshift (and S3 with Spectrum)", "glue": "Anywhere: it moves it" } },
+        { "label": "You pay for", "values": { "athena": "Data each query scans", "redshift": "Nodes, or Serverless use", "glue": "Job and crawler run time" } }
+      ],
+      "source": "https://docs.aws.amazon.com/athena/latest/ug/what-is.html"
+    },
+    {
+      "id": "who-signs-in",
+      "title": "IAM or Cognito?",
+      "simple": "IAM decides what your team and your code may do in AWS. Cognito signs in the users of your own app.",
+      "options": [
+        { "serviceId": "iam", "pick": "Pick it for permissions inside AWS: people, roles and services calling AWS APIs." },
+        { "serviceId": "cognito", "pick": "Pick it for your app's own sign-up and sign-in, including social and enterprise logins." }
+      ],
+      "rows": [
+        { "label": "Who it's for", "values": { "iam": "Your team, apps and AWS services", "cognito": "Your app's customers" } },
+        { "label": "Gives you", "values": { "iam": "Users, roles and policies", "cognito": "User pools, sign-in pages, tokens" } },
+        { "label": "Scale", "values": { "iam": "Your organisation", "cognito": "Millions of app users" } }
+      ],
+      "source": "https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html"
+    },
+    {
+      "id": "threats",
+      "title": "Shield or GuardDuty?",
+      "simple": "Shield blocks floods of traffic meant to knock you offline. GuardDuty watches your account for signs of an attack.",
+      "options": [
+        { "serviceId": "shield", "pick": "Pick it (Standard is on for free) to protect your app from DDoS floods." },
+        { "serviceId": "guardduty", "pick": "Pick it to spot stolen keys, crypto mining or odd access from your logs." }
+      ],
+      "rows": [
+        { "label": "Protects against", "values": { "shield": "DDoS attacks on your endpoints", "guardduty": "Threats inside your account" } },
+        { "label": "How", "values": { "shield": "Absorbs and filters attack traffic", "guardduty": "Analyses logs (CloudTrail, VPC Flow Logs, DNS)" } },
+        { "label": "You do", "values": { "shield": "Nothing for Standard", "guardduty": "Turn it on, act on findings" } }
+      ],
+      "source": "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html"
+    },
+    {
+      "id": "generative-ai",
+      "title": "Bedrock, SageMaker AI or Amazon Q?",
+      "simple": "Bedrock lends you ready AI models to build with. SageMaker AI builds your own. Q is an assistant ready to use.",
+      "options": [
+        { "serviceId": "bedrock", "pick": "Pick it to build an app on top of foundation models through one API, with no servers." },
+        { "serviceId": "sagemaker", "pick": "Pick it to train, tune and host your own machine learning models." },
+        { "serviceId": "q", "pick": "Pick it when you want a ready-made AI assistant for AWS work, not to build one." }
+      ],
+      "rows": [
+        { "label": "You get", "values": { "bedrock": "Foundation models by API", "sagemaker": "Tools to build any model", "q": "A finished assistant" } },
+        { "label": "You bring", "values": { "bedrock": "Prompts and your data (RAG)", "sagemaker": "Data, code and training jobs", "q": "Questions" } },
+        { "label": "Skill needed", "values": { "bedrock": "App building", "sagemaker": "Machine learning", "q": "None" } }
+      ],
+      "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html"
+    },
+    {
+      "id": "cache-or-database",
+      "title": "ElastiCache or DynamoDB?",
+      "simple": "ElastiCache keeps hot data in memory for speed. DynamoDB is the durable database that data comes from.",
+      "options": [
+        { "serviceId": "elasticache", "pick": "Pick it in front of a database to answer repeated reads in microseconds." },
+        { "serviceId": "dynamodb", "pick": "Pick it as the system of record: data that must never be lost." }
+      ],
+      "rows": [
+        { "label": "Kept in", "values": { "elasticache": "Memory (Valkey, Redis OSS or Memcached)", "dynamodb": "Durable storage across 3 AZs" } },
+        { "label": "Speed", "values": { "elasticache": "Microseconds", "dynamodb": "Single-digit milliseconds" } },
+        { "label": "Role", "values": { "elasticache": "A fast copy", "dynamodb": "The real data" } }
+      ],
+      "source": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html"
+    }
+  ]
+}

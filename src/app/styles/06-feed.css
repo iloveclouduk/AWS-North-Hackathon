@@ -1,0 +1,204 @@
+/* ── portraits: agent heads cut from their sprite sheets ── */
+.portrait {
+  flex: none;
+  display: inline-block;
+  background-color: color-mix(in srgb, var(--district, var(--accent)) 35%, var(--panel-3));
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--district, var(--accent)) 70%, var(--black));
+}
+.portrait-gap {
+  flex: none;
+  width: 24px;
+}
+
+/* ── feed ── */
+.feed .lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.line {
+  display: flex;
+  gap: var(--s-4);
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  padding: var(--s-3) var(--s-3);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: none;
+  line-height: 1.4;
+  font-size: var(--fs-md);
+  color: var(--ink);
+  animation: enter var(--dur-2) var(--ease-step);
+}
+.feed li.cont .line,
+.feed li.line.cont {
+  padding-top: 0;
+}
+button.line:hover {
+  background: var(--sunken);
+  border-color: var(--line);
+}
+.line-body {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.line .who {
+  color: color-mix(in srgb, var(--district, var(--accent)) 55%, var(--ink-hi));
+}
+.line .to {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+/* the player's own words: a bubble on the right */
+.line.user {
+  justify-content: flex-end;
+  margin: var(--s-3) 0;
+}
+.line.user .line-body {
+  flex: none;
+  max-width: 85%;
+  background: var(--quote);
+  color: var(--quote-ink);
+  font-weight: 700;
+  padding: var(--s-3) var(--s-5);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg);
+  box-shadow: var(--shadow-pixel-sm);
+}
+/* city news: small, centred, between rules */
+.line.sys {
+  justify-content: center;
+  text-align: center;
+  color: var(--good-ink);
+  font-size: var(--fs-sm);
+  padding: var(--s-2) var(--s-4);
+}
+.line.sys .line-body {
+  flex: none;
+  max-width: 92%;
+}
+.line.step {
+  color: var(--highlight);
+}
+.line.state {
+  padding-top: var(--s-1);
+  padding-bottom: var(--s-1);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+code.api {
+  display: inline-block;
+  padding: 0 var(--s-2);
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+.task {
+  margin-bottom: var(--s-4);
+}
+.task.routing {
+  border-style: dashed;
+}
+.task.running {
+  border-color: var(--warn);
+}
+.task.done {
+  border-color: var(--good);
+}
+.task.failed {
+  border-color: var(--bad);
+  background: linear-gradient(var(--bad-soft), var(--bad-soft)), var(--panel-3);
+}
+.task-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.task-who {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.task-state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: var(--fs-pixel);
+  color: var(--warn);
+}
+.task-state.done {
+  color: var(--good);
+}
+.task-state.failed {
+  color: var(--bad);
+}
+.task-prompt {
+  color: var(--quote);
+  margin: var(--s-4) 0 var(--s-3);
+  font-style: italic;
+}
+.task .segs i {
+  max-width: none;
+}
+.task.folded .task-prompt {
+  margin-bottom: 0;
+}
+.task-head .btn {
+  margin-left: auto;
+}
+.calls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-3) 0 var(--s-4);
+}
+.calls-label {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--muted);
+  margin-right: var(--s-2);
+}
+.segs i.fail {
+  background: var(--bad);
+}
+.steps {
+  margin: var(--s-3) 0 0;
+  padding-left: 0;
+  list-style: none;
+}
+.steps li {
+  padding: var(--s-1) 0;
+  color: var(--muted);
+}
+.steps li.running {
+  color: var(--highlight);
+  font-weight: 700;
+}
+.steps li.done {
+  color: var(--good-ink);
+}
+.steps li.failed {
+  color: var(--bad-ink);
+}
+.steps .ico {
+  display: inline-block;
+  width: 14px;
+  font-weight: 900;
+}
+.steps .btn.tiny {
+  margin-left: var(--s-3);
+}
+.task-result {
+  margin-top: var(--s-3);
+  color: var(--good-ink);
+}

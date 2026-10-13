@@ -1,0 +1,167 @@
+{
+  "asOf": "2026-10-10",
+  "note": "Findings the citizens raise. The checks are code (server/src/agents/wellarchitected.ts); this file holds what players read. `{name}` is the resource's name. A rule with `fix` can be fixed with the player's approval (server/src/agents/fixes.ts). Fixes only tighten things, so `rollback` tells the player how to undo one in the console. The others are explain-only.",
+  "rules": [
+    {
+      "id": "s3-public-access",
+      "pillar": "security",
+      "severity": "high",
+      "serviceId": "s3",
+      "title": "Bucket could be shared with anyone (Block Public Access)",
+      "text": "Block Public Access isn't fully on for {name} or your account, so a policy or ACL could share its objects with anyone.",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+      "fix": {
+        "fixId": "s3_block_public_access",
+        "title": "Turn on Block Public Access",
+        "preview": "Turns on all four Block Public Access settings for {name}. Anything that relies on public access to this bucket, like a public website, stops working.",
+        "rollback": "To undo it, change Block public access on the bucket's Permissions tab in the S3 console."
+      },
+      "why": "If the bucket is shared by mistake, anyone on the internet could download what's in it."
+    },
+    {
+      "id": "sg-world-admin",
+      "pillar": "security",
+      "severity": "high",
+      "serviceId": "vpc",
+      "title": "Anyone online can try to log in to a server (SSH or RDP)",
+      "text": "Security group {name} lets anyone on the internet try to log in over SSH (22) or RDP (3389).",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html",
+      "fix": {
+        "fixId": "sg_revoke_world_admin",
+        "title": "Close the open login door (the SSH/RDP rule)",
+        "preview": "Removes the rules in {name} that open SSH (22) or RDP (3389) to anyone. It doesn't touch a rule that opens all traffic or a wide port range. Change that one yourself. To log in, use Session Manager, an EC2 Instance Connect Endpoint, or a rule for your own IP.",
+        "rollback": "To undo it, add the inbound rule back on the security group in the EC2 console. This time, allow only your own IP."
+      },
+      "why": "SSH and RDP are how people log in to a server remotely. Bots scan the whole internet for these ports and keep guessing passwords."
+    },
+    {
+      "id": "ec2-imdsv1",
+      "pillar": "security",
+      "severity": "medium",
+      "serviceId": "ec2",
+      "title": "Server's AWS keys are easier to steal (IMDSv1 is on)",
+      "text": "{name} still answers the older IMDSv1 metadata requests. IMDSv2 needs a session token, which blocks many credential-theft tricks.",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-IMDS-existing-instances.html",
+      "fix": {
+        "fixId": "ec2_require_imdsv2",
+        "title": "Use the safer way to hand out keys (require IMDSv2)",
+        "preview": "Sets {name} to accept only IMDSv2. Software that still makes IMDSv1 calls stops getting its credentials. The MetadataNoToken metric shows those calls. If the hop limit is 1, containers on the instance can lose their credentials too.",
+        "rollback": "To undo it, set IMDSv2 back to optional under the instance's Actions → Instance settings → Modify instance metadata options."
+      },
+      "why": "A server with an IAM role can ask a local address (the instance metadata service) for its temporary AWS keys. With the old version on, a bug in your app can trick the server into handing those keys to an attacker."
+    },
+    {
+      "id": "ebs-default-encryption",
+      "pillar": "security",
+      "severity": "medium",
+      "serviceId": "ebs",
+      "title": "New disks aren't locked by default (EBS encryption)",
+      "text": "Encryption by default is off in this Region, so new EBS volumes can be created unencrypted.",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/encryption-by-default.html",
+      "fix": {
+        "fixId": "ebs_default_encryption",
+        "title": "Lock new disks by default (EBS encryption)",
+        "preview": "Turns on EBS encryption by default for this Region in your account. New volumes and snapshot copies are encrypted from now on. Existing volumes don't change.",
+        "rollback": "To undo it, open Settings in the EC2 console, choose the Data protection and security tab, then choose Manage under EBS encryption and turn it off."
+      },
+      "why": "EBS volumes are the disks your servers use. Encrypting them protects the data if a disk or snapshot is ever shared or copied by mistake."
+    },
+    {
+      "id": "dynamodb-no-pitr",
+      "pillar": "reliability",
+      "severity": "medium",
+      "serviceId": "dynamodb",
+      "title": "Table can't be rewound after a mistake (point-in-time recovery)",
+      "text": "{name} can't be restored to an earlier moment if data is deleted or overwritten by mistake.",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Point-in-time-recovery.html",
+      "fix": {
+        "fixId": "dynamodb_enable_pitr",
+        "title": "Turn on backups (point-in-time recovery)",
+        "preview": "Turns on continuous backups for {name}, so you can restore it to any second in the recovery period (35 days by default). A restore always creates a new table.",
+        "rollback": "To undo it, turn off point-in-time recovery on the table's Backups tab in the DynamoDB console.",
+        "costNote": "Point-in-time recovery is billed monthly by the size of the table, including its local secondary indexes."
+      },
+      "why": "One wrong delete or a buggy script could wipe the data. Without point-in-time recovery or a backup, there's no way to get it back."
+    },
+    {
+      "id": "lambda-old-runtime",
+      "pillar": "operational",
+      "severity": "medium",
+      "serviceId": "lambda",
+      "title": "Function on an old language version (runtime)",
+      "text": "{name} runs on a deprecated runtime, so AWS may no longer patch it. Update the code and move it to a supported runtime.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html",
+      "why": "The runtime is the language version your function runs on, like Node.js 18. Old ones stop getting security fixes."
+    },
+    {
+      "id": "rds-public",
+      "pillar": "security",
+      "severity": "high",
+      "serviceId": "rds",
+      "title": "Database has a public address",
+      "text": "{name} has an address anyone on the internet can look up. Public access is turned on, so its endpoint resolves to a public IP and its security group is the main guard. Databases usually belong in private subnets, reached only by your app.",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html",
+      "why": "A database with a public address is one security-group mistake away from being reachable by anyone."
+    },
+    {
+      "id": "rds-single-az",
+      "pillar": "reliability",
+      "severity": "low",
+      "serviceId": "rds",
+      "title": "Database has no spare in another Availability Zone",
+      "text": "{name} isn't Multi-AZ, so a problem in its Availability Zone takes it offline.",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html",
+      "why": "An Availability Zone is an isolated group of data centres in a Region. If it has a problem, a single-AZ database goes down with it."
+    },
+    {
+      "id": "no-cloudtrail",
+      "pillar": "operational",
+      "severity": "medium",
+      "serviceId": "cloudwatch",
+      "title": "Nothing keeps a long record of who changed what (CloudTrail)",
+      "text": "Nobody is keeping a long-term record of changes in your account. No CloudTrail trail is logging, and no CloudTrail Lake event data store keeps events. Event history keeps only 90 days of management events per Region.",
+      "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-create-and-update-a-trail.html",
+      "why": "CloudTrail is the account's logbook of who changed what. Without a trail, older entries disappear after 90 days."
+    },
+    {
+      "id": "ec2-one-az",
+      "pillar": "reliability",
+      "severity": "low",
+      "serviceId": "ec2",
+      "title": "All servers sit in one Availability Zone",
+      "text": "All your running instances are in one Availability Zone, so one AZ problem would stop them all.",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html",
+      "why": "An Availability Zone is an isolated group of data centres in a Region. If it has a problem, everything in it stops at once."
+    },
+    {
+      "id": "ebs-unattached",
+      "pillar": "cost",
+      "severity": "low",
+      "serviceId": "ebs",
+      "title": "Disk you're paying for but not using",
+      "text": "EBS volume {name} isn't attached to any server, but you still pay for its storage every month.",
+      "why": "EBS volumes are billed for the storage you provision, whether a server uses them or not. A forgotten disk is money spent on nothing.",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-deleting-volume.html"
+    },
+    {
+      "id": "ec2-previous-generation",
+      "pillar": "performance",
+      "severity": "low",
+      "serviceId": "ec2",
+      "title": "Server runs on older hardware (previous-generation instance type)",
+      "text": "{name} uses a previous-generation instance type. Newer types usually do the same work faster, often for less.",
+      "why": "An instance type is the size and kind of computer you rent. AWS keeps older types running, but newer ones get the better chips.",
+      "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html#previous-gen-instances"
+    },
+    {
+      "id": "ec2-graviton-candidate",
+      "pillar": "sustainability",
+      "severity": "low",
+      "serviceId": "ec2",
+      "title": "Server could use less energy (Graviton)",
+      "text": "{name} runs on an x86 type that has a Graviton (Arm) equivalent. Graviton uses less energy for the same work, if your software runs on Arm.",
+      "why": "Graviton is AWS's own Arm processor. Moving suitable workloads to it cuts energy use, and often cost.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/sustainability-pillar/sus_sus_hardware_a3.html"
+    }
+  ]
+}

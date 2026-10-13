@@ -7,7 +7,7 @@ import type { Llm } from './llm.js';
 import { agentSystemPrompt } from './personas.js';
 import type { ActionService, Approve, SubmitOutcome } from './service.js';
 
-const MAX_TOOL_CALLS_PER_TURN = 5;
+export const MAX_TOOL_CALLS_PER_TURN = 5;
 const MAX_HISTORY_MESSAGES = 40;
 
 export interface ToolCallReport {
@@ -22,6 +22,8 @@ export interface TurnResult {
   reply: string;
   toolCalls: ToolCallReport[];
   refused: boolean;
+  /** The turn stopped at its step or token budget (the reply is a stand-in). */
+  limited?: boolean;
   /** AWS documentation pages the turn was grounded in. */
   sources?: DocSource[];
 }
@@ -34,11 +36,17 @@ export interface TurnHooks {
   onToolEnd?(call: ToolCallReport): void;
   /** Ask the player before any write (contract v2). Omitted = legacy behaviour. */
   approve?: Approve;
+  /** Aborted when the player's socket closes: no further model or tool calls for this turn. */
+  signal?: AbortSignal;
 }
 
-/** A compact, model-friendly view of the city (full meta is available through describe_resource). */
+/**
+ * A compact, model-friendly view of the city (full meta is available through describe_resource).
+ * Names and tags come from the AWS account (anyone with access can set them): < and > are JSON-escaped so a
+ * name like "</city_snapshot>…" can't close the data wrapper.
+ */
 export const snapshotForModel = (s: WorldSnapshot) =>
-  JSON.stringify({
+  escapeTags(JSON.stringify({
     region: s.region,
     credentials: s.credentials,
     services: s.services,
@@ -50,9 +58,12 @@ export const snapshotForModel = (s: WorldSnapshot) =>
       builtByGame: r.managedByGame,
       ...(r.kind === 'instance' ? { type: r.meta.instanceType } : {}),
     })),
-  });
+  }));
 
-const outcomeText = (o: SubmitOutcome): string => {
+/** Valid JSON, but no tag can be formed: \u003c / \u003e instead of < / >. */
+export const escapeTags = (json: string) => json.replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+
+export const outcomeText = (o: SubmitOutcome): string => {
   switch (o.status) {
     case 'done':
       return JSON.stringify({ status: 'done', message: o.result.message, ...(o.result.data ? { data: o.result.data } : {}) });
@@ -65,7 +76,7 @@ const outcomeText = (o: SubmitOutcome): string => {
   }
 };
 
-const outcomeMessage = (o: SubmitOutcome) =>
+export const outcomeMessage = (o: SubmitOutcome) =>
   o.status === 'done' || o.status === 'failed' ? o.result.message : o.status === 'denied' ? o.reason : o.error;
 
 /** Answers any tool_use in a trailing assistant message that never got results (e.g. cut off at max_tokens). */
@@ -81,7 +92,7 @@ export const closeDangling = (messages: Anthropic.MessageParam[]) => {
 };
 
 /** Agent layer: Claude decides, the ActionService parses/polices/executes, the result goes back to Claude. */
-export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snapshot: () => Promise<WorldSnapshot>; knowledge?: Knowledge }) => {
+export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snapshot: () => Promise<WorldSnapshot>; knowledge?: Knowledge }): AgentRunner => {
   const histories = new Map<string, Anthropic.MessageParam[]>();
   // One turn at a time per agent (they share a conversation); later requests wait their turn.
   const queues = new Map<string, Promise<unknown>>();
@@ -111,12 +122,15 @@ export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snap
 
     try {
       for (let step = 0; step <= MAX_TOOL_CALLS_PER_TURN; step++) {
+        if (hooks.signal?.aborted) break;
         const outOfBudget = toolCalls.length >= MAX_TOOL_CALLS_PER_TURN;
         hooks.onModelCall?.('start');
         let response: Anthropic.Message;
         try {
           response = await deps.llm.create({
             max_tokens: 16000,
+            // Real AWS work: keep the depth set explicitly (Claude Opus 5.5 defaults to medium, Opus 5 to high).
+            output_config: { effort: 'high' },
             // Prompt caching: the persona + tools are identical across a player's turns (cheaper, faster).
             system: [{ type: 'text', text: agentSystemPrompt(agentId), cache_control: { type: 'ephemeral' } }],
             tools,
@@ -148,6 +162,10 @@ export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snap
 
         const results: Anthropic.ToolResultBlockParam[] = [];
         for (const use of uses) {
+          if (hooks.signal?.aborted) {
+            results.push({ type: 'tool_result', tool_use_id: use.id, is_error: true, content: 'Not executed: the player left.' });
+            continue;
+          }
           if (toolCalls.length >= MAX_TOOL_CALLS_PER_TURN) {
             results.push({ type: 'tool_result', tool_use_id: use.id, is_error: true, content: 'Tool budget for this turn is used up. Summarise for the player instead.' });
             continue;
@@ -183,4 +201,7 @@ export const createAgentRunner = (deps: { llm: Llm; actions: ActionService; snap
   return { turn, reset: (agentId: string) => histories.delete(agentId) };
 };
 
-export type AgentRunner = ReturnType<typeof createAgentRunner>;
+export interface AgentRunner {
+  turn(agentId: string, playerText: string, hooks?: TurnHooks): Promise<TurnResult>;
+  reset(agentId: string): unknown;
+}

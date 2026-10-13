@@ -1,0 +1,460 @@
+{
+  "asOf": "2026-10-11",
+  "version": 1,
+  "terms": [
+    {
+      "term": "Availability Zone",
+      "aliases": [
+        "AZ"
+      ],
+      "short": "A separate location inside a Region, like us-east-2a. Each Region has at least three, so apps can survive one failing.",
+      "url": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-availability-zones.html"
+    },
+    {
+      "term": "Region",
+      "aliases": [],
+      "short": "A geographic area, like Ireland or Tokyo, with at least three Availability Zones. Your resources live where you pick.",
+      "url": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html"
+    },
+    {
+      "term": "Origin Access Control",
+      "aliases": [
+        "OAC"
+      ],
+      "short": "Lets CloudFront sign its requests to a private S3 bucket, so only your distribution can read the files.",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html"
+    },
+    {
+      "term": "TTL",
+      "aliases": [
+        "time to live"
+      ],
+      "short": "Time to live: how long a cached copy is kept before it must be checked or fetched again.",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html"
+    },
+    {
+      "term": "JWT",
+      "aliases": [
+        "JSON web token"
+      ],
+      "short": "JSON web token: a signed token that proves who a user is. Cognito issues them when someone signs in.",
+      "url": "https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-with-identity-providers.html"
+    },
+    {
+      "term": "IMDSv2",
+      "aliases": [
+        "IMDS",
+        "Instance Metadata Service",
+        "IMDSv1"
+      ],
+      "short": "How an EC2 instance reads data about itself. Version 2 gets a session token first and sends it with each request.",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html"
+    },
+    {
+      "term": "VPC",
+      "aliases": [
+        "virtual private cloud"
+      ],
+      "short": "Virtual private cloud: your own private network in AWS, where you choose the IP ranges, subnets and routes.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html"
+    },
+    {
+      "term": "subnet",
+      "aliases": [],
+      "short": "A slice of a VPC's IP range that sits in one Availability Zone. Spread subnets over zones to survive one failing.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html"
+    },
+    {
+      "term": "security group",
+      "aliases": [],
+      "short": "A stateful firewall around a resource. You list the traffic allowed in or out, and replies are let through.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html"
+    },
+    {
+      "term": "IAM role",
+      "aliases": [],
+      "short": "An identity with permissions that people, services or code take on for a while, using temporary credentials.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html"
+    },
+    {
+      "term": "ARN",
+      "aliases": [
+        "Amazon Resource Name"
+      ],
+      "short": "Amazon Resource Name: the unique label of every AWS resource, like arn:aws:s3:::my-bucket.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html"
+    },
+    {
+      "term": "PITR",
+      "aliases": [
+        "point-in-time recovery"
+      ],
+      "short": "Point-in-time recovery: DynamoDB keeps continuous backups so you can restore a table to any second, up to 35 days back.",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Point-in-time-recovery.html"
+    },
+    {
+      "term": "DLQ",
+      "aliases": [
+        "dead-letter queue"
+      ],
+      "short": "Dead-letter queue: where messages go after failing too many times, so you can look at them instead of losing them.",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html"
+    },
+    {
+      "term": "SSE-S3",
+      "aliases": [],
+      "short": "Server-side encryption with keys that S3 manages. Every new object uploaded to S3 gets it automatically.",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html"
+    },
+    {
+      "term": "KMS key",
+      "aliases": [
+        "AWS KMS key"
+      ],
+      "short": "An encryption key kept in AWS Key Management Service. Key policies and IAM decide who may use it.",
+      "url": "https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html"
+    },
+    {
+      "term": "edge location",
+      "aliases": [],
+      "short": "An AWS site in a city near your users, where CloudFront keeps cached copies so content arrives faster.",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowCloudFrontWorks.html"
+    },
+    {
+      "term": "latency",
+      "aliases": [],
+      "short": "The delay between asking for something and getting the answer, usually measured in milliseconds.",
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html"
+    },
+    {
+      "term": "idempotent",
+      "aliases": [
+        "idempotency"
+      ],
+      "short": "Safe to repeat: sending the same request twice has the same effect as sending it once.",
+      "url": "https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-idempotency.html"
+    },
+    {
+      "term": "cold start",
+      "aliases": [],
+      "short": "The extra wait when Lambda sets up a fresh environment before running your code. It happens in under 1% of calls.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html"
+    },
+    {
+      "term": "partition key",
+      "aliases": [],
+      "short": "The DynamoDB attribute that decides where an item is stored. Reading an item by its key is fast.",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html"
+    },
+    {
+      "term": "RAG",
+      "aliases": [
+        "retrieval-augmented generation",
+        "retrieval augmented generation"
+      ],
+      "short": "Retrieval-augmented generation: the app finds relevant documents first and gives them to the model to ground its answer.",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html"
+    },
+    {
+      "term": "guardrail",
+      "aliases": [],
+      "short": "A Bedrock safety filter that checks prompts and answers, blocking harmful content or topics you choose to deny.",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html"
+    },
+    {
+      "term": "Multi-AZ",
+      "aliases": [],
+      "short": "Standby copies of a database in other Availability Zones. If the primary fails, a standby takes over automatically.",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.html"
+    },
+    {
+      "term": "read replica",
+      "aliases": [],
+      "short": "A read-only copy of a database that keeps in sync, taking read traffic off the main database.",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html"
+    },
+    {
+      "term": "VPC link",
+      "aliases": [],
+      "short": "Lets API Gateway reach private resources in your VPC, such as a load balancer, without putting them on the internet.",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vpc-links.html"
+    },
+    {
+      "term": "ALB",
+      "aliases": [
+        "Application Load Balancer"
+      ],
+      "short": "Application Load Balancer: spreads web requests across healthy targets and can route them by path or host name.",
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html"
+    },
+    {
+      "term": "Graviton",
+      "aliases": [],
+      "short": "AWS's own Arm-based processors. Lambda functions on them (arm64) can get better price performance.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/foundation-arch.html"
+    },
+    {
+      "term": "runtime",
+      "aliases": [],
+      "short": "The language environment your code runs in, such as Node.js or Python. In Lambda, you choose one for each function.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html"
+    },
+    {
+      "term": "AgentCore Runtime",
+      "aliases": [],
+      "short": "AgentCore's serverless hosting for AI agents and tools. Each user session runs in its own isolated microVM.",
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html"
+    },
+    {
+      "term": "Free Tier",
+      "aliases": [],
+      "short": "AWS's free offer: new accounts get credits to try services, and over 30 services have monthly free usage.",
+      "url": "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html"
+    },
+    {
+      "term": "inference",
+      "aliases": [],
+      "short": "Running a trained model to get an answer, like sending a prompt to a Bedrock model and getting text back.",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/inference.html"
+    },
+    {
+      "term": "bucket policy",
+      "aliases": [],
+      "short": "A JSON permissions document on an S3 bucket that says who can do what with the bucket and its objects.",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-policies.html"
+    },
+    {
+      "term": "IAM policy",
+      "aliases": [],
+      "short": "A JSON document listing which actions are allowed or denied on which resources. Attach it to a user, group or role.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html"
+    },
+    {
+      "term": "least privilege",
+      "aliases": [],
+      "short": "Give each person or role only the permissions its task needs, and nothing more.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"
+    },
+    {
+      "term": "MFA",
+      "aliases": [
+        "multi-factor authentication"
+      ],
+      "short": "Multi-factor authentication: signing in needs a second proof, like a code from an app, as well as a password.",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa.html"
+    },
+    {
+      "term": "NAT gateway",
+      "aliases": [],
+      "short": "Lets servers in a private subnet reach the internet, while outside services can't start a connection to them.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html"
+    },
+    {
+      "term": "internet gateway",
+      "aliases": [],
+      "short": "A VPC's door to the internet. Public subnets route through it so resources with public IPs can reach the internet.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html"
+    },
+    {
+      "term": "Auto Scaling group",
+      "aliases": [],
+      "short": "A set of EC2 instances that EC2 Auto Scaling keeps at the size you want, adding or replacing servers as needed.",
+      "url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/auto-scaling-groups.html"
+    },
+    {
+      "term": "CDN",
+      "aliases": [
+        "content delivery network"
+      ],
+      "short": "Content delivery network: servers around the world keep copies of your content close to users. CloudFront is one.",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html"
+    },
+    {
+      "term": "serverless",
+      "aliases": [],
+      "short": "You run code or use a service without managing servers. AWS handles the capacity, and you usually pay per use.",
+      "url": "https://docs.aws.amazon.com/serverless/latest/devguide/welcome.html"
+    },
+    {
+      "term": "embedding",
+      "aliases": [
+        "vector embedding"
+      ],
+      "short": "A list of numbers that captures the meaning of text or an image, so similar things end up close together.",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html"
+    },
+    {
+      "term": "snapshot",
+      "aliases": [],
+      "short": "A point-in-time copy of data, such as a disk or a database. EBS snapshots save only blocks changed since the last one.",
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-snapshots.html"
+    },
+    {
+      "term": "AWS WAF",
+      "aliases": [
+        "WAF",
+        "web application firewall"
+      ],
+      "short": "A web application firewall: rules that inspect web requests and block common attacks before they reach your app.",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/what-is-aws-waf.html"
+    },
+    {
+      "term": "DDoS",
+      "aliases": [],
+      "short": "Distributed denial of service: a flood of traffic from many machines trying to knock a site offline. AWS Shield helps.",
+      "url": "https://docs.aws.amazon.com/waf/latest/developerguide/ddos-overview.html"
+    },
+    {
+      "term": "versioning",
+      "aliases": [],
+      "short": "S3 keeps every version of an object, so you can bring back one that was overwritten or deleted by mistake.",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html"
+    },
+    {
+      "term": "VPC endpoint",
+      "aliases": [],
+      "short": "A private connection from your VPC to an AWS service, so the traffic doesn't cross the public internet.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/privatelink-access-aws-services.html"
+    },
+    {
+      "term": "CIDR block",
+      "aliases": [
+        "CIDR"
+      ],
+      "short": "A way to write an IP address range, like 10.0.0.0/16. The number after the slash sets how big the range is.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-cidr-blocks.html"
+    },
+    {
+      "term": "TLS certificate",
+      "aliases": [
+        "SSL/TLS certificate"
+      ],
+      "short": "Proves a site's identity so browsers can connect over HTTPS. AWS Certificate Manager issues them.",
+      "url": "https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html"
+    },
+    {
+      "term": "CloudWatch alarm",
+      "aliases": [],
+      "short": "Watches a metric and acts when it crosses a line you set, such as emailing you or adding servers.",
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html"
+    },
+    {
+      "term": "IP address",
+      "aliases": [
+        "IP"
+      ],
+      "short": "A number that names a computer on a network, like a street address, so data knows where to go.",
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-ip-addressing.html"
+    },
+    {
+      "term": "DNS",
+      "aliases": [
+        "Domain Name System"
+      ],
+      "short": "The internet's phone book: it turns a name like example.com into the IP address of a server.",
+      "url": "https://aws.amazon.com/route53/what-is-dns/"
+    },
+    {
+      "term": "HTTPS",
+      "aliases": [],
+      "short": "The locked, private way browsers talk to websites. A certificate proves the site is the real one.",
+      "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-https.html"
+    },
+    {
+      "term": "API",
+      "aliases": [],
+      "short": "The set of requests one program can send another, like a menu: \"give me order 42\" or \"save this photo\".",
+      "url": "https://aws.amazon.com/what-is/api/"
+    },
+    {
+      "term": "SQL",
+      "aliases": [],
+      "short": "A language for asking a database questions, like \"show me every order from Tuesday\".",
+      "url": "https://aws.amazon.com/what-is/sql/"
+    },
+    {
+      "term": "SSH",
+      "aliases": [],
+      "short": "A safe way to type commands on a faraway Linux server over the internet. It uses port 22.",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-linux-inst-ssh.html"
+    },
+    {
+      "term": "RDP",
+      "aliases": [
+        "Remote Desktop Protocol"
+      ],
+      "short": "Remote Desktop Protocol: lets you see and use a faraway Windows server's screen. It uses port 3389.",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-rdp.html"
+    },
+    {
+      "term": "ACL",
+      "aliases": [
+        "access control list"
+      ],
+      "short": "Access control list: an older way to say who may read or write something, like an S3 object.",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html"
+    },
+    {
+      "term": "AMI",
+      "aliases": [
+        "Amazon Machine Image"
+      ],
+      "short": "Amazon Machine Image: a saved starting copy of a server's disk, used to start new EC2 instances.",
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html"
+    },
+    {
+      "term": "ETL",
+      "aliases": [],
+      "short": "Extract, transform, load: pull data out, tidy it up, then save it where it's useful.",
+      "url": "https://aws.amazon.com/what-is/etl/"
+    },
+    {
+      "term": "OLTP",
+      "aliases": [
+        "online transaction processing"
+      ],
+      "short": "Online transaction processing: lots of small, quick reads and writes, like recording each sale in a shop.",
+      "url": "https://aws.amazon.com/compare/the-difference-between-olap-and-oltp/"
+    },
+    {
+      "term": "OLAP",
+      "aliases": [
+        "online analytical processing"
+      ],
+      "short": "Online analytical processing: big questions over lots of data, like total sales for every year.",
+      "url": "https://aws.amazon.com/compare/the-difference-between-olap-and-oltp/"
+    },
+    {
+      "term": "machine learning",
+      "aliases": [
+        "ML"
+      ],
+      "short": "Teaching a computer to spot patterns from examples, instead of writing every rule by hand.",
+      "url": "https://aws.amazon.com/what-is/machine-learning/"
+    },
+    {
+      "term": "IDE",
+      "aliases": [
+        "integrated development environment"
+      ],
+      "short": "Integrated development environment: the app programmers write, run and test their code in.",
+      "url": "https://aws.amazon.com/what-is/ide/"
+    },
+    {
+      "term": "OCR",
+      "aliases": [
+        "optical character recognition"
+      ],
+      "short": "Optical character recognition: software reads the letters in a picture or scan and turns them into text.",
+      "url": "https://aws.amazon.com/what-is/ocr/"
+    },
+    {
+      "term": "CSV",
+      "aliases": [
+        "CSV file"
+      ],
+      "short": "A plain text table: one row per line, with commas between the values. Spreadsheets can open it.",
+      "url": "https://docs.aws.amazon.com/athena/latest/ug/csv-serde.html"
+    }
+  ]
+}

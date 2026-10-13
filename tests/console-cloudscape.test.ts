@@ -9,7 +9,6 @@ import { elementFor, takeSnapshot } from '@/console/snapshot';
 import { flowFor } from '@/backend/consoleMock';
 
 const snap = () => takeSnapshot(document, { requireLayout: false });
-const byName = (name: string | RegExp) => snap().items.find((i) => (typeof name === 'string' ? i.name === name : name.test(i.name)));
 
 afterEach(() => {
   document.body.innerHTML = '';

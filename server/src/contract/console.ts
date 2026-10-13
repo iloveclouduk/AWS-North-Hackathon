@@ -2,8 +2,10 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { isRisky } from '../../../src/console/risk.js';
 import type { Llm } from '../agents/llm.js';
+import { neutralise } from '../knowledge/mcp.js';
 import { matchText, placeFor, type ServerEvent } from '../world.js';
 import type { ConsoleObserve, ConsoleStart, PageSnapshot } from '../world.js';
+import { publicError } from '../log.js';
 
 type Emit = (e: ServerEvent) => void;
 
@@ -74,7 +76,7 @@ interface Task {
 
 /** One Copilot per socket, one console task at a time. */
 export const MAX_CONSOLE_TASKS = 1;
-/** Model calls per socket per 10 minutes (stop→start loops can't run up the Bedrock bill). */
+/** Model calls per player per 10 minutes, across their tabs and reconnects (stop→start loops can't run up the bill). */
 export const MODEL_CALL_BUDGET = 60;
 const BUDGET_WINDOW_MS = 10 * 60_000;
 
@@ -130,16 +132,17 @@ const shortUrl = (raw: string) => {
   }
 };
 
+/** Console labels are page text (resource names, tags, notifications): untrusted, so no tag characters. */
 const describe = (s: PageSnapshot, goal: string, history: readonly string[]) =>
   [
-    `URL: ${s.url}`,
-    `Title: ${s.title}${s.heading ? ` · Heading: ${s.heading}` : ''}`,
+    `URL: ${neutralise(s.url)}`,
+    `Title: ${neutralise(s.title)}${s.heading ? ` · Heading: ${neutralise(s.heading)}` : ''}`,
     'Elements:',
     ...trimSnapshot(s, goal, history).map((i: Item) => {
-      const state = [i.disabled && 'disabled', i.checked !== undefined && (i.checked ? 'checked' : 'unchecked'), i.value && `value="${i.value}"`, i.sensitive && 'secret']
+      const state = [i.disabled && 'disabled', i.checked !== undefined && (i.checked ? 'checked' : 'unchecked'), i.value && `value="${neutralise(i.value)}"`, i.sensitive && 'secret']
         .filter(Boolean)
         .join(', ');
-      return `${i.id} | ${i.role} | ${i.name}${i.context ? ` | ${i.context}` : ''}${state ? ` | ${state}` : ''}`;
+      return `${i.id} | ${i.role} | ${neutralise(i.name)}${i.context ? ` | ${neutralise(i.context)}` : ''}${state ? ` | ${state}` : ''}`;
     }),
   ].join('\n');
 
@@ -147,11 +150,11 @@ const describe = (s: PageSnapshot, goal: string, history: readonly string[]) =>
  * Console Copilot (contract v2.1): Claude on Bedrock plans the learner's console task one visible step at a
  * time; the extension performs it (its safety rules win) and reports back with console.observe.
  */
-export const createConsoleCopilot = (deps: { llm: Llm; now?: () => number }) => {
+export const createConsoleCopilot = (deps: { llm: Llm; now?: () => number; /** Shared by a player's sockets. */ calls?: number[] }) => {
   const tasks = new Map<string, Task>();
   const now = deps.now ?? Date.now;
   let inFlight = 0;
-  const calls: number[] = [];
+  const calls = deps.calls ?? [];
   const overBudget = () => {
     const t = now();
     while (calls.length && t - calls[0]! > BUDGET_WINDOW_MS) calls.shift();
@@ -177,18 +180,27 @@ export const createConsoleCopilot = (deps: { llm: Llm; now?: () => number }) => 
     inFlight++;
     calls.push(now());
     try {
+      // Not a forced tool_choice: Bedrock rejects one while thinking is on, and nothing here pins thinking off for
+      // whichever model is configured (default us.anthropic.claude-opus-5-5, config.ts).
+      // The prompt asks for the tool and a missing call is handled below. max_tokens covers thinking + the call.
       const msg = await deps.llm.create({
-        max_tokens: 1024,
+        max_tokens: 8000,
+        output_config: { effort: 'low' },
         system: SYSTEM,
         tools: [STEP_TOOL],
-        tool_choice: { type: 'tool', name: STEP_TOOL.name },
-        messages: [{ role: 'user', content: `Goal: ${t.goal}\n\nSo far:\n${t.history.join('\n') || '(nothing yet)'}\n\n${describe(snapshot, t.goal, t.history)}` }],
+        tool_choice: { type: 'auto' },
+        messages: [
+          {
+            role: 'user',
+            content: `Goal: ${t.goal}\n\nSo far:\n${t.history.join('\n') || '(nothing yet)'}\n\n${describe(snapshot, t.goal, t.history)}\n\nCall next_console_step with your one next step.`,
+          },
+        ],
       });
       const block = msg.content.find((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use' && b.name === STEP_TOOL.name);
       const parsed = block ? Step.safeParse(block.input) : undefined;
       step = parsed?.success ? parsed.data : undefined;
     } catch (err) {
-      console.error('[console]', err);
+      publicError('copilot step failed', err, { taskId });
     } finally {
       t.thinking = false;
       inFlight--;

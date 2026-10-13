@@ -4,15 +4,17 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { S3Client } from '@aws-sdk/client-s3';
 import { SSMClient } from '@aws-sdk/client-ssm';
 import { createAccountLinker } from './accounts/link.js';
+import { createMfaCheck } from './accounts/mfa.js';
 import { createLlm } from './agents/llm.js';
 import { killSwitch } from './agents/metered.js';
 import { createAuthenticate } from './auth.js';
-import { assumedRole, createAwsClients, getAccountId, serviceCredentials } from './aws.js';
+import { assumedRole, createAwsClients, getAccountId, SDK_DEFAULTS, serviceCredentials } from './aws.js';
 import { ConfigError, loadConfig } from './config.js';
 import { createS3UploadStore, createUploadStore, type UploadStore } from './contract/uploads.js';
 import { createHttpServer } from './http.js';
 import { createKnowledge } from './knowledge/mcp.js';
-import { log } from './log.js';
+import { log, setPublicErrors } from './log.js';
+import { createNewsFeed } from './news/feed.js';
 import { dynamoStores } from './store/dynamo.js';
 import { localStores } from './store/local.js';
 import { createTenants, playerAws } from './tenants.js';
@@ -27,8 +29,10 @@ try {
   }
   throw err;
 }
+// Signed-in strangers never see internal error text (not just when AWS_CITY_MODE=hosted).
+setPublicErrors(config.authMode === 'cognito');
 
-const ours = { region: config.region, credentials: serviceCredentials(config) };
+const ours = { ...SDK_DEFAULTS, region: config.region, credentials: serviceCredentials(config) };
 
 // ── The player's AWS: the workshop profile (local) or their own linked account (hosted) ──
 let awsFor: Parameters<typeof createTenants>[0]['awsFor'];
@@ -59,26 +63,33 @@ const tenants = createTenants({
   uploads,
   llm: createLlm(config),
   knowledge: process.env.KNOWLEDGE === 'off' ? undefined : createKnowledge(),
+  news: process.env.AWS_CITY_NEWS === 'off' ? undefined : createNewsFeed(),
   enabled: killSwitch({ ssm: config.killSwitchParam ? new SSMClient(ours) : undefined, name: config.killSwitchParam }),
   awsFor,
   linker:
     config.awsMode === 'assume-role'
       ? createAccountLinker({ accounts: stores.accounts, templateUrl: config.playerRoleTemplateUrl!, selfAccountId: config.selfAccountId!, playerRolePrefix: config.playerRolePrefix })
       : undefined,
-  onDelete: cognito ? async (sub) => void (await cognito.send(new AdminDeleteUserCommand({ UserPoolId: config.cognito!.userPoolId, Username: sub }))) : undefined,
+  onDelete: cognito ? async (p) => void (await cognito.send(new AdminDeleteUserCommand({ UserPoolId: config.cognito!.userPoolId, Username: p.username ?? p.sub }))) : undefined,
 });
 
-const http = createHttpServer({ config, tenants, authenticate: createAuthenticate(config), uploads: memoryUploads });
+// Agents can change a linked AWS account, so linking it and approving writes to it need MFA (local token mode has no accounts to protect).
+const mfaReady = cognito && config.awsMode === 'assume-role' && config.requireMfaForLink ? createMfaCheck({ cognito, userPoolId: config.cognito!.userPoolId }) : undefined;
+// Hosted: a deleted player's access token still verifies for up to an hour; the tombstone refuses it (local mode's one
+// player may start over at once).
+const deleted = config.authMode === 'cognito' ? (sub: string) => stores.deletedRecently(sub) : undefined;
+const http = createHttpServer({ config, tenants, authenticate: createAuthenticate(config), uploads: memoryUploads, mfaReady, deleted });
 
 http.server.listen(config.port, config.host, () => {
   log.info(`AWS City backend on ${config.host}:${config.port}`, { auth: config.authMode, aws: config.awsMode, store: config.store, uploads: config.uploads, model: config.model });
   if (config.authMode === 'token') {
     const base = `http://${config.host}:${config.port}`;
     console.log(`  frontend .env.local:  WXT_BACKEND=aws  WXT_AWS_WS_URL=ws://${config.host}:${config.port}/ws  WXT_AWS_API_URL=${base}`);
+    const exact = config.extensionOrigins.filter((o) => !o.endsWith('://*'));
     console.log(
-      config.extensionOrigins.length
-        ? `  extension allowed without token: ${config.extensionOrigins.join(', ')}`
-        : '  EXTENSION_ORIGIN not set: the extension needs the token (set EXTENSION_ORIGIN=chrome-extension://<id> to allow it directly)',
+      exact.length
+        ? `  extension allowed without token: ${exact.join(', ')}`
+        : '  no exact EXTENSION_ORIGIN: the extension needs the token (set EXTENSION_ORIGIN=chrome-extension://<id> to allow it directly)',
     );
     // The token is only for local curl/tests; it is never printed in hosted mode.
     if (!process.env.AWS_CITY_TOKEN) console.log(`  token (for curl/tests): ${config.token}`);
@@ -93,5 +104,10 @@ const shutdown = (signal: string) => {
   // Fargate gives 120 s (stopTimeout) between SIGTERM and SIGKILL.
   void http.drain(config.authMode === 'cognito' ? 100_000 : 2_000).finally(() => process.exit(0));
 };
+// A stray rejection must not take every player on this task down with it: log it and keep serving.
+process.on('unhandledRejection', (err) => {
+  log.error('unhandled rejection', { err: (err as Error)?.name, detail: (err as Error)?.message?.slice(0, 300) });
+  log.metric('UnhandledRejections', 1);
+});
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));

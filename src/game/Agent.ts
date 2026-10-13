@@ -1,9 +1,12 @@
 import Phaser from 'phaser';
 import type { Rect, Tile } from '@/world/layout';
-import { FRAME_H, FRAME_W, hasAnim, PIVOT, type Dir } from './assets';
+import { FRAME_H, FRAME_W, frameOf, hasAnim, PIVOT, type Dir } from './assets';
 import { dirFor, entityDepth, toScreen, type Iso } from './iso';
-import { findPath } from './pathfinding';
+import { findPath, type RouteCache } from './pathfinding';
 import { crisp, SpeechBubble, TEXT_FONT, type SayOptions } from './SpeechBubble';
+import { mayShowBubble } from './calm';
+import { useCity } from '@/state/store';
+import { CSS, labelStyle } from './theme';
 
 /** What a walker needs to know about the world it walks in. */
 export interface AgentWorld {
@@ -13,6 +16,10 @@ export interface AgentWorld {
   walkable(x: number, y: number): boolean;
   /** Optional: restrict wandering to these tiles (e.g. sidewalks for citizens). */
   wanderable?(x: number, y: number): boolean;
+  /** Optional: routes shared by every agent in the scene, dropped when the walkable grid changes (plan B6). */
+  routes?: RouteCache;
+  /** Optional: pick the next idle stroll from where the agent stands (citizens: a sidewalk a short walk away). */
+  pickWander?(from: Tile): Tile | undefined;
 }
 
 export interface AgentConfig {
@@ -34,9 +41,14 @@ export interface AgentConfig {
   /** Character-sheet animation used while working (activity, or 'type' at a desk). */
   workAnim?: string;
   showTag?: boolean;
+  /** The name tag's text while not hovered (e.g. "Rosa"); hovering shows the full `name` ("Rosa · Sustainability"). */
+  tagName?: string;
 }
 
 type Mode = 'idle' | 'walking' | 'working' | 'emote';
+
+/** Every live agent, per scene: how many bubbles are up decides whether an ambient line may speak. */
+const live = new WeakMap<Phaser.Scene, Set<Agent>>();
 
 /**
  * A Habbo-style character: walks tile to tile in 4 directions, idles, emotes and works.
@@ -46,7 +58,10 @@ export class Agent {
   readonly id: string;
   readonly name: string;
   readonly sprite: Phaser.GameObjects.Sprite;
-  private bubbles: [SpeechBubble, SpeechBubble];
+  /** One bubble per agent: a new line replaces the last one (never two stacked over the same head). */
+  private bubble: SpeechBubble;
+  /** When this agent last spoke (scene time): a newer bubble steps aside for an older one nearby. */
+  private spokeAt = 0;
   private shadow: Phaser.GameObjects.Ellipse;
   private tag: Phaser.GameObjects.Text;
   private busy: Phaser.GameObjects.Rectangle;
@@ -65,7 +80,13 @@ export class Agent {
   private wanderAt = 0;
   private onArrive?: () => void;
   private uiScale = 1;
+  /** Frame height relative to a full 48×72 character (crowd sheets: 0.75). */
+  private k = 1;
+  private hovered = false;
+  private detail?: string;
   private currentAnim = '';
+  /** Destroyed: timers still pending (an emote's end) must leave it alone. */
+  private dead = false;
   speedBoost = 1;
   onStep?: (t: Tile) => void;
 
@@ -79,23 +100,46 @@ export class Agent {
     this.gx = cfg.tile.x;
     this.gy = cfg.tile.y;
 
-    this.shadow = scene.add.ellipse(0, 0, 20, 7, 0x000000, 0.28);
+    // Crowd sheets are 3/4 size: the shadow and the head height (bubble, busy dot) follow the frame.
+    this.k = frameOf(this.sheet)[1] / FRAME_H;
+    this.shadow = scene.add.ellipse(0, 0, Math.round(20 * this.k), Math.max(5, Math.round(7 * this.k)), 0x000000, 0.28);
     this.sprite = scene.add.sprite(0, 0, `char:${this.sheet}`, 0).setOrigin(PIVOT.x / FRAME_W, PIVOT.y / FRAME_H);
     this.sprite.setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 1 });
     this.busy = scene.add.rectangle(0, 0, 5, 5, 0x22c55e).setStrokeStyle(1, 0x14532d).setVisible(false);
     this.tag = crisp(
       scene.add
-        .text(0, 0, cfg.name, { fontFamily: TEXT_FONT, fontSize: '11px', fontStyle: '800', color: '#ffffff', backgroundColor: '#140d1fdd', padding: { x: 5, y: 2 } })
+        .text(0, 0, cfg.tagName ?? cfg.name, labelStyle(TEXT_FONT, CSS.inkHi))
         .setOrigin(0.5, 0)
         .setVisible(!!cfg.showTag),
     );
-    this.bubbles = [new SpeechBubble(scene), new SpeechBubble(scene)];
+    this.bubble = new SpeechBubble(scene);
+    if (!live.has(scene)) live.set(scene, new Set());
+    live.get(scene)!.add(this);
 
-    this.sprite.on('pointerover', () => this.tag.setVisible(true));
-    this.sprite.on('pointerout', () => this.tag.setVisible(!!cfg.showTag || this.mode === 'working'));
+    this.sprite.on('pointerover', () => {
+      this.hovered = true;
+      this.syncTag();
+    });
+    this.sprite.on('pointerout', () => {
+      this.hovered = false;
+      this.syncTag();
+    });
     this.play('idle');
     this.wanderAt = scene.time.now + 1000 + Math.random() * 4000;
     this.sync();
+  }
+
+  /** Swap the character sheet (e.g. Kai's earned golden jacket). */
+  setSheet(sheet: string) {
+    if (sheet === this.sheet) return;
+    this.sheet = sheet;
+    this.currentAnim = '';
+    this.play(this.mode === 'walking' ? 'walk' : 'idle');
+  }
+
+  /** Change where the agent wanders when idle. */
+  setHome(home: Rect) {
+    this.cfg = { ...this.cfg, home };
   }
 
   get tile(): Tile {
@@ -113,6 +157,7 @@ export class Agent {
 
   /** Play `<sheet>:<anim>:<dir>`, falling back to idle when this character lacks the animation. */
   play(anim: string, dir: Dir = this.dir) {
+    if (this.dead) return; // a timer from before destroy() (an emote ending) finds nothing to animate
     const name = hasAnim(this.sheet, anim) ? anim : 'idle';
     const key = `${this.sheet}:${name}:${dir}`;
     if (key === this.currentAnim) return;
@@ -129,22 +174,36 @@ export class Agent {
     return this.name.split(' the ')[0].replace(' (you)', '');
   }
 
-  /** Newest line at the bottom; the previous one drifts up and fades — never overlapping. */
-  say(text: string, opts?: SayOptions) {
-    const [cur, prev] = this.bubbles;
-    if (cur.showing) {
-      prev.hide(true);
-      this.bubbles = [prev, cur];
-    }
-    this.bubbles[0].say(text, this.shortName, opts);
-    if (this.bubbles[1].showing) this.scene.time.delayedCall(2500, () => this.bubbles[1].hide());
-    this.onSpeak?.(this);
+  /** True while this agent's bubble is up. */
+  get speaking() {
+    return this.bubble.showing;
+  }
+
+  /** Bubbles up now in this agent's scene, not counting the player's. */
+  private visibleBubbles() {
+    let n = 0;
+    for (const a of live.get(this.scene) ?? []) if (a.id !== 'player' && a.speaking) n++;
+    return n;
+  }
+
+  /**
+   * A new line replaces this agent's last one in place; a bubble near another agent's steps up above it (sync).
+   * An ambient line stays quiet unless chatter is on and nobody else is talking; returns whether it showed.
+   */
+  say(text: string, opts?: SayOptions): boolean {
+    if (!mayShowBubble(opts?.priority ?? 'normal', this.visibleBubbles(), useCity.getState().prefs.chatter)) return false;
+    this.bubble.say(text, this.shortName, opts);
+    this.spokeAt = this.scene.time.now;
+    if (!opts?.silent) this.onSpeak?.(this);
     this.sync();
+    return true;
   }
 
   /** Walk to a tile; `onArrive` fires when there (or immediately if unreachable). */
   goTo(target: Tile, onArrive?: () => void) {
-    const path = findPath(this.tile, target, this.world.gridW, this.world.gridH, (x, y) => this.world.walkable(x, y));
+    const from = this.tile;
+    const find = () => findPath(from, target, this.world.gridW, this.world.gridH, (x, y) => this.world.walkable(x, y));
+    const path = this.world.routes ? this.world.routes.get(from, target, find) : find();
     this.onArrive = onArrive;
     if (!path.length) {
       this.path = [];
@@ -191,13 +250,28 @@ export class Agent {
   }
 
   setDetail(detail?: string) {
-    this.tag.setText(detail ? `${this.name} · ${detail}` : this.name);
+    this.detail = detail;
+    this.syncTag();
+  }
+
+  /** Whether the name tag shows at rest (the scene's label budget). Hover and work always show it. */
+  setTagShown(on: boolean) {
+    if (this.cfg.showTag === on) return;
+    this.cfg = { ...this.cfg, showTag: on };
+    this.syncTag();
+  }
+
+  /** The tag: short name at rest, full name (and role) on hover; what it's doing while it works. */
+  private syncTag() {
+    const base = this.hovered ? this.name : (this.cfg.tagName ?? this.name);
+    this.tag.setText(this.detail ? `${base} · ${this.detail}` : base);
+    this.tag.setVisible(!!this.cfg.showTag || this.hovered || this.mode === 'working');
   }
 
   setUiScale(s: number) {
     if (s === this.uiScale) return;
     this.uiScale = s;
-    for (const b of this.bubbles) b.setScale(s);
+    this.bubble.setScale(s);
     this.tag.setScale(s);
   }
 
@@ -246,7 +320,9 @@ export class Agent {
   }
 
   destroy() {
-    for (const o of [this.sprite, this.shadow, this.tag, this.busy, ...this.bubbles]) o.destroy();
+    this.dead = true;
+    live.get(this.scene)?.delete(this);
+    for (const o of [this.sprite, this.shadow, this.tag, this.busy, this.bubble]) o.destroy();
   }
 
   update(time: number, dtMs: number) {
@@ -269,18 +345,24 @@ export class Agent {
     this.path = [];
     this.play(this.workAnim(), this.cfg.workDir ?? 'SE');
     this.busy.setVisible(true);
-    this.tag.setVisible(true);
+    this.syncTag();
   }
 
   private stopWork() {
     this.mode = 'idle';
     this.play('idle');
     this.busy.setVisible(false);
-    this.tag.setVisible(!!this.cfg.showTag);
+    this.syncTag();
     this.wanderAt = this.scene.time.now + 3000 + Math.random() * 3000;
   }
 
   private wander() {
+    const picked = this.world.pickWander?.({ x: Math.round(this.gx), y: Math.round(this.gy) });
+    if (picked) {
+      this.goTo(picked);
+      this.wanderAt = this.scene.time.now + 2500 + Math.random() * 6000;
+      return;
+    }
     const h = this.cfg.home;
     const ok = this.world.wanderable ?? this.world.walkable;
     for (let i = 0; i < 10; i++) {
@@ -327,11 +409,27 @@ export class Agent {
     const d = entityDepth(y);
     this.shadow.setPosition(x, y).setDepth(d - 1);
     this.sprite.setPosition(Math.round(x), Math.round(y)).setDepth(d);
-    const top = y - 58;
-    this.busy.setPosition(x + 10, top + 6).setDepth(d + 1);
+    const top = y - Math.round(58 * this.k);
+    this.busy.setPosition(x + Math.round(10 * this.k), top + 6).setDepth(d + 1);
     this.tag.setPosition(x, y + 3).setDepth(50_000);
-    const [cur, prev] = this.bubbles;
-    cur.setPosition(x, top).setDepth(60_001);
-    prev.setPosition(x, top - cur.boxH * this.uiScale).setDepth(60_000);
+    const b = this.bubble;
+    if (!b.visible) return;
+    // Keep the bubble inside the camera view, so a line spoken at the edge of the city stays readable.
+    const view = this.scene.cameras.main.worldView;
+    const k = this.uiScale;
+    const pad = 4 * k;
+    const half = (b.boxW / 2) * k;
+    const h = b.boxH * k;
+    const bx = !view.width || 2 * (half + pad) >= view.width ? x : Math.min(Math.max(x, view.x + half + pad), view.right - half - pad);
+    let by = view.height ? Math.min(Math.max(top, view.y + h + pad), view.bottom - pad) : top;
+    // Another agent's bubble here already (an older one): step up above it rather than cover it.
+    for (const a of live.get(this.scene) ?? []) {
+      const o = a.bubble;
+      if (a === this || !o.showing || a.spokeAt > this.spokeAt || (a.spokeAt === this.spokeAt && a.id > this.id)) continue;
+      const oh = o.boxH * k;
+      const ohalf = (o.boxW / 2) * k;
+      if (Math.abs(o.x - bx) < half + ohalf + pad && by > o.y - oh - pad && by - h < o.y + pad) by = o.y - oh - pad;
+    }
+    b.setPosition(bx, by).setDepth(60_000 + (this.spokeAt % 1000) / 1000);
   }
 }

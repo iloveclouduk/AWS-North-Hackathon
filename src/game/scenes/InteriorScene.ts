@@ -7,10 +7,12 @@ import { placeFor } from '@/world/places';
 import { districtById, servicesIn, type DistrictId } from '@/world/taxonomy';
 import { Agent, type AgentWorld } from '../Agent';
 import { addSprite, CITY_ATLAS } from '../assets';
-import { blip, sfx } from '../audio';
+import { blip, click, sfx } from '../audio';
 import { castFor } from '../cast';
 import { cornerScreen, entityDepth, ROOM_ISO, toScreen, toTile } from '../iso';
+import { KAI_SHEET } from '@/world/culture';
 import { crisp, TEXT_FONT } from '../SpeechBubble';
+import { onSceneEnd } from './lifecycle';
 
 const W = 10;
 const H = 9;
@@ -30,11 +32,11 @@ type Piece = [sprite: string, x: number, y: number];
 /** Back walls, in the pack's style: [sprite, index along the wall]. Two-tile pieces take two slots. */
 const RIGHT_WALL: Record<string, string[]> = {
   default: ['pack:server_right', 'pack:dashboard_right', '', 'wallR', 'pack:poster_lambda_right', 'pack:server_right', 'pack:dashboard_right', '', 'wallR', 'pack:server_right'],
-  spheres: ['pack:dashboard_right', '', 'wallR', 'wallR', 'pack:poster_lambda_right', 'wallR', 'pack:dashboard_right', '', 'wallR', 'wallR'],
+  spheres: ['pack:dashboard_right', '', 'glassWallR', 'glassWallR', 'pack:poster_lambda_right', 'glassWallR', 'pack:dashboard_right', '', 'glassWallR', 'glassWallR'],
 };
 const LEFT_WALL: Record<string, string[]> = {
   default: ['pack:window_left', '', 'pack:poster_lambda_left', 'pack:dashboard_left', '', 'pack:server_left', 'wallL', 'DOOR', 'wallL'],
-  spheres: ['pack:window_left', '', 'pack:window_left', '', 'pack:window_left', '', 'wallL', 'DOOR', 'wallL'],
+  spheres: ['pack:window_left', '', 'pack:window_left', '', 'pack:window_left', '', 'glassWallL', 'DOOR', 'glassWallL'],
 };
 
 const FURNITURE: Record<string, Piece[]> = {
@@ -86,7 +88,7 @@ export class InteriorScene extends Phaser.Scene {
   create() {
     const spheres = this.districtId === 'spheres';
     const d = spheres ? undefined : districtById(this.districtId);
-    this.cameras.main.setBackgroundColor('#0d0816').setRoundPixels(true);
+    this.cameras.main.setBackgroundColor('#0f1114').setRoundPixels(true);
 
     // floor
     for (let y = 0; y < H; y++)
@@ -108,7 +110,7 @@ export class InteriorScene extends Phaser.Scene {
     });
     // the team's animated door on the left wall
     const dp = toScreen(ROOM_ISO, -0.5, DOOR.y + 0.5);
-    addSprite(this, 'wallL', cornerScreen(ROOM_ISO, 0, DOOR.y).x, cornerScreen(ROOM_ISO, 0, DOOR.y).y).setDepth(-6);
+    addSprite(this, spheres ? 'glassWallL' : 'wallL', cornerScreen(ROOM_ISO, 0, DOOR.y).x, cornerScreen(ROOM_ISO, 0, DOOR.y).y).setDepth(-6);
     const door = this.add.sprite(dp.x, dp.y, 'door', 0).setOrigin(8 / 40, 52 / 64).setDepth(-4);
 
     for (const [key, x, y] of spheres ? SPHERES : [...(FURNITURE[this.districtId] ?? []), ...COMMON]) this.furniture(key, x, y);
@@ -117,7 +119,7 @@ export class InteriorScene extends Phaser.Scene {
     const staff: string[] = spheres
       ? ['concierge', 'builder', 'lookout']
       : servicesIn(this.districtId as DistrictId)
-          .filter((s) => isDiscovered(useCity.getState().progress, s.id))
+          .filter((s) => isDiscovered(useCity.getState().progress, s.id, useCity.getState().cityRegion))
           .map((s) => s.id);
     staff.forEach((_, i) => {
       const seat = SEATS[i];
@@ -130,7 +132,7 @@ export class InteriorScene extends Phaser.Scene {
     const t0 = toScreen(ROOM_ISO, 0, 0);
     this.title = crisp(
       this.add
-        .text(t0.x + 40, t0.y - 96, titleText, { fontFamily: TEXT_FONT, fontSize: '12px', fontStyle: '800', color: '#fff8ec', backgroundColor: '#140d1fdd', padding: { x: 8, y: 4 } })
+        .text(t0.x + 40, t0.y - 96, titleText, { fontFamily: TEXT_FONT, fontSize: '12px', fontStyle: '800', color: '#fff8ec', backgroundColor: '#15171bdd', padding: { x: 8, y: 4 } })
         .setOrigin(0.5, 1)
         .setDepth(70_000),
     );
@@ -149,17 +151,18 @@ export class InteriorScene extends Phaser.Scene {
       });
       a.onSpeak = (ag) => blip(ag.id);
       a.onClick(() => {
+        click();
         useCity.getState().select(id === 'concierge' ? 'plaza' : id);
         bus.emit('select', { id });
         a.face(this.player.tile);
         a.emote('hi', 1400);
-        a.say(spheres ? 'Tell me what you want to do — type it below and I’ll send the right agent!' : `Ask me anything about ${placeFor(id)?.place}! Use the chat.`);
+        a.say(spheres ? 'Tell me what you want to do — type it below and I’ll send the right agent!' : `Ask me anything about ${placeFor(id)?.place ?? 'this place'}! Use the chat.`);
       });
       this.agents.set(id, a);
       if (useCity.getState().agents[id]?.state === 'working') this.time.delayedCall(200, () => a.setWorking(true));
     });
 
-    this.player = new Agent(this, this.world, { id: 'player', name: 'Kai (you)', tile: DOOR, home: { x: 0, y: 0, w: W, h: H }, speed: 2.4, wanders: false });
+    this.player = new Agent(this, this.world, { id: 'player', sheet: KAI_SHEET, name: 'Kai (you)', tile: DOOR, home: { x: 0, y: 0, w: W, h: H }, speed: 2.4, wanders: false });
     this.player.sprite.disableInteractive();
     door.setFrame(3);
     sfx('door', 0.4);
@@ -188,8 +191,7 @@ export class InteriorScene extends Phaser.Scene {
       for (const off of this.offs) off();
       this.offs = [];
     };
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, teardown);
-    this.events.once(Phaser.Scenes.Events.DESTROY, teardown);
+    onSceneEnd(this, teardown);
   }
 
   override update(time: number, dt: number) {
@@ -230,7 +232,8 @@ export class InteriorScene extends Phaser.Scene {
         this.agents.get(e.agentId)?.setWorking(e.state === 'working');
         break;
       case 'agent.message':
-        this.agents.get(e.from)?.say(e.text);
+        // As in the city: agents talking among themselves are ambient (a bubble only with chatter on) and never blip.
+        this.agents.get(e.from)?.say(e.text, { priority: e.to === 'user' ? 'normal' : 'ambient', silent: e.to !== 'user' });
         break;
       case 'chat.answer': {
         if (e.districtId !== this.districtId) return;

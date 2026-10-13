@@ -1,0 +1,348 @@
+/* ── Stage 4: official icons, Day 1 Quarter readers, Region map, role cards ─────────────────────── */
+.aws-icon {
+  flex: none;
+  vertical-align: middle;
+  border-radius: var(--r-sm);
+}
+.aws-icon.dim {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+.with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.culture a,
+.region-map a {
+  color: var(--info);
+}
+.src {
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+.culture h4 {
+  margin: var(--s-4) 0 var(--s-2);
+}
+.year-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: var(--s-2) 0 var(--s-3);
+}
+.yr {
+  font: inherit;
+  font-size: var(--fs-sm);
+  min-width: 30px;
+  padding: 2px 4px;
+  color: var(--ink);
+  background: var(--panel-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.yr.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.letter {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  margin-top: var(--s-2);
+  background: var(--panel-2);
+}
+.letter.open {
+  border-color: var(--accent-line);
+}
+.letter-head {
+  display: flex;
+  gap: var(--s-3);
+  align-items: baseline;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: var(--s-2) var(--s-3);
+  cursor: pointer;
+}
+.yr-big {
+  font-weight: 900;
+  color: var(--accent);
+  min-width: 3ch;
+}
+.letter-body {
+  padding: 0 var(--s-3) var(--s-3);
+}
+.lessons {
+  margin: 0 0 var(--s-2);
+  padding-left: 1.2em;
+}
+.takeaway {
+  background: var(--accent-soft);
+  border-radius: var(--r-sm);
+  padding: var(--s-2) var(--s-3);
+}
+.letter blockquote {
+  margin: var(--s-2) 0;
+  padding: var(--s-2) var(--s-3);
+  border-left: 3px solid var(--quote);
+  color: var(--quote);
+  font-style: italic;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.plaques {
+  padding-left: 1.4em;
+  margin: 0;
+}
+.plaques li,
+.mech {
+  padding: var(--s-2) var(--s-3);
+  margin-bottom: var(--s-2);
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  border: 1px solid transparent;
+}
+.plaques li.focus,
+.mech.focus {
+  border-color: var(--accent);
+  background: var(--panel-hi);
+}
+.culture .steps {
+  margin: var(--s-1) 0;
+  padding-left: 1.3em;
+}
+.jacket {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  font-size: var(--fs-sm);
+  padding: var(--s-3);
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+}
+.jacket > span {
+  font-size: 28px;
+}
+.jacket > div {
+  flex: 1;
+}
+.jacket.gold {
+  background: linear-gradient(135deg, var(--gold-deep), var(--gold), var(--gold-hi), var(--gold));
+  color: var(--quote-ink);
+}
+.dist-tiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  margin: var(--s-3) 0;
+}
+.dist-tiers .chip {
+  border-left: 4px solid var(--district);
+}
+.trophies {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.trophies li {
+  display: flex;
+  gap: var(--s-2);
+  padding: var(--s-1) 0;
+  opacity: 0.7;
+}
+.trophies li.on {
+  opacity: 1;
+}
+.trophies li.on a {
+  color: var(--gold);
+  font-weight: 800;
+}
+.quest-box {
+  padding: var(--s-3);
+  border: 1px dashed var(--accent-line);
+  border-radius: var(--r-sm);
+  margin-bottom: var(--s-3);
+}
+.chip.right {
+  background: var(--good);
+  color: var(--black);
+}
+.chip.wrong {
+  background: var(--bad);
+  color: var(--black);
+}
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.timeline > li {
+  display: flex;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line);
+}
+.timeline ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.coe-entry {
+  border-left: 3px solid var(--bad);
+  padding: var(--s-2) var(--s-3);
+  margin-bottom: var(--s-3);
+  background: var(--panel-2);
+  border-radius: var(--r-sm);
+}
+.coe-entry dt,
+.facts dt,
+.role-card dt {
+  font-weight: 800;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.coe-entry dd,
+.facts dd {
+  margin: 0 0 var(--s-2);
+}
+.role-card {
+  display: flex;
+  gap: var(--s-5);
+  margin-top: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  color: var(--paper-ink);
+  border: 1px solid var(--line-strong);
+  border-top: 6px solid var(--district, var(--accent));
+  box-shadow: var(--shadow-pixel-sm);
+  font-size: var(--fs-sm);
+}
+.role-card .badge-photo {
+  position: relative;
+  flex: none;
+  align-self: flex-start;
+  padding-top: var(--s-4);
+}
+/* a lanyard clip above the photo */
+.role-card .lanyard {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 12px;
+  height: 8px;
+  margin-left: -6px;
+  background: var(--district, var(--accent));
+  border: 1px solid var(--line-strong);
+  border-bottom: 0;
+}
+.role-card .pager {
+  position: absolute;
+  right: -8px;
+  bottom: -6px;
+  font-size: var(--fs-lg);
+  animation: pulse 1s steps(2) infinite;
+}
+.role-card dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--s-3);
+  margin: 0;
+}
+.role-card dt {
+  color: var(--paper-meta);
+}
+.role-card dd {
+  margin: 0;
+}
+.role-card dd.working {
+  color: var(--role-ok);
+  font-weight: 800;
+}
+.region-map {
+  padding: var(--s-3);
+  margin-bottom: var(--s-3);
+  border-radius: var(--r-sm);
+  background: var(--panel-3);
+  border: 1px solid var(--line);
+}
+.region-map h4 {
+  margin: 0 0 var(--s-2);
+}
+.region-map svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--map-sea);
+  border-radius: var(--r-sm);
+}
+.region-map .land {
+  fill: var(--map-land);
+}
+.region-map .rg rect {
+  fill: var(--aws-compute);
+  cursor: pointer;
+}
+.region-map .rg.hover rect {
+  fill: var(--highlight);
+}
+.region-map .rg:focus {
+  outline: none;
+}
+.region-map .rg:focus-visible rect {
+  stroke: var(--highlight);
+  stroke-width: 1.5;
+}
+.region-map .rg.here rect {
+  fill: var(--gold);
+}
+.region-map .rg.here .halo {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1;
+  animation: halo 1.4s steps(2) infinite;
+}
+@keyframes halo {
+  50% {
+    opacity: 0.2;
+  }
+}
+.region-info {
+  margin-top: var(--s-2);
+  min-height: 1.5em;
+}
+.here-tag {
+  color: var(--gold);
+  font-weight: 800;
+}
+.small {
+  font-size: var(--fs-sm);
+}
+.expo-result {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  margin: var(--s-3) 0;
+  padding: var(--s-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  box-shadow: var(--shadow-pixel-sm);
+  animation: pop var(--dur-3) var(--ease-step);
+}
+.expo-result.won {
+  background: linear-gradient(135deg, var(--gold-deep), var(--gold));
+  color: var(--quote-ink);
+}
+.chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}

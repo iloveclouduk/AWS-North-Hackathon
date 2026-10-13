@@ -6,7 +6,11 @@ import type { Config } from './config.js';
 /** Who is calling. `local` is the single player of the local server (token mode). */
 export interface Principal {
   sub: string;
+  /** Cognito username: the sub for email sign-ups, e.g. google_123 for federated players (Admin* APIs need it). */
+  username?: string;
   email?: string;
+  /** When the token proving this expires (epoch ms); the socket must not outlive it for long. */
+  expiresAt?: number;
 }
 
 /** Resolves the caller or undefined (→ 401). Never throws for a bad token. */
@@ -44,12 +48,13 @@ export const tokenAuth = (config: Config): Authenticate => {
     // Never from the query string: URLs end up in logs and history.
     const bearer = req.headers.authorization?.replace(/^Bearer /, '') ?? bearerFromProtocols(req.headers['sec-websocket-protocol']);
     if (bearer) return safeEqual(bearer, config.token) ? { sub: 'local' } : undefined;
+    // Exact origins only: a scheme wildcard (moz-extension://*) would let ANY Firefox extension in without the token.
     return pinned && req.headers.origin !== undefined && config.extensionOrigins.includes(req.headers.origin) ? { sub: 'local' } : undefined;
   };
 };
 
 export interface JwtVerifier {
-  verify(token: string): Promise<{ sub: string; username?: string; email?: unknown }>;
+  verify(token: string): Promise<{ sub: string; username?: string; email?: unknown; exp?: number }>;
 }
 
 /**
@@ -65,7 +70,12 @@ export const cognitoAuth = (config: Config, verifier?: JwtVerifier): Authenticat
     if (!token) return undefined;
     try {
       const claims = await v.verify(token);
-      return { sub: claims.sub, email: typeof claims.email === 'string' ? claims.email : undefined };
+      return {
+        sub: claims.sub,
+        username: claims.username,
+        email: typeof claims.email === 'string' ? claims.email : undefined,
+        expiresAt: typeof claims.exp === 'number' ? claims.exp * 1000 : undefined,
+      };
     } catch {
       return undefined;
     }

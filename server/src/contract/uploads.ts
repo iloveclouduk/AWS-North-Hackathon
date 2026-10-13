@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
-import { GetObjectCommand, type S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command, type S3Client } from '@aws-sdk/client-s3';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 
 const TTL_MS = 10 * 60_000;
@@ -24,6 +24,8 @@ export interface UploadTarget {
 export interface UploadStore {
   create(contentType: ImageType, owner: string): Promise<UploadTarget>;
   get(screenshotKey: string, owner: string): Promise<{ bytes: Buffer; contentType: ImageType } | undefined>;
+  /** DELETE /me: removes every screenshot of this owner (they also expire after a day). */
+  deleteOwner(owner: string): Promise<void>;
 }
 
 /** Stable, non-reversible folder name for a player (never the raw Cognito sub). */
@@ -81,6 +83,9 @@ export const createUploadStore = (baseUrl: string) => {
       return true;
     },
 
+    async deleteOwner(owner: string) {
+      for (const key of [...entries.keys()]) if (ownedBy(key, owner)) entries.delete(key);
+    },
     async get(screenshotKey: string, owner = 'local') {
       if (!ownedBy(screenshotKey, owner)) return undefined;
       const e = entries.get(screenshotKey);
@@ -106,6 +111,16 @@ export const createS3UploadStore = (deps: { s3: S3Client; bucket: string }): Upl
       Expires: 300,
     });
     return { screenshotKey, uploadUrl: url, method: 'POST', fields };
+  },
+  async deleteOwner(owner) {
+    const Prefix = `screenshots/${ownerFolder(owner)}/`;
+    let token: string | undefined;
+    do {
+      const page = await deps.s3.send(new ListObjectsV2Command({ Bucket: deps.bucket, Prefix, ContinuationToken: token }));
+      const Objects = (page.Contents ?? []).flatMap((o) => (o.Key ? [{ Key: o.Key }] : []));
+      if (Objects.length) await deps.s3.send(new DeleteObjectsCommand({ Bucket: deps.bucket, Delete: { Objects, Quiet: true } }));
+      token = page.NextContinuationToken;
+    } while (token);
   },
   async get(screenshotKey, owner) {
     if (!ownedBy(screenshotKey, owner)) return undefined;

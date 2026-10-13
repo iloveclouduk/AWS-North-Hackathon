@@ -6,7 +6,9 @@ import { describe, expect, it } from 'vitest';
  * player, and nothing broad. Adding an SDK command without its IAM action fails here, not in production.
  */
 const template = readFileSync(new URL('../../infra/player-role/player-role.yaml', import.meta.url), 'utf8');
-const source = ['../src/state/poller.ts', '../src/agents/executor.ts'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8')).join('\n');
+const source = ['../src/state/poller.ts', '../src/state/inventory.ts', '../src/state/bill.ts', '../src/state/flow.ts', '../src/agents/executor.ts', '../src/agents/fixes.ts'].map((f) => readFileSync(new URL(f, import.meta.url), 'utf8')).join('\n');
+/** The opt-in aws-city-fix policy (only created when AllowFixes=true). */
+const fixPolicy = template.slice(template.indexOf('- FixesOn'), template.indexOf('- !Ref AWS::NoValue'));
 
 const IAM_FOR: Record<string, string> = {
   DescribeInstancesCommand: 'ec2:DescribeInstances',
@@ -28,6 +30,30 @@ const IAM_FOR: Record<string, string> = {
   ListFunctionsCommand: 'lambda:ListFunctions',
   DescribeDBInstancesCommand: 'rds:DescribeDBInstances',
   GetApisCommand: 'apigateway:GET',
+  // the city's mirror and its Well-Architected checks (read-only)
+  DescribeContinuousBackupsCommand: 'dynamodb:DescribeContinuousBackups',
+  GetEbsEncryptionByDefaultCommand: 'ec2:GetEbsEncryptionByDefault',
+  DescribeSecurityGroupRulesCommand: 'ec2:DescribeSecurityGroupRules',
+  DescribeVolumesCommand: 'ec2:DescribeVolumes',
+  GetPublicAccessBlockCommand: 's3:GetBucketPublicAccessBlock',
+  GetAccountPublicAccessBlockCommand: 's3:GetAccountPublicAccessBlock',
+  DescribeTrailsCommand: 'cloudtrail:DescribeTrails',
+  GetTrailStatusCommand: 'cloudtrail:GetTrailStatus',
+  ListEventDataStoresCommand: 'cloudtrail:ListEventDataStores',
+  ListIndexesCommand: 'resource-explorer-2:ListIndexes',
+  SearchCommand: 'resource-explorer-2:Search',
+  GetResourcesCommand: 'tag:GetResources',
+  // v2.5: the real AZ map and Region opt-ins, and the opt-in bill (read-only)
+  DescribeAvailabilityZonesCommand: 'ec2:DescribeAvailabilityZones',
+  DescribeRegionsCommand: 'ec2:DescribeRegions',
+  GetCostAndUsageCommand: 'ce:GetCostAndUsage',
+  GetMetricDataCommand: 'cloudwatch:GetMetricData',
+  // the citizens' fixes (aws-city-fix, AllowFixes=true only)
+  PutPublicAccessBlockCommand: 's3:PutBucketPublicAccessBlock',
+  RevokeSecurityGroupIngressCommand: 'ec2:RevokeSecurityGroupIngress',
+  ModifyInstanceMetadataOptionsCommand: 'ec2:ModifyInstanceMetadataOptions',
+  EnableEbsEncryptionByDefaultCommand: 'ec2:EnableEbsEncryptionByDefault',
+  UpdateContinuousBackupsCommand: 'dynamodb:UpdateContinuousBackups',
 };
 
 describe('player role template', () => {
@@ -55,6 +81,33 @@ describe('player role template', () => {
     // Tiny instances with IMDSv2 only.
     expect(template).toMatch(/'ec2:InstanceType': \[t4g.nano, t4g.micro\]/);
     expect(template).toContain("'ec2:MetadataHttpTokens': required");
+    // Encrypted volumes only, and the server asks for one (a launch would otherwise be denied).
+    expect(template).toContain("'ec2:Encrypted': 'true'");
+    expect(source).toMatch(/Ebs: \{ Encrypted: true \}/);
+  });
+
+  it('fixes are opt-in, match fixes.ts exactly, and can only tighten things', async () => {
+    const { FIXES } = await import('../src/agents/fixes.js');
+    expect(template).toMatch(/AllowFixes:\s*\n\s*Type: String\s*\n\s*Default: 'false'/);
+    expect(template).toContain("FixesOn: !Equals [!Ref AllowFixes, 'true']");
+    expect(fixPolicy).toContain('PolicyName: aws-city-fix');
+    for (const def of Object.values(FIXES)) {
+      expect(fixPolicy, `${def.iamAction} belongs in aws-city-fix`).toContain(def.iamAction);
+      // ...and only there: no fix action is granted unconditionally.
+      expect(template.replace(fixPolicy, ''), `${def.iamAction} outside aws-city-fix`).not.toContain(def.iamAction);
+    }
+    // IMDS changes are held to HttpTokens=required by IAM itself.
+    expect(fixPolicy).toMatch(/ModifyInstanceMetadataOptions[\s\S]*?'ec2:Attribute\/HttpTokens': required/);
+    // Nothing that could undo a fix by loosening a setting, anywhere in the role.
+    for (const loosen of ['AuthorizeSecurityGroupIngress', 'DisableEbsEncryptionByDefault', 'DeleteBucketPublicAccessBlock', 'DeletePublicAccessBlock']) expect(template).not.toContain(loosen);
+  });
+
+  it('CloudWatch: GetMetricData only, in its own Region, and only the fixed queries flow.ts sends', async () => {
+    const cw = template.match(/cloudwatch:[A-Za-z*]+/g) ?? [];
+    expect([...new Set(cw)]).toEqual(['cloudwatch:GetMetricData']);
+    expect(template).toMatch(/Sid: LiveTraffic[\s\S]*?Action: cloudwatch:GetMetricData[\s\S]*?'aws:RequestedRegion': !Ref 'AWS::Region'/);
+    const { FLOW_QUERIES } = await import('../src/state/flow.js');
+    for (const q of FLOW_QUERIES) expect(q.expression, q.id).toMatch(/^SELECT SUM\(/);
   });
 
   it('role name matches what account linking expects', async () => {

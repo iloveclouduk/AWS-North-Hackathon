@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import { BENCHES, GRID, type Tile } from '@/world/layout';
 import { Agent, type AgentWorld } from './Agent';
-import { citizenIds } from './assets';
+import { roleForSheet } from '@/world/culture';
+import { citizenIds, crowdSheet } from './assets';
+import { click } from './audio';
 
-const CHATTER = ['Hi!', 'Nice day for a deploy!', 'Have you seen the S3 Lake?', 'I just learned about IAM roles!', 'Lambda cooks the best events.', 'Serverless is so relaxing.', 'Did you check CloudWatch?', 'Coffee at ElastiCache Café?', 'Multi-AZ or bust!', 'Least privilege, always.'];
+import { citizenLines, REPLIES, type ChatContext } from '@/world/dialogue';
 
 /** Pedestrians that make the city feel alive. They never block agents or the player. */
 export class Citizens {
@@ -11,12 +13,13 @@ export class Citizens {
   private nextThink = 0;
   private waved = new WeakMap<Agent, number>();
   private benchTaken = new Map<string, Agent>();
+  private roles = new Map<Agent, string[]>();
 
   constructor(
     private scene: Phaser.Scene,
     private world: AgentWorld,
     private spawnTiles: () => Tile[],
-    private extras: { lakeShore: () => Tile | undefined; player: () => Agent | undefined },
+    private extras: { lakeShore: () => Tile | undefined; player: () => Agent | undefined; context?: () => ChatContext },
   ) {}
 
   /** Keep roughly `target` citizens in town (grows as the city grows). */
@@ -25,17 +28,40 @@ export class Citizens {
     const tiles = this.spawnTiles();
     while (this.list.length < target && tiles.length) {
       const t = tiles[Math.floor(Math.random() * tiles.length)];
-      const sheet = ids[this.list.length % ids.length];
+      const n = this.list.length;
+      const sheet = ids[n % ids.length];
+      // Amazonians (SDE, SA, TAM, SRE, PM, delivery and warehouse associates) wear name tags with their role.
+      const role = roleForSheet(sheet);
       const a = new Agent(this.scene, this.world, {
-        id: `cz${this.list.length}`,
-        sheet,
-        name: 'Citizen',
+        id: `cz${n}`,
+        sheet: crowdSheet(sheet),
+        name: role ? `${role.names[Math.floor(n / ids.length) % role.names.length]} · ${role.short}` : 'Citizen',
         tile: t,
         home: { x: 0, y: 0, w: GRID, h: GRID },
         speed: 1.3 + Math.random() * 0.6,
       });
-      a.sprite.disableInteractive();
+      if (role) {
+        this.roles.set(a, role.lines);
+        a.onClick(() => {
+          click();
+          const p = this.extras.player();
+          if (p) a.face(p.tile);
+          a.emote('wave', 1200);
+          a.say(`${role.title}: ${role.lines[Math.floor(Math.random() * role.lines.length)]}`, { holdMs: 3500 });
+        });
+      } else a.sprite.disableInteractive();
       this.list.push(a);
+    }
+  }
+
+  /** Down to `cap` citizens (the window narrowed to a panel's width): idle ones leave; busy ones finish first. */
+  trim(cap: number) {
+    for (let i = this.list.length - 1; i >= 0 && this.list.length > cap; i--) {
+      const c = this.list[i];
+      if (c.isBusy) continue;
+      this.list.splice(i, 1);
+      this.roles.delete(c);
+      c.destroy();
     }
   }
 
@@ -89,10 +115,15 @@ export class Citizens {
     c.face(other.tile);
     other.face(c.tile);
     c.emote('talk', 2200, c.dir);
-    c.say(CHATTER[Math.floor(Math.random() * CHATTER.length)], { holdMs: 1500 });
+    // Amazonians talk shop (their role's lines); everyone else talks about the moment: the hour, a storm, the city.
+    const lines = this.roles.get(c) ?? citizenLines(this.extras.context?.() ?? { hour: new Date().getHours(), openFindings: 0, level: 0 });
+    // The words show only with the chatter setting on (and nobody else talking); the talking and laughing always do.
+    const spoke = c.say(lines[Math.floor(Math.random() * lines.length)], { holdMs: 1500, priority: 'ambient' });
     this.scene.time.delayedCall(1300, () => {
+      if (!this.list.includes(other)) return; // left the city (trim) meanwhile
       other.emote(Math.random() < 0.5 ? 'laugh' : 'talk', 1800, other.dir);
-      other.say(['Ha! Totally.', 'Same!', 'Tell me more!', 'Nice!', 'On my way.'][Math.floor(Math.random() * 5)], { holdMs: 1400 });
+      // The reply belongs to a line that showed (its bubble is still up, so it can't pass the ambient gate itself).
+      if (spoke) other.say(REPLIES[Math.floor(Math.random() * REPLIES.length)], { holdMs: 1400 });
     });
   }
 

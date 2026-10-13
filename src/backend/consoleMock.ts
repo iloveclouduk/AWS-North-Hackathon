@@ -46,13 +46,13 @@ const S3: Flow = {
   onForm: (s) => !!find(s, /^bucket name/i, 'textbox'),
   finalKey: 'create',
   rules: [
-    { key: 'open', page: 'list', find: (s) => find(s, /^create bucket$/i), step: (i) => ({ action: 'click', target: target(i), say: 'Opening the “Create bucket” form for you.', why: 'A bucket is the top-level container for your S3 objects — like a lake that holds all your fish.', risk: 'safe' }) },
-    { key: 'name', find: (s) => find(s, /^bucket name/i, 'textbox'), step: (i, t) => ({ action: 'type', target: target(i), value: t.name, say: `Naming it ${t.name}.`, why: 'Bucket names are global across all AWS accounts: 3–63 lowercase letters, numbers, dots or hyphens. They appear in the bucket’s URL.', risk: 'safe' }) },
-    { key: 'bpa', find: (s) => find(s, /block all public access/i), step: (i) => ({ action: 'point', target: target(i), say: 'Leaving “Block all public access” switched ON.', why: 'Public buckets are the #1 cause of S3 data leaks. Only turn this off for deliberately public content — and prefer CloudFront for websites.', risk: 'safe' }) },
+    { key: 'open', page: 'list', find: (s) => find(s, /^create bucket$/i), step: (i) => ({ action: 'click', target: target(i), say: 'Opening the “Create bucket” form for you.', why: 'A bucket is the top-level container for your S3 objects, like a lake that holds all your fish.', risk: 'safe' }) },
+    { key: 'name', find: (s) => find(s, /^bucket name/i, 'textbox'), step: (i, t) => ({ action: 'type', target: target(i), value: t.name, say: `Naming it ${t.name}.`, why: 'Bucket names are 3–63 lowercase letters, numbers, dots or hyphens, starting and ending with a letter or number. They appear in URLs and must be unique across the whole AWS partition. Names ending in your account ID, Region and -an are reserved for your account.', risk: 'safe' }) },
+    { key: 'bpa', find: (s) => find(s, /block all public access/i), step: (i) => ({ action: 'point', target: target(i), say: 'Leaving “Block all public access” switched ON.', why: 'Public buckets are a leading cause of S3 data leaks. Only turn this off for content you mean to make public, and use CloudFront for websites.', risk: 'safe' }) },
     { key: 'enc', find: (s) => find(s, /(server-side encryption|sse-s3|encryption type)/i), step: (i) => ({ action: 'point', target: target(i), say: 'Default encryption stays on (SSE-S3).', why: 'S3 encrypts every new object at rest by default. Choose SSE-KMS when you need your own key and an audit trail in CloudTrail.', risk: 'safe' }) },
-    { key: 'create', find: (s) => find(s, /^create bucket$/i), step: () => ({ action: 'click', target: { name: 'Create bucket' }, say: 'Creating the bucket now.', why: 'S3 creates it in the Region you picked. You pay only for what you store and request — an empty bucket costs nothing.', risk: 'safe' }) },
+    { key: 'create', find: (s) => find(s, /^create bucket$/i), step: () => ({ action: 'click', target: { name: 'Create bucket' }, say: 'Creating the bucket now.', why: 'S3 creates it in the Region you picked. You pay only for what you store and request, so an empty bucket costs nothing.', risk: 'safe' }) },
   ],
-  done: (t) => ({ action: 'done', say: `Done! ${t.name} is ready. Try uploading a file to it.`, why: 'Next up: storage classes and lifecycle rules — ask Sally at S3 Lake!', risk: 'safe' }),
+  done: (t) => ({ action: 'done', say: `Done! ${t.name} is ready. Try uploading a file to it.`, why: 'Next up: storage classes and lifecycle rules. Ask Sally at S3 Lake.', risk: 'safe' }),
 };
 
 const EC2: Flow = {
@@ -60,14 +60,14 @@ const EC2: Flow = {
   finalKey: 'launch',
   rules: [
     { key: 'open', page: 'list', find: (s) => find(s, /^launch instances?$/i), step: (i) => ({ action: 'click', target: target(i), say: 'Opening the “Launch an instance” wizard.', why: 'An EC2 instance is a virtual server you rent by the second: you pick its OS image, size, login and firewall.', risk: 'safe' }) },
-    { key: 'name', find: (s) => find(s, /^name$/i, 'textbox'), step: (i, t) => ({ action: 'type', target: target(i), value: t.name, say: `Naming it ${t.name}.`, why: 'The name is just a “Name” tag. Tags are how you find, group and bill resources — tag everything from day one.', risk: 'safe' }) },
-    { key: 'ami', find: (s) => find(s, /^amazon linux/i, 'radio'), step: (i) => ({ action: 'point', target: target(i), say: 'Keeping Amazon Linux as the operating system.', why: 'An AMI (Amazon Machine Image) is the disk image the server boots from. Amazon Linux 2023 is free, patched by AWS and tuned for EC2.', risk: 'safe' }) },
-    { key: 'type', find: (s) => find(s, /^instance type/i, 'combobox'), step: (i) => ({ action: 'select', target: target(i), value: 't4g.micro', say: 'Choosing the t4g.micro instance type.', why: 't4g instances run on AWS Graviton (Arm) chips: the best price-performance, and t4g.micro is in the free trial. “t” = burstable CPU, good for light workloads.', risk: 'safe' }) },
-    { key: 'key', find: (s) => find(s, /^key pair/i, 'combobox'), step: (i) => ({ action: 'point', target: target(i), say: 'We can proceed without a key pair.', why: 'Key pairs are for SSH logins. EC2 Instance Connect or Session Manager let you log in without long-lived keys to lose — safer for a demo.', risk: 'safe' }) },
-    { key: 'sg', find: (s) => find(s, /^create security group/i, 'radio'), step: (i) => ({ action: 'point', target: target(i), say: 'Keeping the default: a new security group.', why: 'A security group is the instance’s firewall. The default only allows what you list — never open SSH (port 22) to 0.0.0.0/0 in real projects.', risk: 'safe' }) },
-    { key: 'launch', find: (s) => find(s, /^launch instance$/i), step: () => ({ action: 'click', target: { name: 'Launch instance' }, say: 'Launching the instance now.', why: 'You pay per second while it runs. Stop or terminate it when you’re done — a stopped instance only costs its disk.', risk: 'safe' }) },
+    { key: 'name', find: (s) => find(s, /^name$/i, 'textbox'), step: (i, t) => ({ action: 'type', target: target(i), value: t.name, say: `Naming it ${t.name}.`, why: 'The name is just a “Name” tag. Tags help you find, group and track the cost of resources, so tag everything from day one.', risk: 'safe' }) },
+    { key: 'ami', find: (s) => find(s, /^amazon linux/i, 'radio'), step: (i) => ({ action: 'point', target: target(i), say: 'Keeping Amazon Linux as the operating system.', why: 'An AMI (Amazon Machine Image) is the disk image the server boots from. Amazon Linux 2023 has no license fee, gets AWS security updates and is tuned for EC2.', risk: 'safe' }) },
+    { key: 'type', find: (s) => find(s, /^instance type/i, 'combobox'), step: (i) => ({ action: 'select', target: target(i), value: 't3.micro', say: 'Choosing the t3.micro instance type.', why: 't3.micro is Free Tier eligible on both the old plan and the July 2025 plan, and it runs the default x86 AMI. The “t” means burstable CPU, good for light workloads.', risk: 'safe' }) },
+    { key: 'key', find: (s) => find(s, /^key pair/i, 'combobox'), step: (i) => ({ action: 'point', target: target(i), say: 'We can proceed without a key pair.', why: 'Key pairs are for SSH logins. EC2 Instance Connect lets you log in from the console without long-lived keys to lose, which is safer for a demo.', risk: 'safe' }) },
+    { key: 'sg', find: (s) => find(s, /^create security group/i, 'radio'), step: (i) => ({ action: 'point', target: target(i), say: 'Keeping the default: a new security group.', why: 'A security group is the instance’s firewall. This new one allows SSH from anywhere. Fine for a brief test, but for real projects allow SSH only from your own IP address. If you connect from the console, allow the EC2 Instance Connect prefix list instead.', risk: 'safe' }) },
+    { key: 'launch', find: (s) => find(s, /^launch instance$/i), step: () => ({ action: 'click', target: { name: 'Launch instance' }, say: 'Launching the instance now.', why: 'You pay per second while it runs. Stop or terminate it when you’re done. A stopped instance still bills for its EBS disk and any Elastic IP.', risk: 'confirm' }) },
   ],
-  done: (t) => ({ action: 'done', say: `Done! ${t.name} is launching on a t4g.micro.`, why: 'Next: connect with EC2 Instance Connect, then stop it when you’re finished so it doesn’t keep costing money.', risk: 'safe' }),
+  done: (t) => ({ action: 'done', say: `Done! ${t.name} is launching on a t3.micro.`, why: 'Next: connect with EC2 Instance Connect, then stop it when you’re finished so it doesn’t keep costing money.', risk: 'safe' }),
 };
 
 const DYNAMODB: Flow = {
@@ -75,12 +75,12 @@ const DYNAMODB: Flow = {
   finalKey: 'create',
   rules: [
     { key: 'open', page: 'list', find: (s) => find(s, /^create table$/i), step: (i) => ({ action: 'click', target: target(i), say: 'Opening the “Create table” form.', why: 'DynamoDB is a serverless key-value database: no servers to size, single-digit-millisecond reads at any scale.', risk: 'safe' }) },
-    { key: 'name', find: (s) => find(s, /^table name/i, 'textbox'), step: (i, t) => ({ action: 'type', target: target(i), value: t.name, say: `Naming the table ${t.name}.`, why: 'Table names are unique per account and Region. One table per access pattern is the classic starting point.', risk: 'safe' }) },
+    { key: 'name', find: (s) => find(s, /^table name/i, 'textbox'), step: (i, t) => ({ action: 'type', target: target(i), value: t.name, say: `Naming the table ${t.name}.`, why: 'Table names are unique per account and Region. AWS advises few tables: design keys around the queries you’ll run.', risk: 'safe' }) },
     { key: 'pk', find: (s) => find(s, /^partition key/i, 'textbox'), step: (i) => ({ action: 'type', target: target(i), value: 'id', say: 'Using “id” as the partition key.', why: 'The partition key decides which storage partition holds each item. Pick something with many distinct values, like an id, so load spreads evenly.', risk: 'safe' }) },
-    { key: 'defaults', find: (s) => find(s, /^default settings/i, 'radio'), step: (i) => ({ action: 'point', target: target(i), say: 'Keeping the default settings (on-demand capacity).', why: 'On-demand capacity bills per request and scales automatically — perfect when you don’t know your traffic yet. Switch to provisioned later for steady loads.', risk: 'safe' }) },
+    { key: 'defaults', find: (s) => find(s, /^default settings/i, 'radio'), step: (i) => ({ action: 'point', target: target(i), say: 'Keeping the default settings (on-demand capacity).', why: 'On-demand capacity bills per request and scales automatically, so it suits traffic you can’t predict yet. Switch to provisioned later for steady loads.', risk: 'safe' }) },
     { key: 'create', find: (s) => find(s, /^create table$/i), step: () => ({ action: 'click', target: { name: 'Create table' }, say: 'Creating the table now.', why: 'An empty on-demand table costs nothing; you pay for reads, writes and storage as you use them.', risk: 'safe' }) },
   ],
-  done: (t) => ({ action: 'done', say: `Done! ${t.name} is ready — try “Explore table items” to add one.`, why: 'Next: add a sort key or a global secondary index when you need new query patterns.', risk: 'safe' }),
+  done: (t) => ({ action: 'done', say: `Done! ${t.name} is ready. Try “Explore table items” to add one.`, why: 'Next: add a sort key or a global secondary index when you need new query patterns.', risk: 'safe' }),
 };
 
 const LAMBDA: Flow = {
@@ -97,10 +97,10 @@ const LAMBDA: Flow = {
           : { action: 'click', target: target(i), say: 'Picking “Author from scratch”.', why: 'Starting from scratch gives you a tiny Hello World handler — the clearest way to see how a function works.', risk: 'safe' },
     },
     { key: 'name', find: (s) => find(s, /^function name/i, 'textbox'), step: (i) => ({ action: 'type', target: target(i), value: 'city-hello', say: 'Naming it city-hello.', why: 'The name becomes part of the function’s ARN, which other services use to invoke it.', risk: 'safe' }) },
-    { key: 'runtime', find: (s) => find(s, /^runtime/i, 'combobox'), step: (i) => ({ action: 'select', target: target(i), value: 'Node.js 22.x', say: 'Choosing the Node.js 22.x runtime.', why: 'The runtime is the language environment Lambda starts for your code. Use the newest supported version for security patches and speed.', risk: 'safe' }) },
-    { key: 'create', find: (s) => find(s, /^create function$/i), step: () => ({ action: 'click', target: { name: 'Create function' }, say: 'Creating the function now.', why: 'Lambda also creates a basic execution role so the function can write logs to CloudWatch — least privilege by default.', risk: 'safe' }) },
+    { key: 'runtime', find: (s) => find(s, /^runtime/i, 'combobox'), step: (i) => ({ action: 'select', target: target(i), value: 'Node.js 24.x', say: 'Choosing the Node.js 24.x runtime.', why: 'The runtime is the language environment Lambda starts for your code. Use the newest non-preview version for security patches and speed.', risk: 'safe' }) },
+    { key: 'create', find: (s) => find(s, /^create function$/i), step: () => ({ action: 'click', target: { name: 'Create function' }, say: 'Creating the function now.', why: 'Lambda also creates a basic execution role that only lets the function write its logs to CloudWatch.', risk: 'safe' }) },
   ],
-  done: () => ({ action: 'done', say: 'Done! city-hello is live — press “Test” to run it once.', why: 'Next: add a trigger (API Gateway, S3, EventBridge) so something calls your function.', risk: 'safe' }),
+  done: () => ({ action: 'done', say: 'Done! city-hello is live. Press “Test” to run it once.', why: 'Next: add a trigger (API Gateway, S3, EventBridge) so something calls your function.', risk: 'safe' }),
 };
 
 const FLOWS: Record<FlowId, Flow> = { s3: S3, ec2: EC2, dynamodb: DYNAMODB, lambda: LAMBDA };
@@ -150,14 +150,14 @@ function genericStep(t: Task, s: PageSnapshot): Step {
     .sort((a, b) => b.score - a.score);
   const best = scored[0]?.score ? scored[0].i : undefined;
   if (!best || t.index >= 3) {
-    return { action: 'done', say: 'That’s as far as the offline demo goes on this page.', why: 'Connect the AWS City server (WXT_BACKEND=aws) and Claude on Bedrock will plan every step for any console page.', risk: 'safe' };
+    return { action: 'done', say: 'That’s as far as the offline demo goes on this page.', why: 'Connect to the AWS City server and Claude on Bedrock will plan every step for any console page.', risk: 'safe' };
   }
   t.did.add(best.id);
-  return { action: 'point', target: { id: best.id, name: best.name }, say: `This is “${best.name}”${best.context ? ` in ${best.context}` : ''}.`, why: 'It’s the closest match to what you asked for — the full Copilot (server) would take it from here.', risk: 'safe' };
+  return { action: 'point', target: { id: best.id, name: best.name }, say: `This is “${best.name}”${best.context ? ` in ${best.context}` : ''}.`, why: 'It’s the closest match to what you asked for. The full Copilot would take it from here.', risk: 'safe' };
 }
 
 const NAMES: Record<FlowId, () => string> = {
-  s3: () => `aws-city-demo-${suffix()}${suffix()}`.slice(0, 20),
+  s3: () => `city-demo-${suffix()}${suffix()}`,
   ec2: () => `city-web-${suffix()}`,
   dynamodb: () => `city-demo-${suffix()}`,
   lambda: () => 'city-hello',
@@ -185,7 +185,7 @@ export class ConsoleMock {
     if (!ok) {
       t.misses++;
       this.emit({ type: 'agent.message', from: t.agentId, to: 'user', text: note === 'player did not act' ? 'No rush — I’ll wait here.' : `Hmm: ${note ?? 'that didn’t work'}.` });
-      if (t.misses >= 3) return this.finish(taskId, false, 'I got stuck after a few tries — I stopped so nothing unexpected happens.');
+      if (t.misses >= 3) return this.finish(taskId, false, 'I got stuck after a few tries, so I stopped before anything unexpected happened.');
     }
     setTimeout(() => this.next(taskId, snapshot), 350);
   }

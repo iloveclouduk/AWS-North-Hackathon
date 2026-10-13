@@ -1,0 +1,106 @@
+/* Tap-to-define glossary terms (src/ui/Term.tsx): a dotted underline, a small popover with the short definition. */
+.term-wrap {
+  position: relative;
+  display: inline;
+}
+.term {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px dotted currentColor;
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  cursor: help;
+}
+/* Punctuation touching a term wraps with it (Term.tsx `glue`); the popover inside still wraps normally. */
+.term-glue {
+  white-space: nowrap;
+}
+.term-glue .term-pop {
+  white-space: normal;
+}
+.term:hover,
+.term[aria-expanded='true'] {
+  border-bottom-style: solid;
+}
+.term-pop {
+  position: absolute;
+  top: calc(100% + var(--s-2));
+  left: 0;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  width: max-content;
+  max-width: min(260px, calc(100vw - 32px));
+  padding: var(--s-4) var(--s-5);
+  background: var(--panel-hi);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-pixel);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.45;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+  cursor: auto;
+}
+.term-pop.up {
+  top: auto;
+  bottom: calc(100% + var(--s-2));
+}
+.term-name {
+  color: var(--ink-hi);
+  font-size: var(--fs-sm);
+}
+.term-more {
+  align-self: flex-start;
+  color: var(--info-ink);
+  font-weight: 700;
+}
+/* Inside another button (a toast, a list row) a term is only marked; its definition is the title. */
+.term.still {
+  cursor: inherit;
+}
+
+/* "For AWS learners": prices, role cards and CloudFormation rows, folded. */
+.for-learners {
+  margin: var(--s-3) 0;
+  font-size: var(--fs-sm);
+}
+.for-learners > summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+.for-learners[open] > summary {
+  margin-bottom: var(--s-3);
+}
+
+/* "Tell me more": simple words first, the full answer folded one tap away (flashcards, puzzle results). */
+.tell-more {
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.tell-more > summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+.tell-more[open] > summary {
+  margin-bottom: var(--s-3);
+}
+.tell-more-text {
+  display: block;
+}

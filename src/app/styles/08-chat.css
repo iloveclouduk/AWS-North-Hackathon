@@ -1,0 +1,192 @@
+/* ── composer: one row ── */
+.composer {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-4) var(--s-4);
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+.composer input,
+.prompt-row input:not([type='checkbox']) {
+  flex: 1;
+  min-width: 0;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  padding: var(--s-3) var(--s-4);
+  min-height: 34px;
+  transition: border-color var(--dur-2), box-shadow var(--dur-2);
+}
+.composer input:focus,
+.prompt-row input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.composer.console-mode input {
+  border-color: var(--info);
+}
+.console-btn.on {
+  color: var(--info);
+  background: rgba(143, 184, 232, 0.12);
+}
+.btn.send .hop {
+  display: inline-flex;
+  animation: hop var(--dur-3) var(--ease-out);
+}
+@keyframes hop {
+  40% {
+    transform: translate(3px, -3px);
+  }
+}
+.prompt-row {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+}
+/* chips (HQ chat suggestions, culture readers) */
+.chips {
+  display: flex;
+  gap: var(--s-2);
+  overflow-x: auto;
+  padding-bottom: var(--s-3);
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.chips.more-right {
+  mask-image: linear-gradient(90deg, var(--black) calc(100% - 36px), transparent);
+}
+.chips.more-left {
+  mask-image: linear-gradient(90deg, transparent, var(--black) 36px);
+}
+.chips.more-left.more-right {
+  mask-image: linear-gradient(90deg, transparent, var(--black) 36px, var(--black) calc(100% - 36px), transparent);
+}
+.chip {
+  flex: none;
+  scroll-snap-align: start;
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  padding: var(--s-2) var(--s-4);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink-soft);
+  transition: background-color var(--dur-2), border-color var(--dur-2);
+}
+.chip:hover:not(:disabled) {
+  border-color: var(--muted);
+  background: var(--panel);
+  color: var(--ink-hi);
+}
+.chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── chat ── */
+.chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: var(--s-4);
+}
+.chat-log {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding-bottom: var(--s-4);
+}
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 0 var(--s-4);
+  margin-bottom: var(--s-3);
+  border-bottom: 2px solid var(--district, var(--line));
+  color: var(--district, var(--accent));
+}
+.chat-team {
+  display: flex;
+}
+.chat-team .portrait + .portrait {
+  margin-left: -6px;
+}
+.chat-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-3);
+  max-width: 94%;
+  animation: enter var(--dur-2) var(--ease-step);
+}
+.bubble {
+  max-width: 88%;
+  padding: var(--s-3) var(--s-5);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-pixel-sm);
+  line-height: 1.45;
+  animation: enter var(--dur-2) var(--ease-step);
+}
+.bubble.user {
+  align-self: flex-end;
+  background: var(--quote);
+  color: var(--quote-ink);
+  font-weight: 700;
+  border-bottom-right-radius: var(--r-sm);
+}
+.bubble.agent {
+  align-self: flex-start;
+  max-width: none;
+  background: var(--bubble);
+  color: var(--bubble-ink);
+  border-bottom-left-radius: var(--r-sm);
+}
+.bubble-who {
+  display: block;
+  margin-bottom: var(--s-1);
+  font-size: var(--fs-sm);
+  color: var(--paper-meta);
+}
+/* typing: three pixel dots taking turns */
+.typing-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: var(--s-3);
+  vertical-align: middle;
+}
+.typing-dots i {
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  animation: pulse 0.9s steps(2) infinite;
+}
+.typing-dots i:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.typing-dots i:nth-child(3) {
+  animation-delay: 0.6s;
+}
+.bubble.error {
+  align-self: stretch;
+  max-width: none;
+  background: var(--bad-soft);
+  border-color: var(--bad-line);
+  color: var(--bad-ink);
+}
+.offline-note {
+  margin: 0 0 var(--s-3);
+}
+.typing {
+  animation: blink 0.8s steps(2) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

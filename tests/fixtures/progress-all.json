@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "landmarks": {
+    "ec2": {
+      "discovered": true,
+      "xp": 60
+    },
+    "lambda": {
+      "discovered": true,
+      "xp": 60
+    },
+    "ecs": {
+      "discovered": true,
+      "xp": 60
+    },
+    "fargate": {
+      "discovered": true,
+      "xp": 60
+    },
+    "eks": {
+      "discovered": true,
+      "xp": 60
+    },
+    "beanstalk": {
+      "discovered": true,
+      "xp": 60
+    },
+    "s3": {
+      "discovered": true,
+      "xp": 60
+    },
+    "ebs": {
+      "discovered": true,
+      "xp": 60
+    },
+    "efs": {
+      "discovered": true,
+      "xp": 60
+    },
+    "glue": {
+      "discovered": true,
+      "xp": 60
+    },
+    "athena": {
+      "discovered": true,
+      "xp": 60
+    },
+    "lakeformation": {
+      "discovered": true,
+      "xp": 60
+    },
+    "dynamodb": {
+      "discovered": true,
+      "xp": 60
+    },
+    "rds": {
+      "discovered": true,
+      "xp": 60
+    },
+    "aurora": {
+      "discovered": true,
+      "xp": 60
+    },
+    "elasticache": {
+      "discovered": true,
+      "xp": 60
+    },
+    "redshift": {
+      "discovered": true,
+      "xp": 60
+    },
+    "neptune": {
+      "discovered": true,
+      "xp": 60
+    },
+    "vpc": {
+      "discovered": true,
+      "xp": 60
+    },
+    "route53": {
+      "discovered": true,
+      "xp": 60
+    },
+    "cloudfront": {
+      "discovered": true,
+      "xp": 60
+    },
+    "apigateway": {
+      "discovered": true,
+      "xp": 60
+    },
+    "sqs": {
+      "discovered": true,
+      "xp": 60
+    },
+    "eventbridge": {
+      "discovered": true,
+      "xp": 60
+    },
+    "iam": {
+      "discovered": true,
+      "xp": 60
+    },
+    "cognito": {
+      "discovered": true,
+      "xp": 60
+    },
+    "kms": {
+      "discovered": true,
+      "xp": 60
+    },
+    "shield": {
+      "discovered": true,
+      "xp": 60
+    },
+    "guardduty": {
+      "discovered": true,
+      "xp": 60
+    },
+    "cloudwatch": {
+      "discovered": true,
+      "xp": 60
+    },
+    "bedrock": {
+      "discovered": true,
+      "xp": 60
+    },
+    "agentcore": {
+      "discovered": true,
+      "xp": 60
+    },
+    "sagemaker": {
+      "discovered": true,
+      "xp": 60
+    },
+    "q": {
+      "discovered": true,
+      "xp": 60
+    },
+    "rekognition": {
+      "discovered": true,
+      "xp": 60
+    },
+    "textract": {
+      "discovered": true,
+      "xp": 60
+    }
+  },
+  "cards": {
+    "ec2-01": {
+      "interval": 3,
+      "ease": 2.5,
+      "due": 1790000000000,
+      "reps": 2
+    },
+    "ec2-02": {
+      "interval": 3,
+      "ease": 2.5,
+      "due": 1790000000000,
+      "reps": 2
+    },
+    "lambda-01": {
+      "interval": 3,
+      "ease": 2.5,
+      "due": 1790000000000,
+      "reps": 2
+    },
+    "lambda-02": {
+      "interval": 3,
+      "ease": 2.5,
+      "due": 1790000000000,
+      "reps": 2
+    },
+    "ecs-01": {
+      "interval": 3,
+      "ease": 2.5,
+      "due": 1790000000000,
+      "reps": 2
+    },
+    "ecs-02": {
+      "interval": 3,
+      "ease": 2.5,
+      "due": 1790000000000,
+      "reps": 2
+    }
+  },
+  "quests": {
+    "storage-static-site": {
+      "status": "done",
+      "step": 5
+    },
+    "compute-first-function": {
+      "status": "done",
+      "step": 5
+    },
+    "database-library-card": {
+      "status": "done",
+      "step": 5
+    },
+    "networking-market-day": {
+      "status": "done",
+      "step": 6
+    },
+    "security-night-watch": {
+      "status": "done",
+      "step": 6
+    },
+    "aiml-first-model-call": {
+      "status": "done",
+      "step": 4
+    },
+    "build-ai-agent": {
+      "status": "done",
+      "step": 5
+    },
+    "first-data-lake": {
+      "status": "done",
+      "step": 6
+    },
+    "harbour-containers": {
+      "status": "done",
+      "step": 5
+    },
+    "walled-garden": {
+      "status": "done",
+      "step": 6
+    }
+  },
+  "puzzles": {
+    "thumbnails": {
+      "best": 90
+    },
+    "static-site": {
+      "best": 90
+    },
+    "secure-api": {
+      "best": 90
+    },
+    "order-queue": {
+      "best": 90
+    },
+    "data-lake-query": {
+      "best": 90
+    },
+    "hr-assistant": {
+      "best": 90
+    },
+    "global-db": {
+      "best": 90
+    },
+    "ddos-ready": {
+      "best": 90
+    },
+    "event-audit": {
+      "best": 90
+    },
+    "container-app": {
+      "best": 90
+    },
+    "region-down": {
+      "best": 90
+    }
+  },
+  "updatedAt": "2026-10-01T00:00:00.000Z"
+}

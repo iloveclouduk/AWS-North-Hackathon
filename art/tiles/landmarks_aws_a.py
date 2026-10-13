@@ -280,37 +280,54 @@ def helm(c, x, y, rad, col, spokes=7, lit=False):
 
 
 def lm_eks(fw, fh, tier, col, key):
-    """EKS icon = the Kubernetes helm: a harbour-master's tower with a giant ship's wheel."""
-    h = 44 + 10 * tier
-    c = Canvas(fw, fh, h + 34)
+    """EKS Harbour Tower (icon = the Kubernetes helm): a harbour-master's tower on a stone podium with lit windows,
+    the giant ship's wheel on its band, a glass lookout and, on the quay, stacked container pods that multiply each
+    tier (pods scheduled onto the nodes), a berth office and a gantry crane."""
+    h = 46 + 10 * tier
+    c = Canvas(fw, fh, h + 36)
     r = seeded(key)
+    c.box(0.1, 0.1, fw - 0.1, fh - 0.1, 0, 1, CON_M, top=(178, 184, 192))
+    for k in range(1, 6):  # quay slabs
+        c.line((k / 2, 0.15, 1), (k / 2, fh - 0.15, 1), (160, 166, 176))
+    c.lface(fh - 0.1, 0.1, fw - 0.1, 0, 1, ORANGE)  # the quay edge
     if tier >= 2:  # berth-office annexe
-        c.box(0.3, 1.9, 1.3, 2.7, 0, 16, WHITE)
+        c.box(0.3, 1.95, 1.2, 2.75, 1, 16, WHITE)
         for k in range(3):
-            lwin(c, 2.7, 0.4 + k * 0.3, 5, w=0.16, h=5, lit=r(3) > 0)
-        c.gable(0.25, 1.85, 1.35, 2.75, 16, 6, col)
-    if tier >= 3:  # bollards + mooring rope pier on the right
-        c.box(2.0, 0.4, 2.8, 1.1, 0, 3, WOOD, top=shade(WOOD, 1.08))
-        for u in (2.1, 2.6):
-            c.box(u, 0.95, u + 0.1, 1.05, 3, 7, NAVY_D)
-    u0, v0, u1, v1 = 1.0, 1.0, 2.0, 2.0
-    c.box(u0, v0, u1, v1, 0, h, (226, 230, 236))
-    for z in range(8, h - 18, 8):
-        lwin(c, v1, u0 + 0.2, z, w=0.16, h=4, lit=r(3) > 0)
-        rwin(c, u1, v0 + 0.64, z, w=0.16, h=4, lit=r(3) > 0)
-    c.door(u0, u1, v1, w=0.3, h=8)
-    # blue band + the helm on the left face
-    c.lface(v1, u0, u1, h - 18, h - 4, col)
-    c.rface(u1, v0, v1, h - 18, h - 4, shade(col, 0.78))
-    x, y = c.P((u0 + u1) / 2, v1, h - 11)
-    helm(c, x, y, 5, WHITE, lit=tier >= 4)
-    # lookout gallery + roof
-    c.box(u0 - 0.1, v0 - 0.1, u1 + 0.1, v1 + 0.1, h, h + 2, NAVY)
-    c.box(u0 + 0.15, v0 + 0.15, u1 - 0.15, v1 - 0.15, h + 2, h + 10, GLASS)
-    c.lface(v1 - 0.15, u0 + 0.2, u1 - 0.2, h + 3, h + 9, GLASS, light=True)
+            lwin(c, 2.75, 0.38 + k * 0.27, 6, w=0.16, h=5, lit=r(3) > 0)
+        c.gable(0.25, 1.9, 1.25, 2.8, 16, 6, col)
+    u0, v0, u1, v1 = 1.0, 0.9, 2.0, 1.9
+    c.box(u0 - 0.1, v0 - 0.1, u1 + 0.1, v1 + 0.1, 1, 9, (184, 178, 168))  # podium
+    c.lface(v1 + 0.1, u0 + 0.2, u1 - 0.2, 2, 8, GLASS, light=True)
+    c.box(u0, v0, u1, v1, 9, h, (226, 230, 236))
+    for z in range(13, h - 18, 7):
+        for k in range(2):
+            lwin(c, v1, u0 + 0.18 + k * 0.42, z, w=0.22, h=4, lit=r(3) > 0)
+            rwin(c, u1, v0 + 0.18 + k * 0.42, z, w=0.22, h=4, lit=r(3) > 0)
+    c.lface(v1, u0, u0 + 0.06, 9, h, CON_L)
+    c.lface(v1, u1 - 0.06, u1, 9, h, CON_L)
+    c.door(u0, u1, v1 + 0.1, w=0.3, h=8)
+    # the band with the helm
+    c.lface(v1, u0, u1, h - 18, h - 3, col)
+    c.rface(u1, v0, v1, h - 18, h - 3, shade(col, 0.78))
+    x, y = c.P((u0 + u1) / 2, v1, h - 10)
+    helm(c, x, y, 5, WHITE, lit=tier >= 3)
+    x, y = c.P(u1, (v0 + v1) / 2, h - 10)
+    c.d.ellipse((x - 3, y - 3, x + 3, y + 3), outline=A(shade(WHITE, 0.8)))
+    # lookout gallery, glass lantern, roof
+    c.box(u0 - 0.1, v0 - 0.1, u1 + 0.1, v1 + 0.1, h - 3, h, NAVY)
+    c.box(u0 + 0.12, v0 + 0.12, u1 - 0.12, v1 - 0.12, h, h + 10, GLASS)
+    c.lface(v1 - 0.12, u0 + 0.16, u1 - 0.16, h + 1, h + 9, GLASS, light=True)
+    c.rface(u1 - 0.12, v0 + 0.16, v1 - 0.16, h + 1, h + 9, GLASS_D, light=True)
+    for t in (0.37, 0.63):
+        c.line((u0 + t, v1 - 0.12, h), (u0 + t, v1 - 0.12, h + 10), NAVY_D)
     c.pyramid(u0 - 0.05, v0 - 0.05, u1 + 0.05, v1 + 0.05, h + 10, 10, NAVY)
     if tier >= 4:
         flag(c, (u0 + u1) / 2, (v0 + v1) / 2, h + 20, col, h=10)
+    # stacked container pods on the quay
+    spots = [(2.2, 1.45, 0), (2.2, 0.95, 0), (2.2, 1.45, 8), (2.2, 0.45, 0), (2.2, 0.95, 8), (2.2, 1.45, 16), (2.2, 2.2, 0)]
+    n = [1, 3, 5, 7][tier - 1]
+    for i, (u, v, z) in sorted(enumerate(spots[:n]), key=lambda t: (t[1][1], t[1][2])):
+        container(c, u, v, z + 1, [col, (59, 130, 246), (34, 170, 94), (226, 72, 64)][i % 4], du=0.7, dv=0.42)
     return c
 
 
@@ -373,72 +390,138 @@ def lm_beanstalk(fw, fh, tier, col, key):
 
 # ── Data Lake Shores ──────────────────────────────────────────────────────────
 
+def bucket_silo(c, u, v, z, h, r0, r1, col, lit=False):
+    """A silo shaped like the S3 bucket: tapered (wider at the top), hooped, open rim with a dark mouth."""
+    x, y0 = c.P(u, v, z)
+    y1 = y0 - h
+    b, t = max(2, round(r0 * HW * 1.4)), max(3, round(r1 * HW * 1.4))
+    rb, rt = max(1, b // 2), max(1, t // 2)
+    c.d.ellipse((x - b, y0 - rb, x + b, y0 + rb), fill=A(shade(col, 0.7)))
+    c.d.polygon([(x - b, y0), (x + b, y0), (x + t, y1), (x - t, y1)], fill=A(shade(col, 0.86)))
+    c.d.polygon([(x - b, y0), (x - b + 3, y0), (x - t + 3, y1), (x - t, y1)], fill=A(shade(col, 1.05)))
+    c.d.polygon([(x + b - 3, y0), (x + b, y0), (x + t, y1), (x + t - 3, y1)], fill=A(shade(col, 0.66)))
+    for k in range(1, 4):
+        f = k / 4
+        w, yy = round(b + (t - b) * f), round(y0 - h * f)
+        ry = max(1, w // 2)
+        c.d.arc((x - w, yy - ry, x + w, yy + ry), 0, 180, fill=A(shade(col, 0.6)))
+    c.d.ellipse((x - t, y1 - rt, x + t, y1 + rt), fill=A(shade(col, 1.15)))
+    c.d.ellipse((x - t + 2, y1 - rt + 1, x + t - 2, y1 + rt - 1), fill=A(shade(col, 0.42)))
+    if lit:
+        c.d.rectangle((x - 1, y0 - h + 4, x, y0 - 3), fill=A(GLASS_D))
+        c.ld.rectangle((x - 1, y0 - h + 4, x, y0 - 3), fill=A(LIT))
+    return x, y1
+
+
 def lm_s3(fw, fh, tier, col, key):
-    """S3 icon = a bucket: a lake with a bucket pier and floating buckets (objects)."""
-    c = Canvas(fw, fh, 60)
-    # pier from the sandy front row out into the lake
-    c.box(1.2, 0.9, 1.7, 2.5, 1, 3, WOOD, top=shade(WOOD, 1.08))
-    for v in (1.0, 1.6, 2.2):
-        c.box(1.2, v, 1.28, v + 0.08, -3, 3, WOOD_D)
-        c.box(1.62, v, 1.7, v + 0.08, -3, 3, WOOD_D)
-    # a big bucket at the end of the pier (the sign)
-    c.box(1.25, 0.95, 1.65, 1.35, 3, 5, WOOD_D)
-    bucket(c, 1.45, 1.15, 5, col, s=1.4 + 0.1 * tier)
-    dot(c, 1.45, 1.15, 16, LIT, lit=True)  # lamp in the bucket
-    # floating buckets
-    spots = [(0.6, 0.6), (2.3, 0.7), (0.5, 1.7), (2.4, 1.6), (2.0, 0.3), (0.9, 1.2), (2.6, 2.1), (0.3, 2.2)]
+    """S3 Lake (icon = a bucket): a lakeside boathouse on stilts at the shore, bucket-shaped silos on the sand
+    (buckets that hold any object), a pier into the lake and buckets bobbing on the water (objects). The lot's ground
+    is water with a sandy front row (CityMap lake)."""
+    c = Canvas(fw, fh, 64)
     r = seeded(key)
-    for i in range(min(2 * tier, len(spots))):
+    # floating buckets (objects) out on the lake
+    spots = [(2.3, 0.5), (0.6, 0.45), (2.6, 1.3), (1.0, 1.0), (2.0, 1.1), (0.4, 1.3)]
+    for i in range(min(tier + 1, len(spots))):
         u, v = spots[i]
         x, y = c.P(u, v, 0)
         c.d.ellipse((x - 6, y - 2, x + 6, y + 2), fill=A(shade(WATER, 1.25)))
         bucket(c, u, v, 1, [col, (226, 72, 64), ORANGE, (59, 130, 246)][r(4)], s=0.8)
-    if tier >= 2:  # rowing boat
-        c.box(0.3, 0.15, 0.9, 0.4, 0, 3, (230, 80, 70))
-    if tier >= 3:  # boathouse / versioning shed
-        c.box(2.2, 2.3, 2.9, 2.9, 0, 12, WOOD)
-        lwin(c, 2.9, 2.35, 4, w=0.2, h=4)
-        c.gable(2.15, 2.25, 2.95, 2.95, 12, 7, col)
-    if tier >= 4:  # glacier bucket (Glacier storage class) + buoy lights
-        c.box(0.1, 2.4, 0.7, 2.9, 0, 6, (220, 240, 250), top=(245, 252, 255))
-        for u, v in ((0.2, 0.9), (2.8, 1.2)):
+    # the pier into the lake
+    if tier >= 2:
+        c.box(1.35, 0.35, 1.7, 2.1, 1, 3, WOOD, top=shade(WOOD, 1.08))
+        for v in (0.45, 1.05, 1.65):
+            c.box(1.35, v, 1.42, v + 0.07, -3, 3, WOOD_D)
+            c.box(1.63, v, 1.7, v + 0.07, -3, 3, WOOD_D)
+        c.box(1.4, 0.4, 1.46, 0.46, 3, 14, WOOD_D)  # the pier lamp
+        dot(c, 1.43, 0.43, 15, LIT, lit=True)
+        c.box(0.75, 0.35, 1.3, 0.62, 0, 3, (230, 80, 70))  # a rowing boat
+        c.lface(0.62, 0.8, 1.25, 2, 3, WHITE)
+    # the boathouse: back half on stilts over the water, gable roof in the district green
+    h = 12 + 3 * tier
+    a0, b0, a1, b1 = 0.15, 1.5, 1.05 + 0.04 * tier, 2.75
+    for u in (a0 + 0.05, a1 - 0.1):
+        c.box(u, b0, u + 0.06, b0 + 0.06, -3, 2, WOOD_D)
+    c.box(a0, b0, a1, b1, 0, h, WOOD)
+    for zz in range(3, h, 3):  # clapboard
+        c.lface(b1, a0, a1, zz, zz + 1, WOOD_D)
+        c.rface(a1, b0, b1, zz, zz + 1, shade(WOOD_D, 0.85))
+    for k in range(1 + (tier >= 2)):
+        lwin(c, b1, a0 + 0.12 + k * 0.42, h - 8, w=0.2, h=4, lit=tier >= 2 or k == 0)
+    c.rface(a1, b0 + 0.25, b0 + 0.85, 0, h - 5, NAVY_D)  # the boat door, open to the water
+    c.rface(a1, b0 + 0.3, b0 + 0.8, 0, 3, shade(WATER, 0.8))
+    c.gable(a0 - 0.06, b0 - 0.06, a1 + 0.06, b1 + 0.06, h, 7 + tier, col)
+    if tier >= 3:  # a dormer with a lit window
+        c.box(a0 + 0.3, b1 - 0.35, a0 + 0.62, b1 - 0.05, h + 1, h + 7, WOOD)
+        lwin(c, b1 - 0.05, a0 + 0.36, h + 2, w=0.2, h=3)
+        c.gable(a0 + 0.27, b1 - 0.38, a0 + 0.65, b1 - 0.02, h + 7, 3, col)
+    # bucket silos on the sand
+    silos = [(1.9, 2.55, 14), (2.6, 2.1, 17), (2.6, 2.8, 11)]
+    if tier >= 3:  # a concrete pad for the silos at the water's edge
+        c.box(2.3, 1.8, 2.95, 2.95, -1, 1, CON_L)
+    for i in range(1 + (tier >= 3) + (tier >= 4)):
+        u, v, sh = silos[i]
+        bucket_silo(c, u, v, 0, sh - 3 + tier, 0.24, 0.34, [col, shade(col, 1.15), shade(col, 0.9)][i], lit=tier >= 2)
+    if tier >= 4:  # buoy lights
+        for u, v in ((0.2, 0.2), (2.85, 0.25)):
             dot(c, u, v, 3, RED, lit=True)
     return c
 
 
 def lm_ebs(fw, fh, tier, col, key):
-    """EBS icon = block volumes: a hall of lockers, each a block you attach to an instance."""
-    c = Canvas(fw, fh, 64)
+    """EBS Lockers (icon = block volumes): a locker hall whose street face is a wall of lockers (blocks you attach),
+    a rack of volume drums along the side cabled to it, rooftop plant and, as it grows, a set-back glass storey,
+    a snapshot kiosk and the io2 express lane."""
+    c = Canvas(fw, fh, 70)
     r = seeded(key)
     h = 16 + 5 * tier
-    # hall
-    c.box(0.3, 0.3, 2.7, 1.1, 0, h + 6, CON_L)
-    c.louvres(0.3, 0.3, 2.7, 1.1, 0, h + 6, CON_L)
-    c.box(0.25, 0.25, 2.75, 1.15, h + 6, h + 9, col)
-    # block wall of lockers (front face) and stacked volume blocks in front
-    rows = 1 + tier
+    u0, v0, u1, v1 = 0.3, 0.3, 2.05, 1.9
+    c.box(u0 - 0.05, v0 - 0.05, fw - 0.1, fh - 0.1, 0, 1, CON_L)
+    c.box(u0, v0, u1, v1, 1, h, CON_L)
+    c.louvres(u0, v0, u1, v1, 1, h, CON_L)
+    # the locker wall: rows of locker doors with status LEDs (lit at night)
+    rows = (h - 6) // 5
     for row in range(rows):
-        for k in range(5):
-            u = 0.35 + k * 0.46
+        for k in range(6):
+            u = u0 + 0.08 + k * 0.28
             z = 2 + row * 5
-            c.lface(1.1, u, u + 0.4, z, z + 4, shade(col, 0.8 if (k + row) % 2 else 0.95))
-            dot(c, u + 0.33, 1.1, z + 2, LED, lit=r(3) > 0)
-    # attached volumes: cubes in a row with cables
-    for i in range(min(tier + 1, 5)):
-        u = 0.4 + i * 0.48
-        c.box(u, 1.6, u + 0.36, 1.96, 0, 8, col, top=shade(col, 1.2))
-        c.lface(1.96, u + 0.06, u + 0.3, 2, 3, NAVY_D)
-        x0, y0 = c.P(u + 0.18, 1.6, 6)
-        x1, y1 = c.P(u + 0.18, 1.1, 6)
-        c.d.line([(x0, y0), (x1, y1)], fill=A(NAVY_D))
+            c.lface(v1, u, u + 0.24, z, z + 4, shade(col, 0.78 if (k + row) % 2 else 0.95))
+            c.lface(v1, u + 0.02, u + 0.04, z + 1, z + 3, shade(col, 0.55))
+            dot(c, u + 0.19, v1, z + 2, LED, lit=r(3) > 0)
+    c.rface(u1, v0 + 0.2, v1 - 0.2, h - 6, h - 3, GLASS_D, light=True)
+    c.box(u0 - 0.04, v0 - 0.04, u1 + 0.04, v1 + 0.04, h, h + 3, col)
+    roof = h + 3
+    if tier >= 3:  # a set-back glass storey
+        a0, b0, a1, b1 = u0 + 0.3, v0 + 0.2, u1 - 0.35, v1 - 0.4
+        c.box(a0, b0, a1, b1, roof, roof + 9, NAVY)
+        c.windows(a0, b0, a1, b1, roof - 2, roof + 8, key + "g", every=0.3, size=0.2, fh=9)
+        c.box(a0 - 0.03, b0 - 0.03, a1 + 0.03, b1 + 0.03, roof + 9, roof + 11, shade(col, 0.85))
+    if tier >= 2:
+        c.box(u1 - 0.55, v0 + 0.1, u1 - 0.1, v0 + 0.45, roof, roof + 5, CON_M)
+        c.fan(u1 - 0.32, v0 + 0.27, roof + 5, r=0.16)
+    # the volume drums along the side, cabled to the hall: more each tier, stacked two high from tier 3
+    nrow = 1 + (tier >= 3)
+    ncol = min(5, 1 + tier)
+    c.box(2.3, 0.35, 2.85, 2.75, 0, 1, CON_M)
+    for k in range(ncol):
+        v = 0.55 + k * (2.0 / max(1, ncol - 1) if ncol > 1 else 0)
+        for row in range(nrow):
+            z = 1 + row * 9
+            x, y = cyl(c, 2.58, v, z, z + 8, 0.22, CON_L if (k + row) % 2 else (176, 186, 198))
+            c.d.rectangle((x - 5, y + 3, x + 5, y + 4), fill=A(col))
+            dot(c, 2.58, v, z + 2, LED, lit=r(2) == 0)
+    if tier >= 2:
+        for k in range(min(ncol, 3)):
+            x0, y0 = c.P(2.36, 0.55 + k * 0.7, 3)
+            x1, y1 = c.P(u1, 0.55 + k * 0.7, 3)
+            c.d.line([(x0, y0), (x1, y1)], fill=A(NAVY_D))
     if tier >= 3:  # snapshot kiosk (camera)
-        c.box(2.4, 2.1, 2.8, 2.5, 0, 9, NAVY)
-        x, y = c.P(2.6, 2.5, 6)
+        c.box(0.35, 2.25, 0.75, 2.65, 0, 9, NAVY)
+        x, y = c.P(0.55, 2.65, 6)
         c.d.rectangle((x - 2, y - 2, x + 2, y + 1), fill=A(WHITE))
         c.ld.rectangle((x - 1, y - 1, x + 1, y), fill=A(LIT))
     if tier >= 4:  # io2 express lane stripes
-        for k in range(4):
-            c.poly([(0.3 + k * 0.6, 2.4, 0), (0.6 + k * 0.6, 2.4, 0), (0.6 + k * 0.6, 2.7, 0), (0.3 + k * 0.6, 2.7, 0)], ORANGE)
+        for k in range(3):
+            c.poly([(0.95 + k * 0.42, 2.3, 1), (1.2 + k * 0.42, 2.3, 1), (1.2 + k * 0.42, 2.65, 1), (0.95 + k * 0.42, 2.65, 1)], ORANGE)
     return c
 
 

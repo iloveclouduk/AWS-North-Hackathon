@@ -1,10 +1,11 @@
 {
+  "asOf": "2026-10-11",
   "templates": [
     {
       "id": "static-site",
       "title": "Host a static website",
       "serviceIds": ["s3", "cloudfront"],
-      "summary": "A private S3 bucket served worldwide by CloudFront using Origin Access Control.",
+      "summary": "Your files stay private in S3. CloudFront, AWS's worldwide delivery network, serves them, and Origin Access Control lets only CloudFront read the bucket.",
       "resources": [
         { "logicalId": "SiteBucket", "type": "AWS::S3::Bucket" },
         { "logicalId": "SiteOAC", "type": "AWS::CloudFront::OriginAccessControl" },
@@ -12,7 +13,7 @@
         { "logicalId": "SiteBucketPolicy", "type": "AWS::S3::BucketPolicy" }
       ],
       "outputs": ["WebsiteURL", "BucketName"],
-      "costNote": "Free tier eligible — typically $0 for a small site."
+      "costNote": "Usually $0 for a small site that stays within CloudFront's free allowance or your Free Tier credits. S3 storage costs pennies."
     },
     {
       "id": "hello-api",
@@ -26,16 +27,18 @@
         { "logicalId": "HelloPermission", "type": "AWS::Lambda::Permission" }
       ],
       "outputs": ["ApiUrl"],
-      "costNote": "Free tier: 1M Lambda requests and 1M HTTP API calls per month."
+      "costNote": "Lambda: 1M free requests a month. HTTP API: older accounts get 1M free calls a month for their first 12 months. Newer accounts use Free Tier credits instead."
     },
     {
       "id": "dynamo-table",
       "title": "On-demand DynamoDB table",
       "serviceIds": ["dynamodb"],
       "summary": "A pay-per-request table with a partition key and point-in-time recovery.",
-      "resources": [{ "logicalId": "CityTable", "type": "AWS::DynamoDB::Table" }],
+      "resources": [
+        { "logicalId": "CityTable", "type": "AWS::DynamoDB::Table" }
+      ],
       "outputs": ["TableName"],
-      "costNote": "On-demand: pay per request; ~$0 when idle."
+      "costNote": "On-demand: pay per request, plus storage and point-in-time-recovery backups per GB-month; pennies for a small table."
     },
     {
       "id": "queue-worker",
@@ -50,7 +53,7 @@
         { "logicalId": "WorkerMapping", "type": "AWS::Lambda::EventSourceMapping" }
       ],
       "outputs": ["QueueUrl"],
-      "costNote": "Free tier: 1M SQS requests and 1M Lambda requests per month."
+      "costNote": "Free Tier: 1M SQS requests and 1M Lambda requests per month."
     }
   ]
 }

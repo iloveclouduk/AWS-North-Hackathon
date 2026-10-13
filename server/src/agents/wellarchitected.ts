@@ -49,8 +49,19 @@ const DOCS = {
   runtimes: 'https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html',
 };
 
-/** Lambda runtimes past end of standard support (checked against the Lambda runtimes page, Sept 2026). */
-const OLD_RUNTIME = /^(nodejs(1[0-8]|[4-9])\.|python(2\.|3\.[0-8]$)|ruby2\.|java8$|go1\.x|dotnetcore|dotnet[3-6]$)/;
+/**
+ * Lambda runtimes already deprecated (the Lambda runtimes page, "Deprecated runtimes", checked 2026-10-10).
+ * Next to add: python3.10 (Oct 31, 2026), dotnet8 and dotnet9 (Nov 10, 2026).
+ */
+export const OLD_RUNTIME = /^(nodejs($|[4-9]\.|1\d\.|20\.)|python(2\.|3\.[0-9]$)|ruby(2\.|3\.2$)|java8$|go1\.x$|provided(\.al2)?$|dotnetcore|dotnet(5\.0|[3-7])$)/;
+/** Scheduled deprecations from the same page: each counts as deprecated from its date, so the check doesn't drift. */
+export const UPCOMING_DEPRECATIONS: { runtime: string; from: string }[] = [
+  { runtime: 'python3.10', from: '2026-10-31' },
+  { runtime: 'dotnet8', from: '2026-11-10' },
+  { runtime: 'dotnet9', from: '2026-11-10' },
+];
+export const deprecatedRuntime = (runtime: string, now = new Date()) =>
+  !!runtime && (OLD_RUNTIME.test(runtime) || UPCOMING_DEPRECATIONS.some((u) => u.runtime === runtime && now >= new Date(`${u.from}T00:00:00Z`)));
 
 const live = (r: Resource) => !['terminated', 'shutting-down', 'deleted'].includes(r.state);
 
@@ -95,7 +106,7 @@ export const reviewWorld = (s: WorldSnapshot): Scorecard => {
 
   for (const fn of resources.filter((r) => r.kind === 'function')) {
     const rt = String(fn.meta.runtime ?? '');
-    if (rt && OLD_RUNTIME.test(rt)) add('operational-excellence', 'gap', `${fn.name} uses ${rt}, which no longer gets security updates. Move to a supported runtime.`, DOCS.runtimes, fn.id);
+    if (rt && deprecatedRuntime(rt)) add('operational-excellence', 'gap', `${fn.name} uses ${rt}, which no longer gets security updates. Move to a supported runtime.`, DOCS.runtimes, fn.id);
     else if (rt) add('operational-excellence', 'meets', `${fn.name} is on a supported runtime (${rt}).`, DOCS.runtimes, fn.id);
   }
 

@@ -1,19 +1,37 @@
 # AWS City player role, installed in the PLAYER'S OWN account with one click (CloudFormation quick-create).
 #
 # What it allows, and nothing more:
-#   - read: EC2 instances/security groups/AMIs, DynamoDB tables, S3 bucket list, Lambda, RDS, API Gateway
+#   - read: EC2 instances/security groups/AMIs, DynamoDB tables (and their point-in-time recovery), S3 buckets (and
+#     their Block Public Access), Lambda, RDS, API Gateway, CloudTrail trails, EBS encryption by default, and the
+#     resource list (Resource Explorer / tagging API) so the city can mirror your account
+#   - read, account-wide: your Availability Zone names and IDs and which Regions are turned on (every Region, so the
+#     world map is your real one), and your month-to-date cost totals by service and Region (ce:GetCostAndUsage).
+#     The role allows that read at any time; AWS City's server only calls it after you turn the bill on in the game
+#     (off by default), and then at most once a day, because each read costs you $0.01
+#   - read, in this Region: a few request counts from CloudWatch (cloudwatch:GetMetricData: load balancer requests,
+#     Lambda invocations, API Gateway requests, DynamoDB writes) for the city's live traffic. AWS City's server only
+#     calls it after you turn live traffic on (off by default), at most every 5 minutes while the city is open; CloudWatch
+#     charges per metric analyzed, about a cent a day for a learning account
 #   - build, only things the game made:
 #       EC2 t4g.nano / t4g.micro with IMDSv2, tagged managed-by=aws-city (stop/start/terminate only those)
 #       DynamoDB tables named city-*, tagged managed-by=aws-city
 #       S3 buckets named aws-city-<your account id>-*
-#   - only in the region you installed it in; no IAM, no billing, no passing roles
+#   - fixes, ONLY if you set AllowFixes to true (default false): the citizens' small Well-Architected fixes (Block
+#     Public Access on a bucket, close SSH/RDP open to the internet, require IMDSv2, EBS encryption by default,
+#     DynamoDB point-in-time recovery), each shown to you first and run only after you approve it. Be aware: IAM holds
+#     an IMDS change's HttpTokens to "required" (not its other options) and EBS encryption by default to "enable", but
+#     it can't limit S3 Block Public Access or DynamoDB backups to "on", or security-group changes to SSH/RDP rules.
+#     AWS City's server only ever sends HttpTokens=required, turns those on, and removes the SSH/RDP rules you approved
+#     (server/test/fixes.test.ts). You undo a fix yourself in the AWS console
+#   - only in the region you installed it in (except the account-wide reads above); no IAM, no billing changes, no
+#     passing roles
 # Who can use it: only the AWS City service role (AWSCityTaskRole-<env> in the AWS City account), and only with
 # your personal ExternalId. The trusted account and role are fixed in the published template (infra
 # substitutes the __AWS_CITY_*__ placeholders when it uploads it), so a setup link can't be edited to
 # trust someone else. Every change still needs your Approve in the game.
 # Remove access any time: delete the "AWSCity" stack.
 AWSTemplateFormatVersion: '2010-09-09'
-Description: AWS City player role (least privilege, game-owned resources only). v1
+Description: AWS City player role (least privilege, game-owned resources only; optional approved fixes). v4
 
 Parameters:
   ExternalId:
@@ -23,6 +41,14 @@ Parameters:
     MaxLength: 128
     AllowedPattern: '[A-Za-z0-9_-]+'
     Description: Your personal AWS City id (filled in by the setup link).
+  AllowFixes:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['false', 'true']
+    Description: Let the citizens apply small, reversible Well-Architected fixes after you approve each one.
+
+Conditions:
+  FixesOn: !Equals [!Ref AllowFixes, 'true']
 
 Resources:
   PlayerRole:
@@ -60,6 +86,18 @@ Resources:
                   - dynamodb:ListTagsOfResource
                   - lambda:ListFunctions
                   - rds:DescribeDBInstances
+                  - dynamodb:DescribeContinuousBackups
+                  - ec2:GetEbsEncryptionByDefault
+                  - ec2:DescribeSecurityGroupRules
+                  - ec2:DescribeVolumes
+                  - s3:GetBucketPublicAccessBlock
+                  - s3:GetAccountPublicAccessBlock
+                  - cloudtrail:DescribeTrails
+                  - cloudtrail:GetTrailStatus
+                  - cloudtrail:ListEventDataStores
+                  - resource-explorer-2:ListIndexes
+                  - resource-explorer-2:Search
+                  - tag:GetResources
                 Resource: '*'
                 Condition: { StringEquals: { 'aws:RequestedRegion': !Ref 'AWS::Region' } }
               - Sid: ListApis
@@ -71,6 +109,29 @@ Resources:
                 Effect: Allow
                 Action: s3:ListAllMyBuckets
                 Resource: '*'
+              - Sid: ZonesAndRegions
+                # The account's AZ name-to-ID map in every Region it uses, and which Regions are turned on. Metadata
+                # only; neither action supports resource-level permissions.
+                Effect: Allow
+                Action:
+                  - ec2:DescribeAvailabilityZones
+                  - ec2:DescribeRegions
+                Resource: '*'
+              - Sid: MonthToDateBill
+                # Cost totals only (no invoices, payment methods or billing settings). IAM can't see the in-game toggle:
+                # the server calls this only while the player has the bill on. Cost Explorer's one endpoint is
+                # us-east-1, and it has no resource-level permissions.
+                Effect: Allow
+                Action: ce:GetCostAndUsage
+                Resource: '*'
+              - Sid: LiveTraffic
+                # Metric numbers only (no logs, alarms or dashboards, nothing written). IAM can't see the in-game
+                # toggle: the server calls this only while the player has live traffic on, with fixed queries
+                # (server/src/state/flow.ts). GetMetricData has no resource-level permissions; it's held to this Region.
+                Effect: Allow
+                Action: cloudwatch:GetMetricData
+                Resource: '*'
+                Condition: { StringEquals: { 'aws:RequestedRegion': !Ref 'AWS::Region' } }
         - PolicyName: aws-city-build
           PolicyDocument:
             Version: '2012-10-17'
@@ -84,11 +145,11 @@ Resources:
                     'ec2:InstanceType': [t4g.nano, t4g.micro]
                     'ec2:MetadataHttpTokens': required
                     'aws:RequestTag/managed-by': aws-city
-              - Sid: TaggedVolumes
+              - Sid: TaggedEncryptedVolumes
                 Effect: Allow
                 Action: ec2:RunInstances
                 Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:volume/*'
-                Condition: { StringEquals: { 'aws:RequestTag/managed-by': aws-city } }
+                Condition: { StringEquals: { 'aws:RequestTag/managed-by': aws-city, 'ec2:Encrypted': 'true' } }
               - Sid: AmazonImagesOnly
                 Effect: Allow
                 Action: ec2:RunInstances
@@ -112,6 +173,10 @@ Resources:
                 Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
                 Condition: { StringEquals: { 'aws:ResourceTag/managed-by': aws-city } }
               - Sid: CreateGameTables
+                # CreateTable with Tags needs TagResource, and DynamoDB has no tag-on-create-only key (no
+                # equivalent of ec2:CreateAction). So this also lets the role tag an existing city-* table
+                # and then delete it. Only this game's server can assume the role (fixed trust + ExternalId),
+                # and it never calls TagResource on its own.
                 Effect: Allow
                 Action: [dynamodb:CreateTable, dynamodb:TagResource]
                 Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/city-*'
@@ -127,6 +192,43 @@ Resources:
                 Action: [s3:CreateBucket, s3:PutBucketTagging, s3:DeleteBucket]
                 Resource: !Sub 'arn:aws:s3:::aws-city-${AWS::AccountId}-*'
                 Condition: { StringEquals: { 'aws:RequestedRegion': !Ref 'AWS::Region' } }
+        - !If
+          - FixesOn
+          - PolicyName: aws-city-fix
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                # Exactly the fixes in server/src/agents/fixes.ts. Nothing here can re-open a port or turn EBS
+                # encryption by default off, and IMDS changes must set HttpTokens=required (IAM checks only that
+                # option; the server sends nothing else). PutBucketPublicAccessBlock,
+                # UpdateContinuousBackups and RevokeSecurityGroupIngress have no IAM condition that limits them to
+                # tightening: the server's code does (it only turns them on, and only revokes exact SSH/RDP rules).
+                # Every call waits for your approval; a resource the city didn't build also needs you to type its id.
+                - Sid: BlockPublicAccessOnBuckets
+                  Effect: Allow
+                  Action: s3:PutBucketPublicAccessBlock
+                  Resource: 'arn:aws:s3:::*'
+                  Condition: { StringEquals: { 'aws:RequestedRegion': !Ref 'AWS::Region' } }
+                - Sid: SecurityGroupRule
+                  Effect: Allow
+                  Action: ec2:RevokeSecurityGroupIngress
+                  Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*'
+                - Sid: InstanceMetadataOptions
+                  Effect: Allow
+                  Action: ec2:ModifyInstanceMetadataOptions
+                  Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+                  # Only to require IMDSv2 (the EC2 IAM examples' "Deny opt-out of IMDSv2" key).
+                  Condition: { StringEquals: { 'ec2:Attribute/HttpTokens': required } }
+                - Sid: EbsEncryptionByDefault
+                  Effect: Allow
+                  Action: ec2:EnableEbsEncryptionByDefault
+                  Resource: '*'
+                  Condition: { StringEquals: { 'aws:RequestedRegion': !Ref 'AWS::Region' } }
+                - Sid: PointInTimeRecovery
+                  Effect: Allow
+                  Action: dynamodb:UpdateContinuousBackups
+                  Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*'
+          - !Ref AWS::NoValue
 
 Outputs:
   RoleArn:

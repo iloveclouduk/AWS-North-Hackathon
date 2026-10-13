@@ -1,12 +1,13 @@
 import { randomBytes } from 'node:crypto';
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 import type { AwsCredentialIdentityProvider } from '@smithy/types';
-import { assumedRole } from '../aws.js';
+import { assumedRole, SDK_DEFAULTS } from '../aws.js';
 import type { AccountRecord, AccountStore } from '../store/types.js';
 
 /** The player role's fixed name (infra/player-role/player-role.yaml): players only need their account id. */
 export const playerRoleName = (region: string, prefix = 'AWSCityPlayerRole') => `${prefix}-${region}`;
-const REGION = /^[a-z]{2}(-gov)?-[a-z]+-\d$/;
+/** Commercial-partition Regions only: our account (the trusted principal) is arn:aws, so GovCloud/China roles can't trust it. */
+const REGION = /^[a-z]{2}-[a-z]+-\d$/;
 const ROLE_ARN = /^arn:aws:iam::(\d{12}):role\/(AWSCityPlayerRole-[a-z0-9-]+)$/;
 
 export class LinkError extends Error {}
@@ -30,7 +31,7 @@ export const createAccountLinker = (deps: {
   whoAmI?: (region: string, credentials: AwsCredentialIdentityProvider) => Promise<{ Account?: string; Arn?: string }>;
 }) => {
   const credentialsFor = deps.credentialsFor ?? assumedRole;
-  const whoAmI = deps.whoAmI ?? ((region, credentials) => new STSClient({ region, credentials }).send(new GetCallerIdentityCommand({})));
+  const whoAmI = deps.whoAmI ?? ((region, credentials) => new STSClient({ ...SDK_DEFAULTS, region, credentials }).send(new GetCallerIdentityCommand({})));
 
   const quickCreateUrl = (region: string, externalId: string) => {
     const params = new URLSearchParams({
@@ -46,18 +47,24 @@ export const createAccountLinker = (deps: {
     async link(sub: string, region: string) {
       if (!REGION.test(region)) throw new LinkError('That doesn’t look like an AWS region (e.g. us-west-2).');
       const existing = await deps.accounts.get(sub);
-      // Re-linking keeps the same ExternalId, so a stack the player already installed keeps working.
-      const record: AccountRecord = existing?.status === 'linked' && existing.region === region
-        ? existing
-        : { status: 'pending', externalId: existing?.externalId ?? randomBytes(24).toString('base64url'), region };
-      if (record !== existing) await deps.accounts.put(sub, record);
+      // Re-linking keeps the same ExternalId, so a stack the player already installed keeps working. A linked account
+      // stays linked (and usable) until verify succeeds for the new Region.
+      let record: AccountRecord;
+      if (existing?.status === 'linked') {
+        const { pendingRegion: _, ...linked } = existing;
+        record = existing.region === region ? linked : { ...linked, pendingRegion: region };
+      } else record = { status: 'pending', externalId: existing?.externalId ?? randomBytes(24).toString('base64url'), region };
+      if (JSON.stringify(record) !== JSON.stringify(existing)) await deps.accounts.put(sub, record);
       return { url: quickCreateUrl(region, record.externalId), externalId: record.externalId };
     },
 
     /** Accepts the stack's RoleArn output or just the 12-digit account id. */
     async verify(sub: string, input: string): Promise<AccountRecord & { status: 'linked' }> {
-      const record = await deps.accounts.get(sub);
-      if (!record) throw new LinkError('Start with “Get my setup link” first.');
+      const stored = await deps.accounts.get(sub);
+      if (!stored) throw new LinkError('Start with “Get my setup link” first.');
+      // The Region asked for last (a linked player's new Region, else the record's own).
+      const { pendingRegion, ...rest } = stored;
+      const record = { ...rest, region: pendingRegion ?? stored.region };
       const trimmed = input.trim();
       const prefix = deps.playerRolePrefix ?? 'AWSCityPlayerRole';
       const roleArn = /^\d{12}$/.test(trimmed) ? `arn:aws:iam::${trimmed}:role/${playerRoleName(record.region, prefix)}` : trimmed;

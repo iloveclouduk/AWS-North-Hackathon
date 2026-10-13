@@ -1,5 +1,6 @@
 name: release
-# Tag v1.2.3 → a production extension zip on the GitHub release, ready to upload to the Chrome Web Store.
+# Tag v1.2.3 → production extension zips on the GitHub release: Chrome Web Store (also Edge Add-ons) and
+# Firefox Add-ons (with the sources zip AMO asks for). Safari ships through Xcode (docs/safari.md).
 on:
   push:
     tags: ['v*']
@@ -10,12 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: prod
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 24, cache: npm }
       - run: npm ci && npm run check
       - name: Build against the hosted backend
-        run: npm run zip
+        run: npm run zip && npm run zip:firefox
         env:
           WXT_BACKEND: hosted
           WXT_STORE_BUILD: 'true'
@@ -23,5 +24,9 @@ jobs:
           WXT_AWS_API_URL: ${{ vars.WXT_AWS_API_URL }}
           WXT_COGNITO_DOMAIN: ${{ vars.WXT_COGNITO_DOMAIN }}
           WXT_COGNITO_CLIENT_ID: ${{ vars.WXT_COGNITO_CLIENT_ID }}
-      - uses: softprops/action-gh-release@v2
-        with: { files: .output/*-chrome.zip }
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          files: |
+            .output/*-chrome.zip
+            .output/*-firefox.zip
+            .output/*-sources.zip

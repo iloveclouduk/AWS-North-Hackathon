@@ -1,0 +1,25 @@
+{
+  "note": "How each kind of real resource shows in the city (src/world/resources.ts). Zonal kinds stand on their Availability Zone's island when the server knows the zone; the rest stand by their service's landmark. Kinds not listed go in their district's shed.",
+  "props": {
+    "AWS::EC2::Instance": { "prop": "house", "noun": "server", "zonal": true },
+    "AWS::RDS::DBInstance": { "prop": "vault", "noun": "database", "zonal": true },
+    "AWS::ElastiCache::CacheCluster": { "prop": "house", "noun": "cache", "zonal": true },
+    "AWS::EC2::Volume": { "prop": "locker", "noun": "disk", "zonal": true },
+    "AWS::S3::Bucket": { "prop": "boat", "noun": "bucket" },
+    "AWS::Lambda::Function": { "prop": "cart", "noun": "function" },
+    "AWS::DynamoDB::Table": { "prop": "cabinet", "noun": "table" },
+    "AWS::SQS::Queue": { "prop": "mailbox", "noun": "queue" },
+    "AWS::ECS::Service": { "prop": "crate", "noun": "service" },
+    "AWS::ECS::Cluster": { "prop": "crate", "noun": "cluster" },
+    "AWS::EFS::FileSystem": { "prop": "barrel", "noun": "file system" },
+    "AWS::ApiGateway::RestApi": { "prop": "kiosk", "noun": "API" },
+    "AWS::Cognito::UserPool": { "prop": "kiosk", "noun": "user pool" },
+    "AWS::KMS::Key": { "prop": "vault", "noun": "key" },
+    "AWS::IAM::Role": { "prop": "badge", "noun": "role" },
+    "AWS::Route53::HostedZone": { "prop": "sign", "noun": "domain" },
+    "AWS::CloudFront::Distribution": { "prop": "sign", "noun": "distribution" },
+    "AWS::EC2::VPC": { "prop": "fence", "noun": "network" },
+    "AWS::EC2::Subnet": { "prop": "fence", "noun": "subnet" },
+    "AWS::EC2::SecurityGroup": { "prop": "badge", "noun": "security group" }
+  }
+}

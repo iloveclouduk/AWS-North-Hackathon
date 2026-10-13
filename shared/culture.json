@@ -1,0 +1,1102 @@
+{
+ "asOf": "2026-09-26",
+ "founder": {
+  "name": "Jeff Bezos",
+  "title": "Amazon founder",
+  "lines": [
+   "Hi! Welcome to Day 1 — it's still Day 1 here.",
+   "Start with the customer and work backwards!",
+   "Most decisions are two-way doors — go try it.",
+   "Think long term. Really long term.",
+   "Want to read my letters? Every year has a lesson.",
+   "Stay curious and keep inventing.",
+   "Big wins pay for lots of experiments.",
+   "Frugal doesn't mean cheap — it means clever."
+  ],
+  "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+  "asOf": "2026-09-26"
+ },
+ "letters": [
+  {
+   "year": 1997,
+   "author": "Jeff Bezos",
+   "title": "It's All About the Long Term",
+   "lessons": [
+    "Amazon decided to judge itself by long-term value, not next quarter's profit.",
+    "Obsess over customers: selection, ease of use and low prices win them.",
+    "It is \"Day 1\" — the internet (and Amazon) are just getting started.",
+    "Keep hiring a high bar of talented, owner-minded people."
+   ],
+   "takeaway": "Design for the long term: the cheapest-looking shortcut today often costs more over years — just like picking a managed service over a server you must babysit.",
+   "quote": "It's All About the Long Term.",
+   "url": "https://www.aboutamazon.com/news/company-news/amazons-original-1997-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/amazons-original-1997-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 1998,
+   "author": "Jeff Bezos",
+   "title": "Raising the hiring bar",
+   "lessons": [
+    "Customers are loyal only until someone offers a better service, so keep improving.",
+    "Setting a high bar for hiring is one of the most important choices a company makes.",
+    "Ask of every hire: will I admire them, will they raise the team average, could they be a superstar?",
+    "Stay focused on customers rather than competitors."
+   ],
+   "takeaway": "Great teams build great systems: the Bar Raiser idea still shapes how AWS hires.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 1999,
+   "author": "Jeff Bezos",
+   "title": "Building for the long haul",
+   "lessons": [
+    "Amazon grew fast by investing ahead of demand in new stores and fulfilment.",
+    "The goal: be the most customer-centric company on Earth.",
+    "Big investments now can pay back for decades.",
+    "Stay close to what customers actually want."
+   ],
+   "takeaway": "Invest in foundations early — good architecture and automation compound over time.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2000,
+   "author": "Jeff Bezos",
+   "title": "Surviving the dot-com crash",
+   "lessons": [
+    "The stock price fell hard, but the business itself kept improving.",
+    "In the short run the market votes on popularity; in the long run it weighs real value.",
+    "Focus on things you control: customer experience, cost structure, cash.",
+    "Keep lowering prices and improving service in tough times."
+   ],
+   "takeaway": "When things break, measure what matters (latency, errors, cost) rather than reacting to noise.",
+   "quote": "Ouch. It's been a brutal year for many in the capital markets and certainly for Amazon.com shareholders.",
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2001,
+   "author": "Jeff Bezos",
+   "title": "Lower prices, better experience",
+   "lessons": [
+    "Amazon chose to pass cost savings to customers as lower prices.",
+    "Free cash flow — not just profit — shows how healthy the business is.",
+    "A better experience brings more customers, which lowers costs further: a flywheel.",
+    "Small improvements repeated every day add up."
+   ],
+   "takeaway": "Efficiency savings passed to customers is exactly how AWS has cut prices many times.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2002,
+   "author": "Jeff Bezos",
+   "title": "What's good for customers is good for shareholders",
+   "lessons": [
+    "Long-term shareholder value and customer value point the same way.",
+    "Free shipping offers and lower prices grew the business.",
+    "Opening the store to third-party sellers added selection.",
+    "Cost discipline makes low prices possible."
+   ],
+   "takeaway": "Serve customers first; the business results follow — a pattern AWS repeats with pay-as-you-go pricing.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2003,
+   "author": "Jeff Bezos",
+   "title": "Long-term thinking",
+   "lessons": [
+    "Make decisions by asking what they mean for the business years from now.",
+    "Some customer-friendly features (like reviews that can be negative) cost sales today but build trust.",
+    "Owners, not renters, take care of the long-term health of a company.",
+    "Patience is a competitive advantage."
+   ],
+   "takeaway": "Trust is earned over years: transparent pricing and honest docs keep AWS customers.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2004,
+   "author": "Jeff Bezos",
+   "title": "Free cash flow per share",
+   "lessons": [
+    "Amazon explained why free cash flow per share is its main financial measure.",
+    "Profit on paper can hide the cash a business really needs.",
+    "Capital-efficient growth lets you keep investing.",
+    "Explain your metrics clearly to the people who rely on them."
+   ],
+   "takeaway": "Pick the right metric: in the cloud, watch unit cost per request, not just the total bill.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2005,
+   "author": "Jeff Bezos",
+   "title": "Data vs judgment",
+   "lessons": [
+    "Many decisions can be made with data and experiments.",
+    "Some of the best decisions — like fast free shipping for members (Prime) — need judgment because the data can't prove them yet.",
+    "Be willing to make bold bets that look expensive at first.",
+    "Always tie the bet back to a better customer experience."
+   ],
+   "takeaway": "Use metrics where you can (CloudWatch!), but some architecture choices are judgment calls.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2006,
+   "author": "Jeff Bezos",
+   "title": "Planting seeds for new businesses",
+   "lessons": [
+    "New businesses take years to matter — plant seeds and be patient.",
+    "Amazon started Fulfillment by Amazon and Amazon Web Services (S3, EC2).",
+    "New ideas must have the chance to become big and to earn good returns.",
+    "Build on skills you already have, even when the idea looks unusual."
+   ],
+   "takeaway": "AWS itself was a seed: Amazon turned its own infrastructure skills into a service for everyone.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2007,
+   "author": "Jeff Bezos",
+   "title": "Kindle and reinventing the book",
+   "lessons": [
+    "Kindle was built to disappear in your hands so you get lost in reading.",
+    "Invent even when it disrupts your own business.",
+    "Start from what customers love and remove friction.",
+    "Take a long view on hardware and content together."
+   ],
+   "takeaway": "Don't protect old ways of doing things — AWS keeps launching services that replace older ones.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2008,
+   "author": "Jeff Bezos",
+   "title": "Working backwards in a tough economy",
+   "lessons": [
+    "During the financial crisis Amazon kept focusing on customers.",
+    "Start with customer needs and work backwards, rather than starting from your skills.",
+    "Long-term thinking lets you invest while others cut.",
+    "Stay frugal and keep improving costs."
+   ],
+   "takeaway": "Working backwards from the customer is how AWS writes a PR/FAQ before building a service.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2009,
+   "author": "Jeff Bezos",
+   "title": "Goals that serve customers",
+   "lessons": [
+    "Amazon sets hundreds of detailed goals each year, most about customer experience.",
+    "Few goals are about financial results; those follow from inputs.",
+    "Controllable inputs (speed, selection, price) drive outputs (revenue).",
+    "Review goals regularly and in detail."
+   ],
+   "takeaway": "Measure inputs you control: deployment frequency, error rates and latency lead to happy customers.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2010,
+   "author": "Jeff Bezos",
+   "title": "Technology is the fundamental tool",
+   "lessons": [
+    "Amazon described the computer science behind the store: distributed systems, machine learning, service-oriented architecture.",
+    "Invention is part of the culture and technology is its main tool.",
+    "AWS lets other developers use the same building blocks.",
+    "Customers benefit when engineers are free to experiment."
+   ],
+   "takeaway": "Service-oriented architecture — small independent services talking over APIs — is the idea behind microservices on AWS.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2011,
+   "author": "Jeff Bezos",
+   "title": "The power of self-service platforms",
+   "lessons": [
+    "Self-service platforms (Kindle Direct Publishing, FBA, AWS) let anyone build without asking permission.",
+    "Removing gatekeepers unleashes lots of experiments.",
+    "Invention works best when many people can try things cheaply.",
+    "Platforms create value for customers and for the people building on them."
+   ],
+   "takeaway": "An API is a self-service platform: no ticket needed to get a server or a bucket.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2012,
+   "author": "Jeff Bezos",
+   "title": "Customer obsession, not competitor focus",
+   "lessons": [
+    "Focus on customers rather than competitors — delight them before they ask.",
+    "Proactively lower prices and improve service even without pressure.",
+    "AWS kept cutting prices as it got more efficient.",
+    "Take ownership and think long term."
+   ],
+   "takeaway": "AWS price reductions are a direct example of passing efficiency to customers.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2013,
+   "author": "Jeff Bezos",
+   "title": "Inventing on behalf of customers",
+   "lessons": [
+    "A tour of many launches across Prime, devices and AWS in one year.",
+    "Keep inventing: most improvements come from many small launches.",
+    "Employees are encouraged to think like owners.",
+    "Listen to customers, but also invent for needs they can't express yet."
+   ],
+   "takeaway": "AWS ships hundreds of features a year — continuous delivery at company scale.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2014,
+   "author": "Jeff Bezos",
+   "title": "Three big ideas: Marketplace, Prime and AWS",
+   "lessons": [
+    "Amazon described three businesses customers love that can grow for a long time.",
+    "A great business is loved by customers, can grow big, earns good returns and lasts.",
+    "Third-party sellers, Prime membership and AWS reinforce each other.",
+    "Big ideas take years of patient work."
+   ],
+   "takeaway": "AWS became one of Amazon's \"big ideas\" — built from the company's own needs.",
+   "quote": null,
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2015,
+   "author": "Jeff Bezos",
+   "title": "Two-way doors: invention and failure",
+   "lessons": [
+    "Most decisions are reversible \"two-way doors\" — make them fast.",
+    "A few are one-way doors that deserve slow, careful thought.",
+    "Failure and invention are inseparable twins; big wins pay for many experiments.",
+    "AWS grew faster than Amazon.com did at the same age."
+   ],
+   "takeaway": "Cloud makes most choices two-way doors: you can try an instance type and change it tomorrow.",
+   "quote": "But most decisions aren't like that – they are changeable, reversible – they're two-way doors.",
+   "url": "https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx",
+   "source": "https://www.aboutamazon.com/about-us/shareholder-letters",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2016,
+   "author": "Jeff Bezos",
+   "title": "Day 1 vs Day 2",
+   "lessons": [
+    "Day 2 is stasis followed by decline — so it is always Day 1.",
+    "Protect Day 1 with true customer obsession and resisting proxies (process is not the goal).",
+    "Embrace external trends quickly, such as machine learning.",
+    "Make high-velocity decisions; \"disagree and commit\" keeps things moving."
+   ],
+   "takeaway": "Beware process as a proxy: a green checklist is not the same as a secure, working system.",
+   "quote": "Day 2 is stasis.",
+   "url": "https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2017,
+   "author": "Jeff Bezos",
+   "title": "High standards",
+   "lessons": [
+    "Customers are never satisfied, so standards keep rising.",
+    "High standards are teachable and specific to each area.",
+    "Know what \"great\" looks like and how long it really takes (e.g. a great six-page memo).",
+    "High standards produce better products and a better culture."
+   ],
+   "takeaway": "Well-Architected reviews are a way to teach high standards for cloud systems.",
+   "quote": "One thing I love about customers is that they are divinely discontent.",
+   "url": "https://www.aboutamazon.com/news/company-news/2017-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/2017-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2018,
+   "author": "Jeff Bezos",
+   "title": "Intuition, curiosity and wandering",
+   "lessons": [
+    "Third-party sellers grew to sell more than Amazon itself.",
+    "Big breakthroughs often come from wandering and following curiosity, not only efficiency.",
+    "Keep experiments big enough to matter as the company grows.",
+    "Invent for customers even when they don't ask."
+   ],
+   "takeaway": "Leave room to explore: many AWS services started from a curious team trying something new.",
+   "quote": null,
+   "url": "https://www.aboutamazon.com/news/company-news/2018-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/2018-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2019,
+   "author": "Jeff Bezos",
+   "title": "Meeting a pandemic",
+   "lessons": [
+    "Written as COVID-19 spread: employee safety and serving customers came first.",
+    "Amazon described the Climate Pledge to reach net-zero carbon by 2040.",
+    "Upskilling programmes to help employees learn new skills.",
+    "Long-term thinking helps in a crisis."
+   ],
+   "takeaway": "Elastic cloud capacity let many businesses survive the sudden changes of 2020.",
+   "quote": null,
+   "url": "https://www.aboutamazon.com/news/company-news/2019-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/2019-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2020,
+   "author": "Jeff Bezos",
+   "title": "Create more than you consume",
+   "lessons": [
+    "A company must create more value than it consumes — for shareholders, employees, customers and sellers.",
+    "Amazon added two Leadership Principles: Earth's Best Employer and Success and Scale Bring Broad Responsibility.",
+    "Differentiation is survival: resist the pull to become typical.",
+    "Bezos's last letter as CEO before handing over to Andy Jassy."
+   ],
+   "takeaway": "Great platforms create more value for their builders than they charge — measure your value, not just your cost.",
+   "quote": "If you want to be successful in business (in life, actually), you have to create more than you consume.",
+   "url": "https://www.aboutamazon.com/news/company-news/2020-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/2020-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2021,
+   "author": "Andy Jassy",
+   "title": "Still Day 1: iterative innovation",
+   "lessons": [
+    "Jassy's first letter: the fulfilment network doubled in about two years to meet pandemic demand.",
+    "Invention is iterative — keep improving products over many years.",
+    "Launch \"minimum lovable products\" quickly, then keep listening.",
+    "Small, autonomous single-threaded teams move fastest."
+   ],
+   "takeaway": "AWS services start small and improve release after release — ship early, iterate often.",
+   "quote": null,
+   "url": "https://www.aboutamazon.com/news/company-news/2021-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/2021-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2022,
+   "author": "Andy Jassy",
+   "title": "Lean times, long-term bets",
+   "lessons": [
+    "Amazon cut costs and regionalised its fulfilment network to deliver faster and cheaper.",
+    "Hard decisions now protect the long-term investments.",
+    "Big bets continued: AWS, healthcare, Project Kuiper and large language models.",
+    "Custom chips (Graviton, Trainium, Inferentia) lower costs for customers."
+   ],
+   "takeaway": "Cost optimisation and innovation go together — right-size, then reinvest the savings.",
+   "quote": null,
+   "url": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-2022-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-2022-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2023,
+   "author": "Andy Jassy",
+   "title": "Building in primitives",
+   "lessons": [
+    "Build simple, foundational building blocks (\"primitives\") that builders can combine.",
+    "AWS services are primitives — flexible pieces rather than one rigid product.",
+    "Generative AI has three layers: chips/compute, services like Bedrock, and applications.",
+    "Faster delivery through a regionalised network."
+   ],
+   "takeaway": "Think in primitives: combine S3, Lambda and DynamoDB instead of waiting for one perfect product.",
+   "quote": null,
+   "url": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-2023-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-2023-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2024,
+   "author": "Andy Jassy",
+   "title": "The world's largest startup",
+   "lessons": [
+    "Keep asking \"why?\" to challenge assumptions and improve.",
+    "Operate like a startup: speed, scrappiness, ownership and few layers.",
+    "Generative AI will reinvent nearly every customer experience.",
+    "Keep investing in delivery speed, healthcare, Kuiper and Alexa+."
+   ],
+   "takeaway": "Small teams with real ownership ship faster — the two-pizza team idea at scale.",
+   "quote": null,
+   "url": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-2024-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-2024-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "year": 2025,
+   "author": "Andy Jassy",
+   "title": "Speed, inflections and parallel paths",
+   "lessons": [
+    "We are living through some of the biggest technology inflections of our lifetimes.",
+    "Speed matters disproportionately, and the whole culture must embrace it.",
+    "When the best route is unclear, pursue parallel paths and learn from each.",
+    "Jassy shares lessons from his decades at Amazon for handling big changes."
+   ],
+   "takeaway": "Experiment in parallel: the cloud makes it cheap to try two designs and keep the winner.",
+   "quote": null,
+   "url": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-2025-letter-to-shareholders",
+   "source": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-2025-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  }
+ ],
+ "leadershipPrinciples": {
+  "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+  "asOf": "2026-09-26",
+  "items": [
+   {
+    "id": "customer-obsession",
+    "name": "Customer Obsession",
+    "explain": "Start with the customer and work backwards; earn and keep their trust.",
+    "awsExample": "Most of the AWS roadmap comes from what customers ask for.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "ownership",
+    "name": "Ownership",
+    "explain": "Think long term and act for the whole company, never \"that's not my job\".",
+    "awsExample": "Under the shared responsibility model you own your data and IAM settings.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "invent-and-simplify",
+    "name": "Invent and Simplify",
+    "explain": "Look for new ideas everywhere and make things simpler.",
+    "awsExample": "Lambda removed servers from the job of running code.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "are-right-a-lot",
+    "name": "Are Right, A Lot",
+    "explain": "Good judgement and instincts, while seeking views that challenge your beliefs.",
+    "awsExample": "Architecture reviews invite dissent before a design ships.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "learn-and-be-curious",
+    "name": "Learn and Be Curious",
+    "explain": "Never stop learning and exploring new possibilities.",
+    "awsExample": "AWS Skill Builder and certifications — like this city!",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "hire-and-develop-the-best",
+    "name": "Hire and Develop the Best",
+    "explain": "Raise the bar with every hire and help people grow.",
+    "awsExample": "Bar Raisers take part in Amazon interview loops.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "insist-on-the-highest-standards",
+    "name": "Insist on the Highest Standards",
+    "explain": "Keep raising the bar and fix defects so they stay fixed.",
+    "awsExample": "The Well-Architected Framework sets a high bar for cloud designs.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "think-big",
+    "name": "Think Big",
+    "explain": "Create a bold direction that inspires results.",
+    "awsExample": "Amazon Leo (formerly Project Kuiper) and custom chips like Graviton.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "bias-for-action",
+    "name": "Bias for Action",
+    "explain": "Speed matters; many decisions are reversible, so don't over-study.",
+    "awsExample": "Try a new instance type today — you can switch back tomorrow.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "frugality",
+    "name": "Frugality",
+    "explain": "Do more with less; constraints breed invention.",
+    "awsExample": "Savings Plans, Spot Instances and AWS price cuts.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "earn-trust",
+    "name": "Earn Trust",
+    "explain": "Listen, speak candidly and treat others respectfully.",
+    "awsExample": "Public post-event summaries after major AWS outages.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "dive-deep",
+    "name": "Dive Deep",
+    "explain": "Stay close to details and check when metrics and stories disagree.",
+    "awsExample": "CloudWatch and X-Ray help you trace a problem to its root.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "have-backbone-disagree-and-commit",
+    "name": "Have Backbone; Disagree and Commit",
+    "explain": "Challenge decisions you disagree with, then commit fully once decided.",
+    "awsExample": "Debate in the design review; then everyone builds the chosen design.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "deliver-results",
+    "name": "Deliver Results",
+    "explain": "Focus on the key inputs and deliver with the right quality, on time.",
+    "awsExample": "Services launch with an SLA customers can rely on.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "strive-to-be-earths-best-employer",
+    "name": "Strive to be Earth’s Best Employer",
+    "explain": "Create a safer, more productive, more inclusive and fun workplace.",
+    "awsExample": "Upskilling programmes for Amazonians to move into tech roles.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "success-and-scale-bring-broad-responsibility",
+    "name": "Success and Scale Bring Broad Responsibility",
+    "explain": "Be humble about impact and leave things better than you found them.",
+    "awsExample": "The Climate Pledge and the sustainability pillar of Well-Architected.",
+    "source": "https://www.amazon.jobs/content/en/our-workplace/leadership-principles",
+    "asOf": "2026-09-26"
+   }
+  ]
+ },
+ "mechanisms": [
+  {
+   "id": "working-backwards",
+   "name": "Working Backwards (PR/FAQ)",
+   "explain": "Before building, write the launch press release and FAQ from the customer's point of view.",
+   "steps": [
+    "Name the customer and the problem in one sentence.",
+    "Write a one-page press release as if the product launched today.",
+    "Add a customer quote and how to get started.",
+    "Answer the hard questions in an FAQ (cost, risks, \"so what?\").",
+    "Review, rewrite, repeat — only build once the story is clear."
+   ],
+   "awsExample": "Many AWS services began as a PR/FAQ before any code was written.",
+   "source": "https://www.aboutamazon.com/news/workplace/an-insider-look-at-amazons-culture-and-processes",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "two-pizza-teams",
+   "name": "Two-pizza teams",
+   "explain": "Small, autonomous teams — small enough to be fed by two pizzas — that own a service end to end.",
+   "steps": [
+    "Keep the team small (fewer than ~10 people).",
+    "Give it one clear owner and mission.",
+    "Let it own its service, from code to on-call.",
+    "Talk to other teams through APIs, not meetings."
+   ],
+   "awsExample": "Each AWS service is built and run by small teams that own it.",
+   "source": "https://aws.amazon.com/executive-insights/content/amazon-two-pizza-team/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "day1-vs-day2",
+   "name": "Day 1 vs Day 2",
+   "explain": "Stay a \"Day 1\" company: customer obsessed, fast and inventive; Day 2 is slow decline.",
+   "steps": [
+    "Obsess over customers, not process.",
+    "Resist proxies — a metric is not the goal.",
+    "Embrace outside trends quickly.",
+    "Decide fast: most doors are two-way."
+   ],
+   "awsExample": "Adopting generative AI quickly across AWS is a Day 1 move.",
+   "source": "https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "six-page-memo",
+   "name": "The six-page narrative",
+   "explain": "Meetings start with everyone silently reading a written narrative instead of slides.",
+   "steps": [
+    "Write up to six pages of full sentences.",
+    "State the goal, the approach and the decision needed.",
+    "Start the meeting with ~15–20 minutes of silent reading.",
+    "Discuss questions, then decide."
+   ],
+   "awsExample": "Designs and yearly plans at AWS are written as narratives.",
+   "source": "https://aws.amazon.com/blogs/startups/startup-advice-how-to-write-a-narrative/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "correction-of-error",
+   "name": "Correction of Error (COE)",
+   "explain": "A blameless write-up after something goes wrong, so the fix is a mechanism, not a person.",
+   "steps": [
+    "Describe what happened, with a timeline.",
+    "Measure the customer impact.",
+    "Ask \"why?\" five times to reach the root cause.",
+    "List action items with owners and dates.",
+    "Share what was learned."
+   ],
+   "awsExample": "AWS teams write COEs after operational events and share the lessons.",
+   "source": "https://aws.amazon.com/blogs/mt/why-you-should-develop-a-correction-of-error-coe/",
+   "asOf": "2026-09-26"
+  }
+ ],
+ "reinvent": {
+  "source": "https://aws.amazon.com/new/",
+  "asOf": "2026-09-26",
+  "launches": [
+   {
+    "year": 2006,
+    "service": "Amazon S3",
+    "serviceId": "s3",
+    "event": "Launch",
+    "note": "Storage for the internet — AWS's first big service.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2006/03/13/announcing-amazon-s3---simple-storage-service/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2006,
+    "service": "Amazon EC2",
+    "serviceId": "ec2",
+    "event": "Launch (beta)",
+    "note": "Rent virtual servers by the hour.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2006/08/24/announcing-amazon-elastic-compute-cloud-amazon-ec2---beta/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2012,
+    "service": "Amazon DynamoDB",
+    "serviceId": "dynamodb",
+    "event": "Launch",
+    "note": "A fully managed NoSQL database for any scale.",
+    "source": "https://aws.amazon.com/blogs/aws/amazon-dynamodb-internet-scale-data-storage-the-nosql-way/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2012,
+    "service": "Amazon Redshift",
+    "serviceId": "redshift",
+    "event": "re:Invent 2012",
+    "note": "A data warehouse announced at the first re:Invent.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2012/11/28/announcing-amazon-redshift/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2014,
+    "service": "Amazon Aurora",
+    "serviceId": "aurora",
+    "event": "re:Invent 2014",
+    "note": "A cloud-native relational database, MySQL-compatible.",
+    "source": "https://aws.amazon.com/blogs/aws/highly-scalable-mysql-compat-rds-db-engine/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2014,
+    "service": "AWS Lambda",
+    "serviceId": "lambda",
+    "event": "re:Invent 2014",
+    "note": "Run code on events without servers — the start of serverless.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2014/11/13/introducing-aws-lambda/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2014,
+    "service": "Amazon ECS",
+    "serviceId": "ecs",
+    "event": "re:Invent 2014",
+    "note": "Run Docker containers on a managed cluster.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2014/11/13/introducing-amazon-ec2-container-service/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2016,
+    "service": "Amazon Athena",
+    "serviceId": "athena",
+    "event": "re:Invent 2016",
+    "note": "Query files in S3 with plain SQL.",
+    "source": "https://aws.amazon.com/blogs/aws/amazon-athena-interactive-sql-queries-for-data-in-amazon-s3/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2016,
+    "service": "Amazon Rekognition",
+    "serviceId": "rekognition",
+    "event": "re:Invent 2016",
+    "note": "Image analysis with deep learning as an API.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2016/11/introducing-amazon-rekognition/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2017,
+    "service": "AWS Fargate",
+    "serviceId": "fargate",
+    "event": "re:Invent 2017",
+    "note": "Containers without managing servers.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2017/11/introducing-aws-fargate-a-technology-to-run-containers-without-managing-infrastructure/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2017,
+    "service": "Amazon EKS",
+    "serviceId": "eks",
+    "event": "re:Invent 2017 (preview)",
+    "note": "Managed Kubernetes.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2017/11/introducing-amazon-elastic-container-service-for-kubernetes/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2017,
+    "service": "Amazon SageMaker",
+    "serviceId": "sagemaker",
+    "event": "re:Invent 2017",
+    "note": "Build, train and deploy ML models.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2017/11/introducing-amazon-sagemaker/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2017,
+    "service": "Amazon Neptune",
+    "serviceId": "neptune",
+    "event": "re:Invent 2017",
+    "note": "A managed graph database.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2017/11/amazon-neptune-fast-reliable-graph-database-built-for-the-cloud/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2019,
+    "service": "Amazon EventBridge",
+    "serviceId": "eventbridge",
+    "event": "Launch",
+    "note": "A serverless event bus for apps and SaaS.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2019/07/introducing-amazon-eventbridge/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2023,
+    "service": "Amazon Bedrock",
+    "serviceId": "bedrock",
+    "event": "Generally available",
+    "note": "Foundation models through one API.",
+    "source": "https://aws.amazon.com/about-aws/whats-new/2023/09/amazon-bedrock-generally-available/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2023,
+    "service": "Amazon Q",
+    "serviceId": "q",
+    "event": "re:Invent 2023 (preview)",
+    "note": "A generative AI assistant for work and for AWS.",
+    "source": "https://aws.amazon.com/blogs/aws/introducing-amazon-q-a-new-generative-ai-powered-assistant-preview/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "year": 2025,
+    "service": "Amazon Bedrock AgentCore",
+    "serviceId": "agentcore",
+    "event": "Preview, then GA",
+    "note": "Deploy and operate AI agents securely at scale.",
+    "source": "https://aws.amazon.com/blogs/aws/introducing-amazon-bedrock-agentcore-securely-deploy-and-operate-ai-agents-at-any-scale/",
+    "asOf": "2026-09-26"
+   }
+  ],
+  "quest": {
+   "id": "reinvent-quiz",
+   "title": "Expo quest: guess the launch year",
+   "intro": "Five launches, five guesses. Score 3 or more for the re:Invent Explorer badge.",
+   "badge": "reInvent",
+   "questions": [
+    {
+     "q": "Which year did Amazon S3 launch?",
+     "options": [
+      "2004",
+      "2006",
+      "2008",
+      "2010"
+     ],
+     "answer": 1,
+     "launchIndex": 0
+    },
+    {
+     "q": "Which year did AWS Lambda launch?",
+     "options": [
+      "2012",
+      "2013",
+      "2014",
+      "2016"
+     ],
+     "answer": 2,
+     "launchIndex": 5
+    },
+    {
+     "q": "Which year did AWS Fargate launch?",
+     "options": [
+      "2015",
+      "2016",
+      "2017",
+      "2019"
+     ],
+     "answer": 2,
+     "launchIndex": 9
+    },
+    {
+     "q": "Which year was Amazon Redshift announced?",
+     "options": [
+      "2010",
+      "2012",
+      "2014",
+      "2015"
+     ],
+     "answer": 1,
+     "launchIndex": 3
+    },
+    {
+     "q": "Which year did Amazon Bedrock launch?",
+     "options": [
+      "2021",
+      "2022",
+      "2023",
+      "2024"
+     ],
+     "answer": 2,
+     "launchIndex": 14
+    }
+   ]
+  }
+ },
+ "aboutAmazon": {
+  "facts": [
+   {
+    "label": "People working at Amazon",
+    "value": "more than 1.5 million",
+    "source": "https://www.aboutamazon.com/about-us",
+    "asOf": "2026-09-26"
+   },
+   {
+    "label": "AWS geographic Regions",
+    "value": "39",
+    "source": "https://aws.amazon.com/about-aws/global-infrastructure/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "label": "AWS Availability Zones",
+    "value": "124",
+    "source": "https://aws.amazon.com/about-aws/global-infrastructure/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "label": "Announced upcoming Regions",
+    "value": "2 (Kingdom of Saudi Arabia and Chile)",
+    "source": "https://aws.amazon.com/about-aws/global-infrastructure/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "label": "CloudFront edge locations (POPs)",
+    "value": "750+",
+    "source": "https://aws.amazon.com/about-aws/global-infrastructure/",
+    "asOf": "2026-09-26"
+   }
+  ]
+ },
+ "amazonians": {
+  "source": "https://www.amazon.jobs/content/en/job-categories",
+  "asOf": "2026-09-26",
+  "roles": [
+   {
+    "id": "sde",
+    "sheet": "amz_sde",
+    "title": "Software Development Engineer",
+    "short": "SDE",
+    "names": [
+     "Priya",
+     "Tom",
+     "Aiko",
+     "Diego",
+     "Sam"
+    ],
+    "lines": [
+     "Just shipped a feature behind a flag.",
+     "Code review, then deploy — small batches!",
+     "My team owns this service end to end.",
+     "Writing the design doc before the code."
+    ],
+    "source": "https://www.amazon.jobs/content/en/job-categories/software-development",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "sa",
+    "sheet": "amz_sa",
+    "title": "Solutions Architect",
+    "short": "SA",
+    "names": [
+     "Maya",
+     "Ken",
+     "Olu",
+     "Ines",
+     "Raj"
+    ],
+    "lines": [
+     "Let's work backwards from your customer.",
+     "Have you run a Well-Architected review?",
+     "Multi-AZ first, then think multi-Region.",
+     "Pick the simplest service that does the job."
+    ],
+    "source": "https://www.amazon.jobs/content/en/job-categories/solutions-architecture",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "tam",
+    "sheet": "amz_tam",
+    "title": "Technical Account Manager",
+    "short": "TAM",
+    "names": [
+     "Lena",
+     "Marco",
+     "Yuki",
+     "Ade",
+     "Chris"
+    ],
+    "lines": [
+     "I help Enterprise Support customers run smoothly.",
+     "Let's plan for your big launch day.",
+     "Trusted Advisor found some savings!",
+     "I'm your voice inside AWS."
+    ],
+    "source": "https://aws.amazon.com/premiumsupport/plans/enterprise/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "sre",
+    "sheet": "amz_sre",
+    "title": "Systems / Site Reliability Engineer",
+    "short": "SRE",
+    "names": [
+     "Noor",
+     "Ben",
+     "Hana",
+     "Luis",
+     "Kofi"
+    ],
+    "lines": [
+     "Alarms are green — for now.",
+     "Every page gets a COE if customers felt it.",
+     "Automate the runbook, then delete the runbook.",
+     "On-call this week, pager in pocket."
+    ],
+    "source": "https://www.amazon.jobs/content/en/job-categories/operations-it-support-engineering",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "pm",
+    "sheet": "amz_pm",
+    "title": "Product Manager – Technical",
+    "short": "PM-T",
+    "names": [
+     "Ava",
+     "Jon",
+     "Mei",
+     "Omar",
+     "Zoe"
+    ],
+    "lines": [
+     "Drafting a PR/FAQ for the next launch.",
+     "What do customers say they need?",
+     "That's a two-way door — let's decide today.",
+     "Six-pager ready for the review."
+    ],
+    "source": "https://www.amazon.jobs/content/en/job-categories/project-program-product-management-technical",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "delivery",
+    "sheet": "amz_delivery",
+    "title": "Delivery Associate",
+    "short": "Delivery",
+    "names": [
+     "Rosa",
+     "Jamal",
+     "Ellie",
+     "Viktor",
+     "Ana"
+    ],
+    "lines": [
+     "Parcels from the fulfilment centre!",
+     "On time, every time.",
+     "The route app found a faster way.",
+     "Safety first on every stop."
+    ],
+    "source": "https://logistics.amazon.com/",
+    "asOf": "2026-09-26"
+   },
+   {
+    "id": "warehouse",
+    "sheet": "amz_warehouse",
+    "title": "Fulfilment Centre Associate",
+    "short": "FC Associate",
+    "names": [
+     "Grace",
+     "Ahmed",
+     "Lucy",
+     "Pedro",
+     "Mina"
+    ],
+    "lines": [
+     "Picking, packing, shipping!",
+     "The robots bring the shelves to us.",
+     "Prime orders go out first.",
+     "Safety huddle at the start of shift."
+    ],
+    "source": "https://www.amazon.jobs/content/en/job-categories/fulfillment-operations-management",
+    "asOf": "2026-09-26"
+   }
+  ]
+ }
+}

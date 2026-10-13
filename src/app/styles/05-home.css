@@ -1,0 +1,231 @@
+/* ── Home: the next step, then the town ── */
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.next-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.next-head .segs-row {
+  flex: 1;
+}
+.eyebrow {
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  color: var(--district, var(--accent));
+  white-space: nowrap;
+}
+.next-body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+.say {
+  position: relative;
+  flex: 1;
+  margin: 0;
+  padding: var(--s-4) var(--s-5);
+  background: var(--paper);
+  color: var(--paper-ink);
+  border-radius: var(--r-lg);
+  font-size: var(--fs-md);
+  line-height: 1.45;
+}
+/* speech-bubble tail toward the portrait */
+.say::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 14px;
+  width: 10px;
+  height: 10px;
+  background: var(--paper);
+  transform: rotate(45deg);
+}
+.say b {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--paper-meta);
+  margin-bottom: 2px;
+}
+.try {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+.try .label {
+  margin-bottom: var(--s-2);
+}
+.try-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  text-align: left;
+  color: var(--ink-soft);
+  transition: background-color var(--dur-2), border-color var(--dur-2);
+}
+.try-row:hover:not(:disabled) {
+  background: var(--panel);
+  border-color: var(--line-strong);
+  color: var(--ink-hi);
+}
+.home > .label {
+  margin-top: var(--s-4);
+}
+/* "Around town" stays folded: the conversation is there for whoever opens it. */
+.around {
+  margin-top: var(--s-4);
+}
+.around > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.around > summary::-webkit-details-marker {
+  display: none;
+}
+.around > summary::after {
+  content: ' ▸';
+}
+.around[open] > summary::after {
+  content: ' ▾';
+}
+.around[open] > summary {
+  margin-bottom: var(--s-3);
+}
+
+/* ── shared surfaces: cards, quests, tasks, blueprints ── */
+.card,
+.quest,
+.task,
+.tpl,
+.nav-district,
+.result {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+.card + .card {
+  margin-top: var(--s-4);
+}
+/* district colour has one rule: a small square before the title (set --district inline) */
+.quest-title b::before,
+.nav-head h4::before,
+.next .eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--s-3);
+  border-radius: 2px;
+  background: var(--district, var(--accent));
+  vertical-align: 1px;
+}
+.card h3 {
+  margin: 0 0 var(--s-3);
+  font-size: var(--fs-lg);
+  color: var(--ink-hi);
+}
+.card p {
+  margin: var(--s-3) 0;
+}
+
+/* shared progress meter */
+.meter {
+  height: 8px;
+  background: var(--sunken);
+  border: 1px solid var(--black);
+  overflow: hidden;
+  margin: var(--s-2) 0;
+}
+/* pixel meter: chunky 4px ticks over the fill */
+.meter i {
+  display: block;
+  height: 100%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 6px, rgba(0, 0, 0, 0.25) 6px 8px),
+    linear-gradient(90deg, var(--meter-lo), var(--meter-hi));
+  transition: width var(--dur-3) var(--ease-step);
+}
+.meter.district i {
+  background: var(--district, var(--accent));
+}
+.home-wait {
+  margin: var(--s-5) var(--s-4);
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.care-fold > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.care-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.care-fold > summary::after {
+  content: ' ›';
+}
+.care-fold[open] > summary::after {
+  content: ' ⌄';
+}
+
+/* Today (Home): three small goals under the next step, quiet so the next step stays the one big button. */
+.today {
+  margin: var(--s-4) 0;
+}
+.today-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--s-2);
+}
+.today-goals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.today-goal {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-4);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+}
+.today-goal:hover {
+  background: var(--panel-hi);
+}
+.today-goal.done {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.today-goal-cert {
+  margin: var(--s-3) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}

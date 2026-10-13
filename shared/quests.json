@@ -1,20 +1,6 @@
 {
+  "asOf": "2026-10-11",
   "quests": [
-    {
-      "id": "compute-first-function",
-      "title": "Fire Up the Grill",
-      "districtId": "compute",
-      "serviceIds": ["lambda", "apigateway", "iam", "s3"],
-      "intro": "Welcome to the Compute Quarter! I only light the grill when an order comes in, so let me show you how serverless functions answer the city's requests.",
-      "rewardXp": 50,
-      "steps": [
-        { "kind": "visit", "serviceId": "lambda", "text": "Walk to the Lambda Food Stall and say hello" },
-        { "kind": "cards", "serviceId": "lambda", "count": 5, "text": "Learn 5 Lambda cards: triggers, timeouts and pricing" },
-        { "kind": "puzzle", "puzzleId": "thumbnails", "text": "Build the Thumbnail Factory: resize every uploaded photo automatically" },
-        { "kind": "ask", "prompt": "What is a cold start in AWS Lambda and how can I reduce it?", "text": "Ask the agents about cold starts" },
-        { "kind": "deploy", "templateId": "hello-api", "text": "Deploy your first serverless API with Cody the Builder" }
-      ]
-    },
     {
       "id": "storage-static-site",
       "title": "Your First Bucket",
@@ -24,10 +10,25 @@
       "rewardXp": 40,
       "steps": [
         { "kind": "visit", "serviceId": "s3", "text": "Walk to S3 Lake and talk to Sally" },
-        { "kind": "cards", "serviceId": "s3", "count": 5, "text": "Learn 5 S3 cards: buckets, durability and storage classes" },
-        { "kind": "cards", "serviceId": "cloudfront", "count": 3, "text": "Learn 3 CloudFront cards about edge caching" },
+        { "kind": "cards", "serviceId": "s3", "count": 5, "text": "Learn 5 S3 cards, like buckets, durability and storage classes" },
+        { "kind": "cards", "serviceId": "cloudfront", "count": 3, "text": "Learn 3 CloudFront cards about keeping copies near people (edge caching)" },
         { "kind": "puzzle", "puzzleId": "static-site", "text": "Design the City Brochure Site with S3, CloudFront and Route 53" },
-        { "kind": "deploy", "templateId": "static-site", "text": "Deploy a private S3 bucket served by CloudFront" }
+        { "kind": "deploy", "templateId": "static-site", "text": "Build it for real: a private S3 bucket served by CloudFront" }
+      ]
+    },
+    {
+      "id": "compute-first-function",
+      "title": "Fire Up the Grill",
+      "districtId": "compute",
+      "serviceIds": ["lambda", "apigateway", "iam", "s3"],
+      "intro": "Welcome to the Compute Quarter! I only light the grill when an order comes in, so let me show you how serverless functions answer the city's requests.",
+      "rewardXp": 50,
+      "steps": [
+        { "kind": "visit", "serviceId": "lambda", "text": "Walk to the Lambda Food Stall and say hello" },
+        { "kind": "cards", "serviceId": "lambda", "count": 5, "text": "Learn 5 Lambda cards, like pricing, timeouts and memory" },
+        { "kind": "puzzle", "puzzleId": "thumbnails", "text": "Build the Thumbnail Factory: resize every uploaded photo automatically" },
+        { "kind": "ask", "prompt": "What is a cold start in AWS Lambda and how can I reduce it?", "text": "Ask the agents about cold starts" },
+        { "kind": "deploy", "templateId": "hello-api", "text": "Build your first web API with Cody, with no servers to run (serverless)" }
       ]
     },
     {
@@ -39,10 +40,10 @@
       "rewardXp": 60,
       "steps": [
         { "kind": "visit", "serviceId": "dynamodb", "text": "Walk to the DynamoDB Library and meet the librarian" },
-        { "kind": "cards", "serviceId": "dynamodb", "count": 5, "text": "Learn 5 DynamoDB cards: keys, capacity modes and indexes" },
+        { "kind": "cards", "serviceId": "dynamodb", "count": 5, "text": "Learn 5 DynamoDB cards, like keys, capacity modes and indexes" },
         { "kind": "cards", "serviceId": "aurora", "count": 3, "text": "Learn 3 Aurora cards at the Observatory" },
         { "kind": "puzzle", "puzzleId": "global-db", "text": "Keep the booking system running across two Regions" },
-        { "kind": "deploy", "templateId": "dynamo-table", "text": "Deploy an on-demand DynamoDB table with point-in-time recovery" }
+        { "kind": "deploy", "templateId": "dynamo-table", "text": "Build a pay-per-request DynamoDB table with backups (point-in-time recovery)" }
       ]
     },
     {
@@ -54,11 +55,11 @@
       "rewardXp": 60,
       "steps": [
         { "kind": "visit", "serviceId": "sqs", "text": "Walk to the Queue & Bell Tower and talk to Quinn" },
-        { "kind": "cards", "serviceId": "sqs", "count": 5, "text": "Learn 5 SQS & SNS cards: queues, visibility timeouts and DLQs" },
+        { "kind": "cards", "serviceId": "sqs", "count": 5, "text": "Learn 5 SQS & SNS cards, like queues, timeouts and dead-letter queues" },
         { "kind": "cards", "serviceId": "apigateway", "count": 3, "text": "Learn 3 API Gateway cards at the station" },
         { "kind": "puzzle", "puzzleId": "order-queue", "text": "Design an order pipeline that never drops an order" },
         { "kind": "ask", "prompt": "When should I use SQS, SNS or EventBridge?", "text": "Ask the agents to compare the three messengers" },
-        { "kind": "deploy", "templateId": "queue-worker", "text": "Deploy a queue with a dead-letter queue and a Lambda worker" }
+        { "kind": "deploy", "templateId": "queue-worker", "text": "Build a queue with a Lambda worker and a dead-letter queue for failures" }
       ]
     },
     {
@@ -70,25 +71,25 @@
       "rewardXp": 80,
       "steps": [
         { "kind": "visit", "serviceId": "iam", "text": "Walk to the IAM Gatehouse and talk to Ivy" },
-        { "kind": "cards", "serviceId": "iam", "count": 5, "text": "Learn 5 IAM cards: roles, least privilege and explicit deny" },
+        { "kind": "cards", "serviceId": "iam", "count": 5, "text": "Learn 5 IAM cards, like roles, least privilege and explicit deny" },
         { "kind": "cards", "serviceId": "guardduty", "count": 3, "text": "Learn 3 GuardDuty cards at the Watchtower" },
         { "kind": "puzzle", "puzzleId": "event-audit", "text": "Detect threats and respond automatically, even at 3 a.m." },
-        { "kind": "puzzle", "puzzleId": "ddos-ready", "text": "Prepare the ticket shop for a DDoS storm" },
-        { "kind": "ask", "prompt": "What is the difference between CloudWatch and CloudTrail?", "text": "Ask the agents about monitoring versus auditing" }
+        { "kind": "puzzle", "puzzleId": "ddos-ready", "text": "Keep the ticket shop open in a flood of junk traffic (DDoS)" },
+        { "kind": "ask", "prompt": "What is the difference between CloudWatch and CloudTrail?", "text": "Ask the agents: watching versus record-keeping (monitoring vs auditing)" }
       ]
     },
     {
       "id": "aiml-first-model-call",
-      "title": "Consult the Oracle",
+      "title": "Ask Bedrock",
       "districtId": "aiml",
       "serviceIds": ["bedrock", "cognito", "s3"],
-      "intro": "Ask me anything, traveller. One API reaches many foundation models, and with a Knowledge Base my answers come from your own documents.",
+      "intro": "Ask me anything, traveller. One service reaches many foundation models, and with a Knowledge Base my answers come from your own documents.",
       "rewardXp": 50,
       "steps": [
-        { "kind": "visit", "serviceId": "bedrock", "text": "Walk to the Bedrock Oracle" },
-        { "kind": "cards", "serviceId": "bedrock", "count": 5, "text": "Learn 5 Bedrock cards: tokens, RAG and guardrails" },
+        { "kind": "visit", "serviceId": "bedrock", "text": "Walk to the Bedrock Mesa" },
+        { "kind": "cards", "serviceId": "bedrock", "count": 5, "text": "Learn 5 Bedrock cards, like tokens and looking things up first (RAG)" },
         { "kind": "ask", "prompt": "Explain retrieval-augmented generation in two sentences, with an AWS example.", "text": "Ask the agents what RAG means" },
-        { "kind": "puzzle", "puzzleId": "hr-assistant", "text": "Ground an HR assistant in the city's handbook" }
+        { "kind": "puzzle", "puzzleId": "hr-assistant", "text": "Help a staff helper answer from the city's handbook, then meet AgentCore" }
       ]
     },
     {
@@ -99,10 +100,10 @@
       "intro": "At the Academy every agent gets a runtime, a memory, tools and an identity. Let's enrol your first one and make sure it behaves.",
       "rewardXp": 80,
       "steps": [
-        { "kind": "visit", "serviceId": "agentcore", "text": "Walk to AgentCore Academy and meet Ace" },
-        { "kind": "cards", "serviceId": "agentcore", "count": 8, "text": "Learn all 8 AgentCore cards: harness, Runtime, Memory, Gateway, Identity and more" },
+        { "kind": "visit", "serviceId": "agentcore", "text": "Walk to the AgentCore Academy and meet Ace" },
+        { "kind": "cards", "serviceId": "agentcore", "count": 8, "text": "Learn all 8 AgentCore cards, like Runtime, Memory, Gateway and Identity" },
         { "kind": "cards", "serviceId": "cognito", "count": 3, "text": "Learn 3 Cognito cards so your agent knows who it serves" },
-        { "kind": "puzzle", "puzzleId": "hr-assistant", "text": "Assemble the Ask HR Helper agent" },
+        { "kind": "puzzle", "puzzleId": "hr-assistant", "text": "Build the Staff Helper agent" },
         { "kind": "ask", "prompt": "How does AgentCore Gateway turn a Lambda function into a tool my agent can call?", "text": "Ask the agents how agents get tools" }
       ]
     },
@@ -115,11 +116,450 @@
       "rewardXp": 70,
       "steps": [
         { "kind": "visit", "serviceId": "glue", "text": "Walk to the Glue Workshop and talk to Gus" },
-        { "kind": "cards", "serviceId": "glue", "count": 4, "text": "Learn 4 Glue cards: the Data Catalog and crawlers" },
-        { "kind": "cards", "serviceId": "athena", "count": 4, "text": "Learn 4 Athena cards: SQL on S3 and pay-per-scan" },
+        { "kind": "cards", "serviceId": "glue", "count": 4, "text": "Learn 4 Glue cards, like the Data Catalog, crawlers and pricing" },
+        { "kind": "cards", "serviceId": "athena", "count": 4, "text": "Learn 4 Athena cards, like SQL on S3 and pay-per-scan" },
         { "kind": "visit", "serviceId": "lakeformation", "text": "Visit the Lake Formation Gate to see who may read what" },
-        { "kind": "puzzle", "puzzleId": "data-lake-query", "text": "Query the Lake of Receipts while hiding restricted columns" },
+        { "kind": "puzzle", "puzzleId": "data-lake-query", "text": "Search the Lake of Receipts while hiding private columns" },
         { "kind": "ask", "prompt": "Why does converting CSV to partitioned Parquet make Athena cheaper?", "text": "Ask the agents how to cut query costs" }
+      ]
+    },
+    {
+      "id": "harbour-containers",
+      "title": "Ship It in Containers",
+      "districtId": "compute",
+      "serviceIds": ["ecs", "fargate", "aurora", "elasticache"],
+      "intro": "Every box on my ships is a container: the app and everything it needs, packed once and run anywhere. Let's ship the harbour shop without patching a single server.",
+      "rewardXp": 60,
+      "steps": [
+        { "kind": "visit", "serviceId": "ecs", "text": "Walk to the ECS Shipping Docks and meet Captain Cass" },
+        { "kind": "cards", "serviceId": "ecs", "count": 4, "text": "Learn 4 ECS cards, like tasks, services and roles" },
+        { "kind": "cards", "serviceId": "fargate", "count": 3, "text": "Learn 3 Fargate cards about running containers with no servers to manage" },
+        { "kind": "puzzle", "puzzleId": "container-app", "text": "Design the Harbour Container Shop" },
+        { "kind": "ask", "prompt": "When should I run containers on AWS Fargate instead of on EC2 instances I manage?", "text": "Ask the agents: Fargate or EC2 for containers?" }
+      ]
+    },
+    {
+      "id": "walled-garden",
+      "title": "Walls, Gates and Keys",
+      "districtId": "networking",
+      "serviceIds": ["vpc", "kms", "cognito", "apigateway"],
+      "intro": "My garden has walls, gates and guards, and Kit's vault keeps the keys. Learn how a network keeps traffic out, then build a members-only API where sign-in, not walls, decides who gets in.",
+      "rewardXp": 60,
+      "steps": [
+        { "kind": "visit", "serviceId": "vpc", "text": "Walk to the VPC Walled Garden and meet Vic" },
+        { "kind": "cards", "serviceId": "vpc", "count": 4, "text": "Learn 4 VPC cards, like subnets, gateways and security groups" },
+        { "kind": "visit", "serviceId": "kms", "text": "Visit Kit at the KMS Vault" },
+        { "kind": "cards", "serviceId": "kms", "count": 3, "text": "Learn 3 KMS cards about keys and encryption" },
+        { "kind": "puzzle", "puzzleId": "secure-api", "text": "Design the Members-Only API (no VPC needed)" },
+        { "kind": "ask", "prompt": "What is the difference between a security group and a network ACL in a VPC?", "text": "Ask the agents how a VPC keeps traffic out" }
+      ]
+    },
+    {
+      "id": "ec2-machine-shop",
+      "title": "The Machine Shop",
+      "districtId": "compute",
+      "serviceIds": ["ec2", "ebs", "cloudwatch"],
+      "intro": "Every machine on my factory floor is rented by the second. Pick the right size and the right deal, and you never pay for idle steel.",
+      "rewardXp": 35,
+      "steps": [
+        { "kind": "visit", "serviceId": "ec2", "text": "Walk to the EC2 Factory and meet Eddie" },
+        { "kind": "cards", "serviceId": "ec2", "count": 5, "text": "Learn 5 EC2 cards, like instance types, AMIs and pricing options" },
+        {
+          "kind": "choose",
+          "id": "ec2-friday-rush",
+          "text": "Help a website survive its Friday rush",
+          "question": "A team's website runs on one EC2 server. Traffic doubles every Friday evening, then drops for the rest of the week. What keeps it fast without paying for big servers all week?",
+          "options": [
+            { "text": "An Auto Scaling group that adds servers when it gets busy and removes them after", "why": "It scales out for the rush and back in afterwards, so you pay only for the servers that are running.", "correct": true },
+            { "text": "Buy the biggest instance size and leave it on all week", "why": "That pays for Friday-night capacity every hour of every day." },
+            { "text": "Turn on termination protection", "why": "That only stops someone deleting the server by mistake. It adds no capacity." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "ec2-spot",
+          "text": "Pick the cheapest way to run a batch job",
+          "question": "A nightly batch job can be stopped and restarted without harm. Which way of buying EC2 capacity costs the least?",
+          "options": [
+            { "text": "Spot Instances", "why": "Spare EC2 capacity at a large discount. AWS can take it back with a two-minute warning, which an interruptible job can handle.", "correct": true },
+            { "text": "On-Demand Instances", "why": "Full price by the second, with no commitment. Right for work that must not be interrupted." },
+            { "text": "Dedicated Hosts", "why": "A whole physical server just for you: useful for some software licences, and the most expensive option here." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eks-harbour",
+      "title": "Kube's Harbour",
+      "districtId": "compute",
+      "serviceIds": ["eks", "ec2", "fargate"],
+      "intro": "Kubernetes is the shipping system half the world already uses. I run its control tower for you; you bring the ships.",
+      "rewardXp": 35,
+      "steps": [
+        { "kind": "visit", "serviceId": "eks", "text": "Walk to the EKS Harbour Tower and meet Kube" },
+        { "kind": "cards", "serviceId": "eks", "count": 4, "text": "Learn 4 EKS cards about clusters, pods and nodes" },
+        {
+          "kind": "choose",
+          "id": "eks-what",
+          "text": "Find out what Kube runs for you",
+          "question": "When you create an Amazon EKS cluster, what does AWS run and look after for you?",
+          "options": [
+            { "text": "The Kubernetes control plane, spread across several Availability Zones", "why": "AWS runs and patches the control plane. Your pods still run on nodes: EC2 servers, or AWS Fargate.", "correct": true },
+            { "text": "Your containers, with no nodes or capacity needed at all", "why": "Pods need somewhere to run: EC2 nodes, managed node groups or AWS Fargate." },
+            { "text": "A new image format that replaces your container images", "why": "You still build ordinary container images. EKS runs standard Kubernetes." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "eks-or-ecs",
+          "text": "Choose between two container harbours",
+          "question": "A team already runs Kubernetes in its own data centre and wants to keep the same tools and skills on AWS. Which service fits best?",
+          "options": [
+            { "text": "Amazon EKS", "why": "It runs standard, upstream Kubernetes, so the team keeps its tools, manifests and know-how.", "correct": true },
+            { "text": "Amazon ECS", "why": "A simpler AWS container service, but it isn't Kubernetes: the team would learn a new way of working." },
+            { "text": "AWS Lambda", "why": "Functions that run on demand. Good for events, but not a place to run a Kubernetes setup." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beanstalk-garden",
+      "title": "Plant It and Grow",
+      "districtId": "compute",
+      "serviceIds": ["beanstalk", "ec2", "cloudwatch"],
+      "intro": "Bring me your code and I'll grow everything around it: servers, a load balancer, scaling and health checks. You can still look under the leaves.",
+      "rewardXp": 30,
+      "steps": [
+        { "kind": "visit", "serviceId": "beanstalk", "text": "Walk to Beanstalk Garden and meet Jack" },
+        { "kind": "cards", "serviceId": "beanstalk", "count": 4, "text": "Learn 4 Elastic Beanstalk cards about environments and deploys" },
+        {
+          "kind": "choose",
+          "id": "beanstalk-fit",
+          "text": "Pick a home for a small web app",
+          "question": "A student has a small web app. They don't want to set up servers, load balancers and scaling by hand, but they want to see the servers that run it. Which service fits?",
+          "options": [
+            { "text": "AWS Elastic Beanstalk", "why": "Upload the code and it creates the EC2 servers, load balancer and scaling for you, and you can still open every one of them.", "correct": true },
+            { "text": "Amazon Redshift", "why": "A data warehouse for analysing huge tables. It doesn't host web apps." },
+            { "text": "AWS KMS", "why": "It looks after encryption keys. It doesn't run code." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "beanstalk-cost",
+          "text": "Find out what Beanstalk itself costs",
+          "question": "What do you pay for Elastic Beanstalk itself?",
+          "options": [
+            { "text": "Nothing extra: you pay only for the resources it creates, like EC2 servers and the load balancer", "why": "Beanstalk has no charge of its own. Turn the environment off and its servers stop costing money.", "correct": true },
+            { "text": "A monthly fee per app, on top of the servers", "why": "There's no extra fee for Beanstalk itself." },
+            { "text": "A charge for every deploy", "why": "Deploys are free; you pay for what runs." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ebs-lockers",
+      "title": "Bex's Lockers",
+      "districtId": "storage",
+      "serviceIds": ["ebs", "ec2", "s3"],
+      "intro": "Each locker sits in one Availability Zone and plugs into a server there. Fast and private, but remember where it lives.",
+      "rewardXp": 30,
+      "steps": [
+        { "kind": "visit", "serviceId": "ebs", "text": "Walk to the EBS Lockers and meet Bex" },
+        { "kind": "cards", "serviceId": "ebs", "count": 4, "text": "Learn 4 EBS cards about volumes, types and snapshots" },
+        {
+          "kind": "choose",
+          "id": "ebs-az",
+          "text": "Move a locker to another zone",
+          "question": "An EBS volume is in us-east-1a. Can a server in us-east-1b attach it?",
+          "options": [
+            { "text": "No. A volume attaches only to servers in its own Availability Zone; take a snapshot and create a new volume there", "why": "Volumes live in one zone. A snapshot can make a copy in any zone of the Region, or be copied to another Region.", "correct": true },
+            { "text": "Yes, any server in the same Region can attach it", "why": "Volumes are tied to one Availability Zone." },
+            { "text": "Only if the volume is encrypted", "why": "Encryption protects the data; it doesn't change where the volume can attach." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "ebs-protect",
+          "text": "Keep a locker safe from a bad day",
+          "question": "How do you protect an EBS volume's data in case its Availability Zone has a problem?",
+          "options": [
+            { "text": "Take regular snapshots (Amazon Data Lifecycle Manager can automate them)", "why": "Snapshots are stored across the Region, so you can rebuild the volume in another zone. Copy them to another Region for even more safety.", "correct": true },
+            { "text": "Make the volume bigger", "why": "More space doesn't make a second copy anywhere." },
+            { "text": "Attach the volume to two servers", "why": "Even where that's possible, both servers are in the same zone, so it doesn't help if that zone fails." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "efs-well",
+      "title": "The Shared Well",
+      "districtId": "storage",
+      "serviceIds": ["efs", "ec2", "lambda"],
+      "intro": "One well, many buckets dipping in at once. Servers in every zone draw the same water from me.",
+      "rewardXp": 30,
+      "steps": [
+        { "kind": "visit", "serviceId": "efs", "text": "Walk to the EFS Shared Well and meet Effie" },
+        { "kind": "cards", "serviceId": "efs", "count": 4, "text": "Learn 4 EFS cards about shared file systems and storage classes" },
+        {
+          "kind": "choose",
+          "id": "efs-fit",
+          "text": "Give ten servers the same files",
+          "question": "Ten web servers in different Availability Zones must read and write the same files at the same time. Which storage fits?",
+          "options": [
+            { "text": "Amazon EFS", "why": "A shared file system that many servers mount at once, across Availability Zones.", "correct": true },
+            { "text": "Amazon EBS", "why": "A volume lives in one Availability Zone and usually belongs to one server." },
+            { "text": "The server's own instance store", "why": "Fast, but the data disappears when the server stops, and no other server can see it." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "efs-cost",
+          "text": "Pay less for files nobody opens",
+          "question": "Most files in a file system haven't been opened for months. How do you pay less without deleting them?",
+          "options": [
+            { "text": "Turn on lifecycle management so EFS moves them to the Infrequent Access or Archive storage class", "why": "EFS moves cold files to cheaper classes automatically and brings them back when they're opened.", "correct": true },
+            { "text": "Copy them to an EBS volume", "why": "That adds a second bill and loses the sharing." },
+            { "text": "Make the file system read-only", "why": "That stops changes but doesn't make storage cheaper." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rds-records-hall",
+      "title": "Ray's Records Hall",
+      "districtId": "database",
+      "serviceIds": ["rds", "aurora", "cloudwatch"],
+      "intro": "Rows and columns, kept tidy. I patch the engine, take the backups and keep a standby ready, so you can get on with your app.",
+      "rewardXp": 35,
+      "steps": [
+        { "kind": "visit", "serviceId": "rds", "text": "Walk to the RDS Records Hall and meet Ray" },
+        { "kind": "cards", "serviceId": "rds", "count": 5, "text": "Learn 5 RDS cards about engines, backups and Multi-AZ" },
+        {
+          "kind": "choose",
+          "id": "rds-multiaz",
+          "text": "Keep the ledgers open if a building fails",
+          "question": "What does a Multi-AZ deployment do for an RDS database?",
+          "options": [
+            { "text": "Keeps a standby copy in another Availability Zone and fails over to it automatically", "why": "If the main database or its zone fails, RDS switches to the standby, usually within a minute or two.", "correct": true },
+            { "text": "Copies data to another Region to make reads faster there", "why": "That's a cross-Region read replica, a different feature." },
+            { "text": "Makes every query run faster", "why": "The standby is for failover. It doesn't speed up queries." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "rds-reads",
+          "text": "Help a database that reads all day",
+          "question": "An app reads far more than it writes, and the database is getting busy. What helps most?",
+          "options": [
+            { "text": "Add read replicas and send the reads to them", "why": "Replicas take copies of the data and answer read queries, so the main database has more room for writes.", "correct": true },
+            { "text": "Turn off automated backups", "why": "That removes your safety net and barely helps performance." },
+            { "text": "Move the database to a smaller instance", "why": "Less capacity makes a busy database slower." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redshift-warehouse",
+      "title": "Reggie's Big Questions",
+      "districtId": "database",
+      "serviceIds": ["redshift", "s3", "glue"],
+      "intro": "Billions of rows, stacked in columns. Ask me something big, like ten years of sales by month, and I'll answer before your tea cools.",
+      "rewardXp": 35,
+      "steps": [
+        { "kind": "visit", "serviceId": "redshift", "text": "Walk to the Redshift Warehouse and meet Reggie" },
+        { "kind": "cards", "serviceId": "redshift", "count": 4, "text": "Learn 4 Redshift cards about warehouses and columns" },
+        {
+          "kind": "choose",
+          "id": "redshift-fit",
+          "text": "Pick the right job for the warehouse",
+          "question": "Which job suits Amazon Redshift best?",
+          "options": [
+            { "text": "Analysing billions of sales rows to find trends across years", "why": "That's analytics (OLAP): big scans over many rows, which is what a data warehouse is built for.", "correct": true },
+            { "text": "Saving each shopping-cart click within milliseconds", "why": "Lots of tiny, fast writes (OLTP) suit a database like DynamoDB." },
+            { "text": "Storing customers' profile photos", "why": "Files and photos belong in Amazon S3." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "redshift-columns",
+          "text": "Find out why columns are fast",
+          "question": "Why does Redshift store data by column rather than by row?",
+          "options": [
+            { "text": "A question about a few columns reads only those columns, so big scans are faster and compress better", "why": "Values in a column are alike, so they compress well, and unused columns are never read.", "correct": true },
+            { "text": "So each row can be updated faster", "why": "Single-row updates are what row-based databases do best." },
+            { "text": "Because columns never need backups", "why": "Redshift still takes snapshots of your data." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "neptune-web",
+      "title": "Nep's Web",
+      "districtId": "database",
+      "serviceIds": ["neptune", "lambda", "apigateway"],
+      "intro": "Who knows whom, who bought what, what links to what: I keep the threads, so you can walk from one to the next.",
+      "rewardXp": 30,
+      "steps": [
+        { "kind": "visit", "serviceId": "neptune", "text": "Walk to Neptune Web and meet Nep" },
+        { "kind": "cards", "serviceId": "neptune", "count": 4, "text": "Learn 4 Neptune cards about graphs, nodes and edges" },
+        {
+          "kind": "choose",
+          "id": "neptune-fit",
+          "text": "Pick a question for a graph",
+          "question": "Which question is a graph database like Amazon Neptune best at?",
+          "options": [
+            { "text": "Which friends of my friends bought this book?", "why": "Following links between people and things, hop after hop, is what graphs are made for.", "correct": true },
+            { "text": "What were our total sales last year?", "why": "A big sum over many rows is a job for a data warehouse like Redshift." },
+            { "text": "Where should I store this video file?", "why": "Files belong in Amazon S3." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "neptune-lang",
+          "text": "Learn how to ask Nep a question",
+          "question": "Which query languages can you use with Amazon Neptune?",
+          "options": [
+            { "text": "Graph query languages such as Gremlin and openCypher", "why": "Neptune answers graph questions in graph languages (it also speaks one made for linked web data), not in SQL.", "correct": true },
+            { "text": "Only SQL", "why": "Neptune is a graph database; it speaks graph query languages, not SQL." },
+            { "text": "Spreadsheet formulas", "why": "Spreadsheets are for tables, not graphs." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sagemaker-workshop",
+      "title": "Sage's Workbench",
+      "districtId": "aiml",
+      "serviceIds": ["sagemaker", "s3", "bedrock"],
+      "intro": "Some models you borrow; some you build. In my workshop you bring the data, train the model and send it out to answer questions.",
+      "rewardXp": 35,
+      "steps": [
+        { "kind": "visit", "serviceId": "sagemaker", "text": "Walk to the SageMaker Workshop and meet Sage" },
+        { "kind": "cards", "serviceId": "sagemaker", "count": 4, "text": "Learn 4 SageMaker AI cards about training and endpoints" },
+        {
+          "kind": "choose",
+          "id": "sagemaker-or-bedrock",
+          "text": "Choose between building and borrowing a model",
+          "question": "When would you pick Amazon SageMaker AI over Amazon Bedrock?",
+          "options": [
+            { "text": "When you want to train or tune your own model on your own data and control the training", "why": "SageMaker AI gives you the tools to build, train and deploy models yourself.", "correct": true },
+            { "text": "When you just want to call a ready-made foundation model through an API", "why": "That's Amazon Bedrock: no training or servers to manage." },
+            { "text": "When you need to store training files", "why": "Training data usually lives in Amazon S3, whichever service trains the model." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "sagemaker-endpoint",
+          "text": "Put a trained model to work",
+          "question": "A trained model must answer requests from your app all day. What do you create in SageMaker AI?",
+          "options": [
+            { "text": "A real-time inference endpoint", "why": "An endpoint keeps the model loaded and answers each request as it arrives.", "correct": true },
+            { "text": "A training job", "why": "A training job builds the model, then stops. It doesn't answer requests." },
+            { "text": "A notebook", "why": "Notebooks are for exploring data and experimenting, not for serving an app." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q-help-desk",
+      "title": "Ask Quill",
+      "districtId": "aiml",
+      "serviceIds": ["q", "lambda", "cloudwatch"],
+      "intro": "Stuck on an error? Lost in the console? Ask me where you work. I'll explain, suggest and point you to the docs, and you stay in charge.",
+      "rewardXp": 30,
+      "steps": [
+        { "kind": "visit", "serviceId": "q", "text": "Walk to the Q Help Desk and meet Quill" },
+        { "kind": "cards", "serviceId": "q", "count": 4, "text": "Learn 4 Amazon Q cards about asking for help where you work" },
+        {
+          "kind": "choose",
+          "id": "q-error",
+          "text": "Get help with a confusing error",
+          "question": "Your Lambda function fails in the AWS console with an error you don't understand. How can Amazon Q help?",
+          "options": [
+            { "text": "Ask Amazon Q in the console to explain the error and suggest how to fix it", "why": "Amazon Q can help diagnose console errors and explain them in plain words, right where you are.", "correct": true },
+            { "text": "It quietly changes your resources to fix the error", "why": "Amazon Q explains and suggests; you decide what to change." },
+            { "text": "It deletes the function and starts again", "why": "That would lose your code. Q helps you understand the problem instead." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "q-trust",
+          "text": "Decide how much to trust an assistant",
+          "question": "Is everything an AI assistant like Amazon Q says always right?",
+          "options": [
+            { "text": "No. Check its answers, as you would anyone's, before you change anything important", "why": "AI assistants can be wrong. Read the suggestion, check the docs it links, and test changes safely.", "correct": true },
+            { "text": "Yes, it can't make mistakes", "why": "Every AI assistant can make mistakes." },
+            { "text": "Only on weekends", "why": "Mistakes don't keep a calendar. Always check." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rekognition-gallery",
+      "title": "Rex's Gallery",
+      "districtId": "aiml",
+      "serviceIds": ["rekognition", "s3", "lambda"],
+      "intro": "Every picture that comes through my doors gets a look: what's in it, whether it's safe, and whose face it might be in your own collection.",
+      "rewardXp": 30,
+      "steps": [
+        { "kind": "visit", "serviceId": "rekognition", "text": "Walk to the Rekognition Gallery and meet Rex" },
+        { "kind": "cards", "serviceId": "rekognition", "count": 4, "text": "Learn 4 Rekognition cards about labels, faces and moderation" },
+        {
+          "kind": "choose",
+          "id": "rekognition-moderation",
+          "text": "Keep unsafe pictures off an app",
+          "question": "A photo-sharing app must stop unsafe images before other people see them. Which service checks the images?",
+          "options": [
+            { "text": "Amazon Rekognition content moderation", "why": "It labels unsafe or inappropriate content, so the app can hide an image or send it for a person to review.", "correct": true },
+            { "text": "Amazon Textract", "why": "Textract reads text and forms from documents. It doesn't judge images." },
+            { "text": "Amazon EFS", "why": "EFS stores files; it doesn't look at them." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "rekognition-faces",
+          "text": "Find the same person in many photos",
+          "question": "A family photo app wants to find every picture of one person across thousands of photos. What does Rekognition offer?",
+          "options": [
+            { "text": "Face search: index the faces into a collection, then search it with a photo", "why": "Rekognition compares faces against the collection you built, with a similarity score for each match.", "correct": true },
+            { "text": "It reads the names printed on everyone's clothes", "why": "That's not how face search works; it compares faces." },
+            { "text": "It turns each photo into a spreadsheet", "why": "Spreadsheets aren't involved. Rekognition returns faces, labels and scores." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "textract-scriptorium",
+      "title": "Tex Reads the Forms",
+      "districtId": "aiml",
+      "serviceIds": ["textract", "s3", "lambda"],
+      "intro": "Scanned pages, crooked tables, boxes filled in by hand: bring them to my scriptorium and I'll copy out what matters.",
+      "rewardXp": 30,
+      "steps": [
+        { "kind": "visit", "serviceId": "textract", "text": "Walk to the Textract Scriptorium and meet Tex" },
+        { "kind": "cards", "serviceId": "textract", "count": 4, "text": "Learn 4 Textract cards about text, tables and forms" },
+        {
+          "kind": "choose",
+          "id": "textract-forms",
+          "text": "Save a clinic from retyping forms",
+          "question": "A clinic has thousands of scanned forms, and staff retype the name and date boxes by hand. What can Amazon Textract do?",
+          "options": [
+            { "text": "Read the forms and return each field as a key and value, plus tables and text", "why": "Textract finds form fields, tables and lines of text, so an app can file them without retyping.", "correct": true },
+            { "text": "Translate the forms into other languages", "why": "Translation is Amazon Translate's job." },
+            { "text": "Store the scans cheaply", "why": "Storing files is a job for Amazon S3." }
+          ]
+        },
+        {
+          "kind": "choose",
+          "id": "textract-confidence",
+          "text": "Handle a messy handwritten box",
+          "question": "Textract isn't sure about one handwritten field. What should the app do?",
+          "options": [
+            { "text": "Check the confidence score Textract returns, and send unsure fields to a person to review", "why": "Every result comes with a confidence score. Low scores are the ones a person should check.", "correct": true },
+            { "text": "Accept every answer as it comes", "why": "Unchecked mistakes end up in the clinic's records." },
+            { "text": "Throw the whole form away", "why": "One unclear box doesn't make the rest of the form wrong." }
+          ]
+        }
       ]
     }
   ]

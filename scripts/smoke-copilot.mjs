@@ -20,9 +20,9 @@ const fixture = (f) => fs.readFileSync(path.join('tests/fixtures', f), 'utf8');
 const FLOWS = [
   { id: 's3', goal: 'Create an S3 bucket', url: `${HOST}/s3/buckets?region=us-west-2`, file: 's3-console.html',
     created: () => document.body.innerText.match(/Successfully created bucket "([^"]+)"/)?.[1] },
-  { id: 'ec2', goal: 'Launch an EC2 instance', url: `${HOST}/ec2/home?region=us-west-2#Instances:`, file: 'ec2-console.html', expect: /\(t4g\.micro\)$/ },
+  { id: 'ec2', goal: 'Launch an EC2 instance', url: `${HOST}/ec2/home?region=us-west-2#Instances:`, file: 'ec2-console.html', expect: /\(t3\.micro\)$/, confirm: 'Launch instance' },
   { id: 'dynamodb', goal: 'Create a DynamoDB table', url: `${HOST}/dynamodbv2/home?region=us-west-2#tables`, file: 'dynamodb-console.html', expect: /^city-demo-\w+ \(pk id\)$/ },
-  { id: 'lambda', goal: 'Create a Lambda function', url: `${HOST}/lambda/home?region=us-west-2#/functions`, file: 'lambda-console.html', expect: /^city-hello \(Node\.js 22\.x, from scratch\)$/ },
+  { id: 'lambda', goal: 'Create a Lambda function', url: `${HOST}/lambda/home?region=us-west-2#/functions`, file: 'lambda-console.html', expect: /^city-hello \(Node\.js 24\.x, from scratch\)$/ },
 ].filter((f) => !only.length || only.includes(f.id));
 
 const ctx = await chromium.launchPersistentContext(fs.mkdtempSync(path.join(os.tmpdir(), 'awscity-cp-')), {
@@ -72,6 +72,7 @@ for (const [n, flow] of FLOWS.entries()) {
   let paused = false;
   let explained = false;
   let speedSet = false;
+  let confirmed = false;
   while (Date.now() - t0 < 90_000) {
     await wait(1500);
     // The chip: set the speed once (persists to later flows), pause/resume once, explain again once.
@@ -98,15 +99,22 @@ for (const [n, flow] of FLOWS.entries()) {
       await wait(300);
       await snap('explain');
     }
+    // A step that bills (risk 'confirm') is handed to the player: play the player and click it.
+    if (flow.confirm && !confirmed && (await tab.locator('[data-awscity-overlay]').getByText('needs your OK').count())) {
+      await snap('your-turn');
+      await tab.getByRole('button', { name: flow.confirm, exact: true }).click();
+      confirmed = true;
+      console.log(`[${flow.id}] player confirmed: ${flow.confirm}`);
+    }
     if (shot < 14) await snap();
-    created = await tab.evaluate(flow.created ?? (() => document.body.dataset.created));
+    created =await tab.evaluate(flow.created ?? (() => document.body.dataset.created));
     if (created) break;
   }
   // let the "done" step show, then check nothing risky was ever clicked
   await wait(2500);
   await snap('final');
   const risky = await tab.evaluate(() => document.body.dataset.risky ?? (document.body.innerText.includes('deleted') ? 'deleted' : ''));
-  const ok = !!created && (!flow.expect || flow.expect.test(created)) && !risky;
+  const ok = !!created && (!flow.expect || flow.expect.test(created)) && !risky && (!flow.confirm || confirmed);
   results.push({ flow: flow.id, created, risky: risky || 'none', ok });
   console.log(`[${flow.id}] created: ${created ?? '(nothing)'} · risky clicks: ${risky || 'none'} · ${ok ? 'OK' : 'FAIL'}`);
   const busy = await city.evaluate(() => window.awsCity.useCity.getState().copilotTaskId);

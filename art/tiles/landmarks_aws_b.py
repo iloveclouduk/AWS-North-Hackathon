@@ -11,6 +11,7 @@ STONE = (222, 214, 196)
 HEDGE = (60, 140, 64)
 TEAL = (70, 230, 190)
 BULB = (255, 236, 150)
+BOXES = [RED, (58, 111, 216), GRASS, ORANGE, (139, 92, 246), (20, 170, 160)]
 
 # 3x5 pixel glyphs
 FONT = {
@@ -98,70 +99,160 @@ def ground(c, fw, fh, col, ins=0.05, z=1):
     c.box(ins, ins, fw - ins, fh - ins, 0, z, col)
 
 
+def roof_plant(c, u, v, z, frame=0):
+    """A rooftop air handler with its fan: the plant every real building carries."""
+    c.box(u, v, u + 0.45, v + 0.35, z, z + 5, CON_M)
+    c.louvres(u, v, u + 0.45, v + 0.35, z, z + 5, CON_M, step=2)
+    x, y = c.P(u + 0.22, v + 0.17, z + 5)
+    c.d.ellipse((x - 4, y - 2, x + 4, y + 2), fill=A(NAVY_D))
+    c.d.line([(x - 3, y), (x + 3, y)], fill=A(CON_L))
+    if frame % 2:
+        c.d.line([(x, y - 1), (x, y + 1)], fill=A(CON_L))
+
+
+def disk_stack(c, u, v, z0, n, col, key, r=0.3):
+    """The RDS icon: a stack of database disks, each with a status light."""
+    rr = seeded(key)
+    top = None
+    for k in range(n):
+        top = cylinder(c, u, v, z0 + k * 6, 5, r, col)
+        x, y = c.P(u, v, z0 + k * 6 + 2)
+        c.d.line([(x - 6, y + 2), (x + 2, y + 2)], fill=A(shade(col, 0.6)))
+        on = rr(3) > 0
+        c.d.point([(x - 4, y + 1)], fill=A(TEAL if on else shade(col, 0.6)))
+        if on:
+            c.ld.rectangle((x - 5, y, x - 3, y + 2), fill=A(TEAL, 200))
+    return top
+
+
+def rdome(c, x, y, rx, hh, col, lit=False):
+    """A ribbed dome on a drum top at screen (x, y): lit on the left, shaded right, ribs and a glint."""
+    ry = max(2, rx // 2)
+    c.d.ellipse((x - rx, y - ry, x + rx, y + ry), fill=A(shade(col, 0.7)))
+    c.d.pieslice((x - rx, y - hh, x + rx, y + hh), 180, 270, fill=A(shade(col, 1.05)))
+    c.d.pieslice((x - rx, y - hh, x + rx, y + hh), 270, 360, fill=A(shade(col, 0.78)))
+    for f in (0.34, 0.68):
+        w = round(rx * f)
+        c.d.arc((x - w, y - hh, x + w, y + hh), 180, 270, fill=A(shade(col, 0.82)))
+        c.d.arc((x - w, y - hh, x + w, y + hh), 270, 360, fill=A(shade(col, 0.6)))
+    c.d.line([(x, y - hh), (x, y)], fill=A(shade(col, 0.66)))
+    c.d.ellipse((x - rx * 2 // 3, y - hh * 3 // 4, x - rx // 3, y - hh // 2), fill=A(shade(col, 1.35)))
+    if lit:
+        c.ld.ellipse((x - rx // 2, y - hh // 2, x + rx // 3, y), fill=A(LIGHT, 90))
+
+
 # ── Database Row ─────────────────────────────────────────────────────────────
 
 def lm_dynamodb(fw, fh, tier, col, key):
-    """A classical library whose purple gable roof carries a lightning bolt (DynamoDB's speed)."""
-    z1 = 16 + 5 * tier
-    c = Canvas(fw, fh, z1 + 50)
-    u0, v0, u1, v1 = 0.35, 0.35, fw - 0.35, fh - 0.45
-    if tier >= 2:  # front steps
-        c.box(u0 - 0.1, v1 - 0.1, u1 + 0.1, v1 + 0.3, 0, 2, CON_L)
-        c.box(u0, v1 - 0.1, u1, v1 + 0.15, 2, 4, CON_L)
-    c.box(u0, v0, u1, v1, 0, z1, STONE)
-    c.windows(u0, v0, u1, v1, 4, z1 - 3, key, every=0.5, size=0.2, fh=9)
+    """The library (tables of items, fetched in a flash): a classical stone library with a reading-room dome in the
+    district purple, a columned portico whose pediment carries DynamoDB's lightning bolt, and, as it grows, a lantern,
+    book-stack wings and a lightning rod."""
+    z1 = 15 + 4 * tier
+    c = Canvas(fw, fh, z1 + 62)
+    u0, v0, u1, v1 = 0.35, 0.35, fw - 0.35, fh - 0.6
+    c.box(u0 - 0.15, v0 - 0.1, u1 + 0.1, v1 + 0.5, 0, 2, CON_L)
+    if tier >= 3:  # book-stack wings at the back corners, glass on the stacks
+        for (a0, b0, a1, b1) in ((u0 - 0.12, v0 + 0.1, u0 + 0.5, v1 - 0.3), (u1 - 0.3, v0 - 0.08, u1 + 0.08, v1 - 0.5)):
+            c.box(a0, b0, a1, b1, 2, z1 - 4, shade(STONE, 0.95))
+            for zz in range(5, z1 - 6, 4):
+                c.rface(a1, b0 + 0.1, b1 - 0.1, zz, zz + 2, [RED, (58, 111, 216), GRASS, ORANGE][zz // 4 % 4])
+            c.box(a0 - 0.03, b0 - 0.03, a1 + 0.03, b1 + 0.03, z1 - 4, z1 - 2, shade(col, 0.8))
+    c.box(u0, v0, u1, v1, 2, z1, STONE)
+    c.windows(u0, v0, u1, v1, 3, z1 - 3, key, every=0.46, size=0.18, fh=10)
     c.box(u0 - 0.05, v0 - 0.05, u1 + 0.05, v1 + 0.05, z1, z1 + 3, shade(STONE, 0.9))
-    if tier >= 2:  # columns along the front
-        n = 3 + tier
-        for k in range(n):
-            a = u0 + 0.1 + k * (u1 - u0 - 0.26) / (n - 1)
-            c.box(a, v1, a + 0.08, v1 + 0.08, 0, z1, WHITE)
-    c.door(u0, u1, v1 + 0.08, col=WOOD_D, w=0.4, h=11)
-    c.gable(u0 - 0.1, v0 - 0.1, u1 + 0.1, v1 + 0.1, z1 + 3, 12 + tier, col)
-    # the bolt on the roof face
-    x, y = c.P((u0 + u1) / 2, (v0 + v1) / 2 + (v1 - v0) / 4, z1 + 3 + (12 + tier) / 2)
-    s = 4 + tier
-    bolt(c.d, x, y, s, YELLOW)
+    c.lface(v1 + 0.05, u0 - 0.05, u1 + 0.05, z1 + 1, z1 + 2, col)
+    c.rface(u1 + 0.05, v0 - 0.05, v1 + 0.05, z1 + 1, z1 + 2, shade(col, 0.8))
+    # the reading room: a drum with lit windows and a ribbed dome
+    du, dv = (u0 + u1) / 2 + 0.05, (v0 + v1) / 2 - 0.1
+    rd = 0.5 + 0.06 * tier
+    dh = 5 + tier
+    x, y = cylinder(c, du, dv, z1 + 3, dh, rd, STONE)
+    rx = max(2, round(rd * HW * 1.4))
+    for k in (-2, 0, 2):
+        wx = x + k * rx // 3
+        c.d.rectangle((wx - 1, y + 2, wx, y + dh - 1), fill=A(GLASS_D))
+        c.ld.rectangle((wx - 1, y + 2, wx, y + dh - 1), fill=A(LIGHT))
+    rdome(c, x, y, rx, 9 + 3 * tier, col)
+    top = y - 9 - 3 * tier
+    if tier >= 2:  # lantern
+        c.d.rectangle((x - 2, top - 5, x + 2, top), fill=A(STONE))
+        c.d.rectangle((x - 1, top - 4, x + 1, top - 1), fill=A(YELLOW))
+        c.ld.rectangle((x - 1, top - 4, x + 1, top - 1), fill=A(YELLOW))
+        c.d.polygon([(x - 3, top - 5), (x + 3, top - 5), (x, top - 9)], fill=A(shade(col, 0.8)))
+        top -= 9
+    if tier >= 4:  # the lightning rod
+        c.d.line([(x, top), (x, top - 9)], fill=A(CON_L))
+        dot(c, x, top - 10, 1, YELLOW, light=True)
+    # the portico
+    pv = v1 + 0.25
+    c.box(u0 + 0.2, v1, u1 - 0.2, v1 + 0.45, 2, 4, shade(STONE, 0.94))
+    m = (u0 + u1) / 2
+    c.lface(v1, m - 0.18, m + 0.18, 4, 13, (255, 222, 150), light=True)
+    c.line((m, v1, 4), (m, v1, 13), WOOD_D)
+    n = 3 + min(tier, 3)
+    a0, a1 = m - 0.35 - 0.12 * tier, m + 0.35 + 0.12 * tier
+    for k in range(n):
+        a = a0 + k * (a1 - a0 - 0.09) / (n - 1)
+        c.box(a, pv - 0.08, a + 0.09, pv, 4, z1 - 2, WHITE, left=(236, 236, 230), right=(196, 196, 192))
+    c.box(a0 - 0.05, v1, a1 + 0.05, pv + 0.02, z1 - 2, z1 + 2, shade(STONE, 1.04))
+    c.poly([(a0 - 0.05, pv + 0.02, z1 + 2), (a1 + 0.05, pv + 0.02, z1 + 2), (m, pv + 0.02, z1 + 10 + tier)], shade(STONE, 1.06))
+    c.poly([(a0 + 0.12, pv + 0.02, z1 + 3), (a1 - 0.12, pv + 0.02, z1 + 3), (m, pv + 0.02, z1 + 8 + tier)], col)
+    bx, by = c.P(m, pv + 0.02, z1 + 5 + tier // 2)
+    s = 2 + tier // 2
+    bolt(c.d, bx, by, s, YELLOW)
     if tier >= 3:
-        bolt(c.ld, x, y, s, YELLOW)
-    if tier >= 3:  # book-stack wing on the right
-        c.box(u1 - 0.1, v0 + 0.2, u1 + 0.25, v0 + 1.0, 0, z1 - 4, shade(STONE, 0.95))
-        for zz in range(4, z1 - 6, 4):
-            c.rface(u1 + 0.25, v0 + 0.3, v0 + 0.9, zz, zz + 2, [RED, (58, 111, 216), GRASS, ORANGE][zz // 4 % 4])
-    if tier >= 4:  # lightning rod + glowing sign "DB"
-        ax, ay = c.P((u0 + u1) / 2, (v0 + v1) / 2, z1 + 15 + tier)
-        c.d.line([(ax, ay), (ax, ay - 10)], fill=A(CON_L))
-        dot(c, ax, ay - 11, 1, YELLOW, light=True)
-        text_l(c, "DB", u0 + 0.2, v1 + 0.08, z1 - 1, YELLOW, light=True)
+        bolt(c.ld, bx, by, s, YELLOW)
     return c
 
 
 def lm_rds(fw, fh, tier, col, key):
-    """The records hall: a columned hall with the RDS database cylinders standing beside it."""
-    z1 = 14 + 4 * tier
-    c = Canvas(fw, fh, z1 + 50)
-    ground(c, fw, fh, CON_L, ins=0.15, z=1)
-    u0, v0, u1, v1 = 0.3, 0.3, 1.9, fh - 0.4
-    c.box(u0, v0, u1, v1, 1, z1, CON_L)
-    c.louvres(u0, v0, u1, v1, 1, z1 - 4, CON_L)
-    c.lface(v1, u0, u1, z1 - 5, z1 - 2, col)
-    c.rface(u1, v0, v1, z1 - 5, z1 - 2, shade(col, 0.8))
-    c.windows(u0, v0, u1, v1, 3, z1 - 6, key, every=0.4, size=0.22, fh=8)
-    c.door(u0, u1, v1, col=NAVY_D)
-    c.box(u0 - 0.05, v0 - 0.05, u1 + 0.05, v1 + 0.05, z1, z1 + 2, shade(col, 0.9))
-    # cylinders: the primary grows taller; tier 4 adds a Multi-AZ standby joined by a sync line
-    spots = [(2.45, 2.3), (2.45, 1.4), (2.45, 0.6)]
-    tops = []
-    for i in range(min(tier, 3)):
-        u, v = spots[i]
-        tops.append(cylinder(c, u, v, 1, 12 + 3 * tier - i * 2, 0.32, (58, 111, 216) if i == 0 else col, band=WHITE, lit=True))
+    """The records hall: a stone hall of record behind a columned portico (relational tables, kept in order), with
+    the RDS icon's stacked disks in the yard: a primary that grows, then a read replica, then a Multi-AZ standby
+    joined by a lit sync line. Each tier adds steps, an attic storey and rooftop plant."""
+    z1 = 16 + 4 * tier
+    c = Canvas(fw, fh, z1 + 44)
+    ground(c, fw, fh, CON_L, ins=0.1, z=1)
+    u0, v0, u1, v1 = 0.3, 0.3, 1.95, 2.3
+    c.box(u0, v0, u1, v1, 1, z1, STONE)
+    c.windows(u0, v0, u1, v1, 2, z1 - 4, key, every=0.42, size=0.2, fh=8)
+    c.box(u0 - 0.05, v0 - 0.05, u1 + 0.05, v1 + 0.05, z1, z1 + 3, shade(STONE, 0.9))
+    c.lface(v1 + 0.05, u0 - 0.05, u1 + 0.05, z1 + 1, z1 + 2, col)
+    c.rface(u1 + 0.05, v0 - 0.05, v1 + 0.05, z1 + 1, z1 + 2, shade(col, 0.8))
+    if tier >= 3:  # the attic storey, set back
+        a0, b0, a1, b1 = u0 + 0.3, v0 + 0.25, u1 - 0.3, v1 - 0.55
+        c.box(a0, b0, a1, b1, z1 + 3, z1 + 12, shade(STONE, 0.96))
+        c.windows(a0, b0, a1, b1, z1 + 2, z1 + 11, key + "a", every=0.36, size=0.18, fh=8)
+        c.box(a0 - 0.04, b0 - 0.04, a1 + 0.04, b1 + 0.04, z1 + 12, z1 + 14, col)
+        if tier >= 4:
+            roof_plant(c, a0 + 0.1, b0 + 0.1, z1 + 14, frame=1)
+    elif tier >= 2:
+        roof_plant(c, u0 + 0.3, v0 + 0.3, z1 + 3)
+    # the portico: steps, columns, entablature and (from tier 3) a pediment
+    pv = v1 + 0.22
+    if tier >= 2:
+        c.box(u0 + 0.1, v1, u1 - 0.1, v1 + 0.5, 1, 3, shade(STONE, 0.94))
+    m = (u0 + u1) / 2
+    c.lface(v1, m - 0.16, m + 0.16, 3, 12, (255, 222, 150), light=True)
+    c.line((m, v1, 3), (m, v1, 12), WOOD_D)
+    n = 4 + min(tier, 3)
+    for k in range(n):
+        a = u0 + 0.12 + k * (u1 - u0 - 0.33) / (n - 1)
+        c.box(a, pv - 0.08, a + 0.09, pv, 3, z1 - 3, WHITE, left=(236, 236, 230), right=(196, 196, 192))
+    c.box(u0 + 0.05, v1, u1 - 0.05, pv + 0.02, z1 - 3, z1 + 1, shade(STONE, 1.04))
+    c.lface(pv + 0.02, u0 + 0.05, u1 - 0.05, z1 - 2, z1 - 1, col)
+    if tier >= 3:
+        c.poly([(u0 + 0.05, pv + 0.02, z1 + 1), (u1 - 0.05, pv + 0.02, z1 + 1), (m, pv + 0.02, z1 + 9)], shade(STONE, 1.06))
+        c.poly([(u0 + 0.3, pv + 0.02, z1 + 2), (u1 - 0.3, pv + 0.02, z1 + 2), (m, pv + 0.02, z1 + 7)], shade(col, 0.85))
+    # the disks: primary (blue, grows), read replica (tier 3), Multi-AZ standby + sync line (tier 4)
+    blue = (58, 111, 216)
+    ptop = disk_stack(c, 2.5, 1.95, 1, 1 + min(tier, 3), blue, key + "p")
+    if tier >= 3:
+        rtop = disk_stack(c, 2.5, 0.85, 1, tier - 1, col, key + "r", r=0.26)
     if tier >= 4:
-        sx, sy = cylinder(c, 1.1, 0.1, 0, 12, 0.28, CON_M, band=WHITE)
-        px, py = tops[0]
-        c.d.line([(sx, sy), (px, py)], fill=A(ORANGE))
-        c.ld.line([(sx, sy), (px, py)], fill=A(ORANGE))
-    if tier >= 3:  # a little rooftop antenna/aircon
-        c.box(u0 + 0.3, v0 + 0.3, u0 + 0.8, v0 + 0.8, z1 + 2, z1 + 6, CON_M)
+        stop = disk_stack(c, 2.55, 2.75, 1, 2, CON_M, key + "s", r=0.22)
+        for a, b in ((ptop, rtop), (ptop, stop)):
+            c.d.line([a, b], fill=A(ORANGE))
+            c.ld.line([a, b], fill=A(ORANGE))
     return c
 
 
@@ -250,37 +341,66 @@ def lm_elasticache(fw, fh, tier, col, key):
 
 
 def lm_redshift(fw, fh, tier, col, key):
-    """A long red-striped data warehouse; bar-chart columns grow on its face (columnar analytics)."""
-    z1 = 14 + 4 * tier
+    """A high-bay data warehouse: red-banded walls, a glass bay showing the columnar shelving inside (columnar storage,
+    the shelves rising like a bar chart), loading docks, sawtooth skylights and, from tier 3, the bar-chart sign."""
+    z1 = 16 + 4 * tier
     c = Canvas(fw, fh, z1 + 40)
-    u0, v0, u1, v1 = 0.2, 0.35, fw - 0.2, fh - 0.35
-    c.box(u0, v0, u1, v1, 0, z1, CON_L)
-    c.louvres(u0, v0, u1, v1, 0, z1, CON_L)
-    for k in range(2 + (tier >= 3)):  # red bands
-        z = z1 - 4 - k * 5
+    r = seeded(key)
+    u0, v0, u1, v1 = 0.2, 0.35, fw - 0.2, fh - 0.4
+    c.box(u0 - 0.05, v0 - 0.05, u1 + 0.05, v1 + 0.35, 0, 1, CON_M)
+    c.box(u0, v0, u1, v1, 1, z1, CON_L)
+    c.louvres(u0, v0, u1, v1, 1, z1, CON_L)
+    for k in range(1 + (tier >= 2) + (tier >= 4)):  # red bands
+        z = z1 - 4 - k * 4
         c.lface(v1, u0, u1, z, z + 2, RED)
         c.rface(u1, v0, v1, z, z + 2, RED_D)
-    for k in range(min(tier + 1, 3)):  # loading bays
-        a = 0.45 + k * 0.8
-        c.lface(v1, a, a + 0.5, 0, 8, shade(CON_M, 0.9))
-        for z in range(2, 8, 2):
-            c.lface(v1, a, a + 0.5, z, z + 1, shade(CON_M, 0.7))
+    # loading docks with bumpers
+    for k in range(1 + (tier >= 2)):
+        a = u0 + 0.2 + k * 0.62
+        c.lface(v1, a, a + 0.48, 1, 10, shade(CON_M, 0.9))
+        for z in range(3, 10, 2):
+            c.lface(v1, a, a + 0.48, z, z + 1, shade(CON_M, 0.7))
+        c.lface(v1, a + 0.05, a + 0.1, 1, 3, NAVY_D)
+        c.lface(v1, a + 0.38, a + 0.43, 1, 3, NAVY_D)
+    # the glass bay: shelving in columns, lit behind the glass at night
+    g0, g1 = u0 + 1.4, u1 - 0.12
+    gz = z1 - 7 - (4 if tier >= 2 else 0)
+    c.lface(v1, g0, g1, 2, gz, GLASS_D, light=True)
+    ncol = int((g1 - g0) / 0.14)
+    for k in range(ncol):
+        a = g0 + 0.03 + k * 0.14
+        hgt = 3 + r(max(2, gz - 6))
+        c.lface(v1, a, a + 0.09, 3, 3 + hgt, NAVY_D)
+        for zz in range(4, 3 + hgt, 3):
+            c.lface(v1, a + 0.01, a + 0.08, zz, zz + 2, BOXES[r(len(BOXES))])
+    for z in range(2, gz, 6):
+        c.lface(v1, g0, g1, z, z + 1, CON_D)
     # lit strip windows on the right face
-    c.rface(u1, v0 + 0.2, v1 - 0.2, z1 - 14 if z1 > 20 else 3, (z1 - 14 if z1 > 20 else 3) + 3, GLASS_D, light=True)
-    c.gable(u0 - 0.05, v0 - 0.05, u1 + 0.05, v1 + 0.05, z1, 9, shade(RED, 0.9))
+    c.rface(u1, v0 + 0.15, v1 - 0.15, z1 - 4 - 4 * (1 + (tier >= 2)) - 4, z1 - 4 - 4 * (1 + (tier >= 2)) - 1, GLASS_D, light=True)
+    # flat roof, parapet and sawtooth skylights (ridges along u, glass facing the street)
+    c.box(u0 - 0.04, v0 - 0.04, u1 + 0.04, v1 + 0.04, z1, z1 + 2, shade(RED, 0.9))
+    c.poly([(u0 + 0.04, v0 + 0.04, z1 + 2), (u1 - 0.04, v0 + 0.04, z1 + 2), (u1 - 0.04, v1 - 0.04, z1 + 2), (u0 + 0.04, v1 - 0.04, z1 + 2)], CON_M)
+    sa, sb = u0 + 0.2, (u1 - 1.0 if tier >= 3 else u1 - 0.2)
+    for k in range(2 + (tier >= 2)):
+        vk = v0 + 0.55 + k * 0.5
+        if vk > v1 - 0.1:
+            break
+        c.poly([(sa, vk - 0.4, z1 + 2), (sb, vk - 0.4, z1 + 2), (sb, vk, z1 + 6), (sa, vk, z1 + 6)], shade(CON_L, 0.95))
+        c.lface(vk, sa, sb, z1 + 2, z1 + 6, GLASS, light=tier >= 2)
+        c.rface(sb, vk - 0.4, vk, z1 + 2, z1 + 3, CON_M)
     if tier >= 2:  # a truck at the dock
-        c.box(0.5, fh - 0.3, 1.3, fh - 0.05, 0, 7, WHITE)
-        c.box(1.3, fh - 0.3, 1.6, fh - 0.05, 0, 5, RED)
+        c.box(u0 + 0.25, v1 + 0.05, u0 + 1.0, v1 + 0.3, 1, 8, WHITE)
+        c.lface(v1 + 0.3, u0 + 0.25, u0 + 1.0, 4, 6, RED)
+        c.box(u0 + 1.0, v1 + 0.08, u0 + 1.25, v1 + 0.3, 1, 6, RED)
+        c.lface(v1 + 0.3, u0 + 1.05, u0 + 1.2, 3, 5, GLASS, light=True)
     if tier >= 3:  # rooftop bar-chart sign
         heights = [6, 10, 14, 9, 17][: 2 + tier - 1]
         for i, h in enumerate(heights):
-            u = 0.7 + i * 0.35
-            c.box(u, fh / 2 - 0.1, u + 0.22, fh / 2 + 0.1, z1 + 5, z1 + 5 + h, [RED, col, ORANGE, (58, 111, 216), RED][i])
-        if tier >= 4:
-            x, y = c.P(0.7, fh / 2, z1 + 5)
-            for i, h in enumerate(heights):
-                xx, yy = c.P(0.81 + i * 0.35, fh / 2, z1 + 5 + h)
-                c.ld.rectangle((xx - 2, yy, xx + 2, yy + 2), fill=A(LIGHT))
+            u = u1 - 0.95 + i * 0.2
+            c.box(u, fh / 2 - 0.1, u + 0.14, fh / 2 + 0.06, z1 + 2, z1 + 2 + h, [RED, col, ORANGE, (58, 111, 216), RED][i])
+            if tier >= 4:
+                xx, yy = c.P(u + 0.07, fh / 2 + 0.06, z1 + 2 + h)
+                c.ld.rectangle((xx - 2, yy - 1, xx + 2, yy + 1), fill=A(LIGHT))
     return c
 
 
@@ -453,38 +573,78 @@ def globe(c, x, y, r, col, light=False):
 
 
 def lm_cloudfront(fw, fh, tier, col, key):
-    """The edge post office: a globe on the roof, mailboxes out front, parcels heading everywhere."""
+    """The edge post office: a stone post office with tall windows and purple trim, mailboxes and parcels out
+    front, and on the roof the edge: a globe that rises on a lattice mast with a red beacon (points of presence
+    everywhere), an orbit of delivery routes and, at tier 4, the delivery van."""
     z1 = 16 + 4 * tier
-    c = Canvas(fw, fh, z1 + 60)
-    u0, v0, u1, v1 = 0.35, 0.3, fw - 0.35, fh - 0.55
-    c.box(u0, v0, u1, v1, 0, z1, (232, 214, 180))
-    c.windows(u0, v0, u1, v1, 4, z1 - 5, key, every=0.55, size=0.26, fh=10)
-    c.lface(v1, u0, u1, z1 - 5, z1 - 2, col)
-    c.rface(u1, v0, v1, z1 - 5, z1 - 2, shade(col, 0.8))
-    c.door(u0, u1, v1, col=(58, 111, 216), w=0.45, h=11)
+    c = Canvas(fw, fh, z1 + 74)
+    body = (232, 214, 180)
+    u0, v0, u1, v1 = 0.35, 0.3, fw - 0.35, fh - 0.6
+    c.box(u0 - 0.1, v0 - 0.1, u1 + 0.1, v1 + 0.45, 0, 1, CON_L)
+    c.box(u0, v0, u1, v1, 1, z1, body)
+    c.box(u0, v0, u1, v1, 1, 4, shade(body, 0.82))  # the stone base course
+    c.windows(u0, v0, u1, v1, 3, z1 - 4, key, every=0.5, size=0.24, fh=10)
+    c.lface(v1, u0, u1, z1 - 4, z1 - 2, col)
+    c.rface(u1, v0, v1, z1 - 4, z1 - 2, shade(col, 0.8))
     c.box(u0 - 0.06, v0 - 0.06, u1 + 0.06, v1 + 0.06, z1, z1 + 3, shade(col, 0.85))
-    # the globe on a pedestal
-    x, y = c.P((u0 + u1) / 2, (v0 + v1) / 2, z1 + 3)
-    r = 6 + 2 * tier
-    c.d.rectangle((x - 2, y - 5, x + 2, y), fill=A(CON_D))
-    globe(c, x, y - 5 - r, r, col, light=tier >= 2)
-    if tier >= 3:  # orbit ring of delivery routes
-        c.d.arc((x - r - 5, y - 5 - r - 3, x + r + 5, y - 5 - r + 3), 0, 180, fill=A(ORANGE))
-        c.ld.arc((x - r - 5, y - 5 - r - 3, x + r + 5, y - 5 - r + 3), 0, 180, fill=A(ORANGE))
+    roof = z1 + 3
+    gu, gv = u0 + 0.75, v0 + 0.7
+    if tier >= 2:  # a set-back upper storey
+        a0, b0, a1, b1 = u0 + 0.3, v0 + 0.2, u1 - 0.35, v1 - 0.4
+        c.box(a0, b0, a1, b1, roof, roof + 10, shade(body, 0.95))
+        c.windows(a0, b0, a1, b1, roof - 1, roof + 9, key + "u", every=0.42, size=0.2, fh=9)
+        c.box(a0 - 0.04, b0 - 0.04, a1 + 0.04, b1 + 0.04, roof + 10, roof + 12, col)
+        roof += 12
+        gu, gv = (a0 + a1) / 2 - 0.2, (b0 + b1) / 2 - 0.1
+        if tier >= 3:
+            roof_plant(c, a1 - 0.6, b0 + 0.1, roof)
+    # the portal: canopy, lit doors and a clock
+    m = (u0 + u1) / 2
+    c.lface(v1, m - 0.24, m + 0.24, 1, 12, (58, 111, 216))
+    c.lface(v1, m - 0.18, m + 0.18, 1, 10, (255, 222, 150), light=True)
+    c.line((m, v1, 1), (m, v1, 10), NAVY_D)
+    c.box(m - 0.36, v1, m + 0.36, v1 + 0.2, 12, 14, col)
+    if tier >= 2:
+        x, y = c.P(m, v1, z1 - 8)
+        c.d.ellipse((x - 3, y - 3, x + 3, y + 3), fill=A(WHITE), outline=A(NAVY_D))
+        c.d.line([(x, y), (x, y - 2)], fill=A(NAVY_D))
+        c.d.line([(x, y), (x + 2, y)], fill=A(NAVY_D))
+        c.ld.ellipse((x - 2, y - 2, x + 2, y + 2), fill=A(LIGHT, 160))
+    # the globe: on a pedestal, then high on a lattice mast with a beacon
+    x, y = c.P(gu, gv, roof)
+    gr = 6 + tier
+    if tier >= 3:
+        mh = 14 + 8 * (tier - 3)
+        for k in range(0, mh, 4):
+            w0 = 5 - 3 * k // mh
+            w1 = 5 - 3 * (k + 4) // mh
+            c.d.line([(x - w0, y - k), (x - w1, y - k - 4)], fill=A(CON_L))
+            c.d.line([(x + w0, y - k), (x + w1, y - k - 4)], fill=A(CON_D))
+            c.d.line([(x - w0, y - k), (x + w1, y - k - 4)], fill=A(CON_M))
+        y -= mh
+    c.d.rectangle((x - 2, y - 4, x + 2, y), fill=A(CON_D))
+    gy = y - 4 - gr
+    globe(c, x, gy, gr, col, light=tier >= 2)
+    if tier >= 3:  # the orbit of delivery routes
+        c.d.arc((x - gr - 5, gy - 3, x + gr + 5, gy + 3), 0, 180, fill=A(ORANGE))
+        c.ld.arc((x - gr - 5, gy - 3, x + gr + 5, gy + 3), 0, 180, fill=A(ORANGE))
+    if tier >= 4:  # beacon
+        c.d.line([(x, gy - gr), (x, gy - gr - 6)], fill=A(CON_L))
+        dot(c, x, gy - gr - 7, 1, RED, light=True)
     # red mailboxes out front (one per tier)
     for i in range(tier):
-        u = 0.5 + i * 0.55
-        c.box(u, fh - 0.4, u + 0.2, fh - 0.2, 0, 8, RED)
-        c.box(u - 0.02, fh - 0.42, u + 0.22, fh - 0.18, 8, 9, RED_D)
+        u = 0.45 + i * 0.36
+        c.box(u, fh - 0.42, u + 0.18, fh - 0.24, 0, 8, RED)
+        c.box(u - 0.02, fh - 0.44, u + 0.2, fh - 0.22, 8, 9, RED_D)
     if tier >= 2:  # parcel pile at the side
         for i in range(2 + tier):
-            u = fw - 0.3 - (i % 2) * 0.25
-            v = 0.9 + (i // 2) * 0.28
-            c.box(u - 0.2, v, u, v + 0.22, (i // 4) * 4, (i // 4) * 4 + 4, (206, 150, 86))
-    if tier >= 4:  # edge antenna
-        ax, ay = c.P(u0 + 0.3, v0 + 0.3, z1 + 3)
-        c.d.line([(ax, ay), (ax, ay - 16)], fill=A(CON_L))
-        dot(c, ax, ay - 17, 1, RED, light=True)
+            v = 0.45 + i * 0.25
+            c.box(fw - 0.27, v, fw - 0.06, v + 0.21, 0, 4 + (i % 3), (206, 150, 86))
+    if tier >= 4:  # the delivery van at the kerb
+        a, b = fw - 1.25, fh - 0.42
+        c.box(a, b, a + 0.75, b + 0.34, 0, 9, WHITE)
+        c.lface(b + 0.34, a, a + 0.75, 4, 6, col)
+        c.lface(b + 0.34, a + 0.55, a + 0.72, 6, 9, GLASS, light=True)
     return c
 
 

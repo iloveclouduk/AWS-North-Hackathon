@@ -2,7 +2,7 @@ import { Stack, type StackProps } from 'aws-cdk-lib';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
 import type { Construct } from 'constructs';
 import type { EnvConfig } from './config.js';
-import { visibility, wafRules } from './waf.js';
+import { logWaf, visibility, wafRules } from './waf.js';
 
 /**
  * The CloudFront-scope WAF (AWS requires these in us-east-1). At the edge the WAF sees each viewer's
@@ -20,5 +20,6 @@ export class EdgeStack extends Stack {
       rules: wafRules({ ratePerIp: true }),
     });
     this.webAclArn = acl.attrArn;
+    logWaf(this, acl, `aws-city-${env.name}-edge`);
   }
 }

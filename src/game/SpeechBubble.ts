@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import { reducedMotion } from './motion';
+import type { BubblePriority } from './calm';
+import { BUBBLE_TONES, FONT_SIZE } from './theme';
 
 /** Nunito (OFL, bundled in public/assets/fonts) — the prototype's UI font; crisp and readable. */
 export const TEXT_FONT = 'Nunito, "Trebuchet MS", sans-serif';
@@ -12,14 +15,14 @@ export interface SayOptions {
   caption?: string;
   tone?: 'speech' | 'step' | 'done' | 'alert';
   typewriter?: boolean;
+  /** Who gets the floor (src/game/calm.ts mayShowBubble). Defaults to 'normal'. */
+  priority?: BubblePriority;
+  /** Show the line without the speaker's blip (agents talking among themselves: the player didn't ask). */
+  silent?: boolean;
 }
 
-const TONES = {
-  speech: { fill: 0xffffff, stroke: 0x161622, text: '#161622', name: '#b45309' },
-  step: { fill: 0xfff4d6, stroke: 0x161622, text: '#161622', name: '#b45309' },
-  done: { fill: 0xe7fbe9, stroke: 0x14532d, text: '#14532d', name: '#15803d' },
-  alert: { fill: 0xffe4e4, stroke: 0x7f1d1d, text: '#7f1d1d', name: '#b91c1c' },
-};
+/** The UI's bubble tones (src/game/theme.ts mirrors src/app/styles/00-base.css). */
+const TONES = BUBBLE_TONES;
 
 /**
  * Crisp text in a pixel-art world: Phaser's pixelArt mode samples every texture with NEAREST, which
@@ -41,18 +44,19 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
   private hideTimer?: Phaser.Time.TimerEvent;
   private maxW: number;
   boxH = 0;
+  boxW = 0;
 
   constructor(scene: Phaser.Scene, maxW = 220) {
     super(scene, 0, 0);
     this.maxW = maxW;
     this.bg = scene.add.graphics();
-    this.cap = crisp(scene.add.text(0, 0, '', { fontFamily: TEXT_FONT, fontSize: '12px', fontStyle: '800', color: '#b45309' }));
+    this.cap = crisp(scene.add.text(0, 0, '', { fontFamily: TEXT_FONT, fontSize: FONT_SIZE.sm, fontStyle: '800', color: BUBBLE_TONES.speech.name }));
     this.label = crisp(
       scene.add.text(0, 0, '', {
         fontFamily: TEXT_FONT,
-        fontSize: '13px',
+        fontSize: FONT_SIZE.md,
         fontStyle: '700',
-        color: '#161622',
+        color: BUBBLE_TONES.speech.text,
         wordWrap: { width: maxW - 16, useAdvancedWrap: true },
         lineSpacing: 1,
       }),
@@ -60,6 +64,12 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     this.add([this.bg, this.cap, this.label]);
     this.setVisible(false);
     scene.add.existing(this);
+  }
+
+  override destroy(fromScene?: boolean) {
+    this.typer?.remove();
+    this.hideTimer?.remove();
+    super.destroy(fromScene);
   }
 
   get showing() {
@@ -77,7 +87,7 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     this.cap.setColor(tone.name).setText(header);
     this.label.setText(text);
     this.layout(tone);
-    const typewriter = opts.typewriter ?? true;
+    const typewriter = opts.typewriter ?? !reducedMotion();
     if (typewriter && text.length > 1) {
       let n = 0;
       this.label.setText('');
@@ -89,6 +99,8 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
 
   hide(fast = false) {
     this.hideTimer?.remove();
+    // Already destroyed (its agent moved out, or the scene shut down): nothing to fade.
+    if (!this.scene) return;
     this.scene.tweens.add({ targets: this, alpha: 0, duration: fast ? 150 : 300, onComplete: () => this.setVisible(false) });
   }
 
@@ -99,6 +111,7 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     const w = Math.min(this.maxW, Math.max(this.label.width, this.cap.width) + padX * 2);
     const h = this.label.height + capH + padY * 2;
     this.boxH = h + 8;
+    this.boxW = w;
     const x = Math.round(-w / 2);
     const y = Math.round(-h - 7);
     this.bg.clear();

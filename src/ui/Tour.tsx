@@ -1,46 +1,65 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { startQuest as notifyQuest, type Layout } from '@/app/runtime';
+import { SURFACE, SURFACE_NAME } from '@/app/surface';
+import { bus } from '@/state/bus';
 import { useCity } from '@/state/store';
 import { QUESTS } from '@/world/content';
-import { markTourDone } from './logic';
+import { feel } from './feedback';
+import { activeSteps } from '@/state/ladder';
+import { isTourDone, markTourDone, readPref, TIP_ASK_KEY, TIP_COPILOT_KEY, writePref } from './logic';
+import { Portrait } from './Portrait';
 
 interface Step {
   title: string;
   body: string;
-  /** CSS selectors tried in order; the first visible match is highlighted. None = centred card. */
+  /** CSS selectors tried in order (`@kai`: Kai on the map); the first visible match is highlighted. None = centred card. */
   targets: string[];
 }
 
-const steps = (layout: Layout): Step[] => [
+/** Three steps, then the first job: the city, where the next job always is, and what a building does. */
+const STEPS: Step[] = [
   {
-    title: '👋 Meet Kai',
-    body: 'This is AWS City. Kai walks around town (arrow keys work too) — click any building or agent to see what it teaches.',
+    title: 'Welcome! This is you, Kai',
+    body: 'AWS is a giant set of computers anyone can rent over the internet. This city is made of its tools. Walk with the arrow keys or a click.',
+    targets: ['@kai', '.stage'],
+  },
+  {
+    title: 'Connie’s next job is always here',
+    body: 'Your next step waits on Home. Press Go and Connie shows you the way.',
+    targets: ['.next'],
+  },
+  {
+    title: 'Tap any building',
+    body: 'Each building is one AWS tool with a helper inside. Tap one to say hi and see what it does.',
     targets: ['.stage'],
-  },
-  {
-    title: '🧭 Open an AWS console page',
-    body: 'Browse the AWS console as usual. Each service you open becomes a new landmark here, and its agent moves into town.',
-    targets: ['.tabs', '.hud'],
-  },
-  {
-    title: '💬 Ask an agent',
-    body: 'Type what you want in plain words — “Store my holiday photos cheaply” — and watch the right agent walk over and do it.',
-    targets: ['.prompt-row'],
-  },
-  {
-    title: '🖥️ Try the Console Copilot',
-    body:
-      layout === 'panel'
-        ? 'Tick “Do it in my console” and the agent clicks through your open AWS console tab for you, explaining every step. You can stop it any time.'
-        : 'Open the side panel (toolbar icon) and tick “Do it in my console” — the agent clicks through your open AWS console tab, explaining every step.',
-    targets: ['.console-toggle', '.chip.copilot', '.prompt'],
   },
 ];
 
+/** Where the first job starts: the first quest's current step, when it points at a landmark. */
+function firstJobTarget(): string | undefined {
+  const first = QUESTS[0];
+  const st = first && useCity.getState().progress.quests?.[first.id];
+  const step = first && st?.status === 'active' ? first.steps[st.step] : undefined;
+  return step && (step.kind === 'visit' || step.kind === 'cards') ? step.serviceId : undefined;
+}
+
 type Rect = { top: number; left: number; width: number; height: number };
+
+/** Kai's box on the page, asked of the city (synchronous: the scene replies inside emit). */
+function kaiRect(): Rect | undefined {
+  let found: Rect | undefined;
+  bus.emit('locateKai', { reply: (r) => (found = r) });
+  // The ring takes in Kai's "Kai (you)" tag under the feet too, so the card below never covers it.
+  return found && { top: found.top - 6, left: found.left - 14, width: found.width + 28, height: found.height + 26 };
+}
 
 function findTarget(selectors: string[]): Rect | undefined {
   for (const sel of selectors) {
+    if (sel === '@kai') {
+      const r = kaiRect();
+      if (r) return r;
+      continue;
+    }
     const el = document.querySelector(sel);
     const r = el?.getBoundingClientRect();
     if (r && r.width > 0 && r.height > 0) return { top: r.top - 4, left: r.left - 4, width: r.width + 8, height: r.height + 8 };
@@ -48,7 +67,7 @@ function findTarget(selectors: string[]): Rect | undefined {
   return undefined;
 }
 
-/** Four-step coach-mark tour. Esc skips, Enter goes next, Tab stays inside the card. */
+/** Three-step coach-mark tour. Esc skips, Enter goes next, Tab stays inside the card. */
 export function Tour({ layout }: { layout: Layout }) {
   const open = useCity((s) => s.tourOpen);
   const setOpen = useCity((s) => s.setTourOpen);
@@ -56,7 +75,7 @@ export function Tour({ layout }: { layout: Layout }) {
   const [rect, setRect] = useState<Rect>();
   const card = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
-  const list = steps(layout);
+  const list = STEPS;
   const step = list[Math.min(i, list.length - 1)];
   const last = i === list.length - 1;
 
@@ -66,12 +85,17 @@ export function Tour({ layout }: { layout: Layout }) {
       setOpen(false);
       setI(0);
       if (finished) {
+        feel.questStart();
         const first = QUESTS[0];
         const quests = useCity.getState().progress.quests;
         if (first && !quests?.[first.id]) {
           useCity.getState().startQuest(first.id);
           notifyQuest(first.id);
         }
+        // Straight to the first job's landmark: one place built, one toast, no tour of the whole city.
+        const target = firstJobTarget();
+        bus.emit('flyTo', { id: target ?? 'plaza' });
+        if (target) useCity.getState().select(target);
       }
       if (opener.current instanceof HTMLElement) opener.current.focus();
     },
@@ -79,12 +103,15 @@ export function Tour({ layout }: { layout: Layout }) {
   );
 
   useEffect(() => {
-    if (open) opener.current = document.activeElement;
+    if (!open) return;
+    opener.current = document.activeElement;
+    // Step 1 is Kai: centre the camera on Kai, so the ring and the card can point at Kai.
+    bus.emit('flyTo', { id: 'player' });
   }, [open]);
 
   useLayoutEffect(() => {
     if (!open) return;
-    const targets = steps(layout)[i]?.targets ?? [];
+    const targets = STEPS[i]?.targets ?? [];
     const place = () =>
       setRect((prev) => {
         const r = findTarget(targets);
@@ -93,9 +120,11 @@ export function Tour({ layout }: { layout: Layout }) {
     place();
     window.addEventListener('resize', place);
     const t = setTimeout(place, 250); // layout settles after fonts / the game canvas
+    const t2 = setTimeout(place, 800); // and the camera's 700 ms pan onto Kai
     return () => {
       window.removeEventListener('resize', place);
       clearTimeout(t);
+      clearTimeout(t2);
     };
   }, [open, i, layout]);
 
@@ -142,14 +171,19 @@ export function Tour({ layout }: { layout: Layout }) {
   }
 
   return (
-    <div className="tour" onKeyDown={onKey}>
+    <div className="tour" role="presentation" onKeyDown={onKey}>
       <div className={`tour-ring ${rect ? '' : 'none'}`} style={rect} aria-hidden="true" />
       <div ref={card} className="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-body" style={pos}>
-        <h2 id="tour-title">{step.title}</h2>
+        <div className="tour-head">
+          <Portrait id={i === 0 ? 'user' : 'concierge'} size={32} />
+          <h2 id="tour-title">{step.title}</h2>
+        </div>
         <p id="tour-body">{step.body}</p>
         <div className="tour-foot">
-          <span className="muted step-count">
-            {i + 1} of {list.length}
+          <span className="step-count pips" aria-label={`Step ${i + 1} of ${list.length}`}>
+            {list.map((_, k) => (
+              <i key={k} className={k === i ? 'on' : k < i ? 'done' : ''} />
+            ))}
           </span>
           <button className="btn" onClick={() => close(false)}>
             Skip
@@ -160,10 +194,97 @@ export function Tour({ layout }: { layout: Layout }) {
             </button>
           )}
           <button className="btn primary" data-primary onClick={next}>
-            {last ? 'Start playing' : 'Next'}
+            {last ? 'Start my first job' : 'Next'}
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Coach tips: one card, once each, when the thing it explains first shows up (instead of more tour steps) ──
+
+type TipId = 'ask' | 'copilot';
+const TIPS: Record<TipId, { key: string; title: string; body: (layout: Layout) => string; target: string }> = {
+  ask: {
+    key: TIP_ASK_KEY,
+    title: 'Ask for anything',
+    body: () => 'Say it in plain words, like “Store my holiday photos cheaply”, and the right agent walks over and does it.',
+    target: '.composer',
+  },
+  copilot: {
+    key: TIP_COPILOT_KEY,
+    title: 'Console Copilot: let it drive your console',
+    body: (layout) =>
+      layout === 'panel'
+        ? 'Press the screen button beside the box and an agent clicks through your AWS console tab, explaining each step. Stop it any time.'
+        : `Open the ${SURFACE_NAME[SURFACE]} and press the screen button beside the box.`,
+    target: '.console-btn',
+  },
+};
+
+/** "Ask" on the first ask step (or the first time the box is used); "Copilot" when its button first shows (panel only). */
+export function CoachTips({ layout }: { layout: Layout }) {
+  const tourOpen = useCity((s) => s.tourOpen);
+  const askStep = useCity((s) => activeSteps(s.progress).some((x) => x.kind === 'ask'));
+  const [tip, setTip] = useState<TipId>();
+  const [rect, setRect] = useState<Rect>();
+  const showing = useRef<TipId | undefined>(undefined);
+  showing.current = tip;
+
+  const offer = useCallback(
+    (id: TipId) => {
+      // Never over the tour, never before it (the tour comes first), never twice, never under automation.
+      if (showing.current || tourOpen || !isTourDone() || navigator.webdriver || readPref(TIPS[id].key) === '1') return;
+      if (!findTarget([TIPS[id].target])) return;
+      writePref(TIPS[id].key, '1');
+      setTip(id);
+    },
+    [tourOpen],
+  );
+
+  useEffect(() => {
+    if (askStep) offer('ask');
+  }, [askStep, offer]);
+  useEffect(() => {
+    const onFocus = (e: FocusEvent) => e.target instanceof Element && e.target.closest('.composer') && offer('ask');
+    document.addEventListener('focusin', onFocus);
+    return () => document.removeEventListener('focusin', onFocus);
+  }, [offer]);
+  useEffect(() => {
+    if (layout !== 'panel' || readPref(TIP_COPILOT_KEY) === '1') return;
+    const check = () => {
+      if (document.querySelector('.console-btn')) offer('copilot');
+      if (readPref(TIP_COPILOT_KEY) === '1') mo.disconnect();
+    };
+    const mo = new MutationObserver(check);
+    check();
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, [layout, offer]);
+
+  useLayoutEffect(() => {
+    if (!tip) return;
+    const place = () => setRect(findTarget([TIPS[tip].target]));
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [tip]);
+
+  if (!tip) return null;
+  const t = TIPS[tip];
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const w = Math.min(280, vw - 24);
+  const left = rect ? Math.max(12, Math.min(rect.left + rect.width / 2 - w / 2, vw - w - 12)) : (vw - w) / 2;
+  const top = rect ? (rect.top > 170 ? rect.top - 160 : Math.min(rect.top + rect.height + 10, vh - 170)) : vh / 2 - 80;
+  return (
+    <div className="coach-tip" role="dialog" aria-labelledby="coach-title" style={{ top, left }}>
+      <b id="coach-title">{t.title}</b>
+      <p>{t.body(layout)}</p>
+      <button className="btn primary tiny" onClick={() => setTip(undefined)}>
+        Got it
+      </button>
     </div>
   );
 }

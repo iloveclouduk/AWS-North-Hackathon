@@ -6,7 +6,7 @@
 // before every change to AWS, keeps secrets out of files and logs, and is safe to run again.
 //
 //   npm run setup                         interactive
-//   npm run setup -- --dry-run            ask + check, write aws-city.config.json, change nothing in AWS
+//   npm run setup -- --dry-run            ask + check and write aws-city.config.json; changes nothing in AWS
 //   npm run setup -- --yes --env staging  non-interactive: reuse aws-city.config.json (CI)
 //   npm run setup -- --destroy --env staging
 import { spawnSync } from 'node:child_process';
@@ -26,7 +26,8 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const INFRA = fileURLToPath(new URL('../', import.meta.url));
 const CONFIG = `${ROOT}aws-city.config.json`;
-const MODELS = ['us.anthropic.claude-opus-5', 'us.anthropic.claude-sonnet-5'];
+// Claude's inference-profile ids follow the Region (us./eu./au./in.): one table for the wizard and the CDK app.
+const { SUPPORTED_REGIONS, geoFor, modelsFor, unsupportedRegionMessage } = await import(new URL('../lib/models.ts', import.meta.url));
 const GOOGLE_SECRET = 'aws-city/google-oauth';
 
 const args = process.argv.slice(2);
@@ -36,7 +37,7 @@ const DRY = flag('--dry-run');
 const YES = flag('--yes');
 
 const saved = existsSync(CONFIG) ? JSON.parse(readFileSync(CONFIG, 'utf8')) : {};
-const { DEV_EXTENSION_ID } = await import(new URL('../../scripts/extension-id.mjs', import.meta.url));
+const { DEV_EXTENSION_ID, FIREFOX_ADDON_ID } = await import(new URL('../../scripts/extension-id.mjs', import.meta.url));
 
 const bye = (msg = 'Stopped. Nothing else was changed.') => {
   p.cancel(msg);
@@ -54,7 +55,6 @@ const run = (cmd, argv, cwd = ROOT, env = {}) => {
   const r = spawnSync(cmd, argv, { cwd, stdio: 'inherit', env: { ...process.env, ...env } });
   if (r.status !== 0) bye(`${cmd} ${argv.join(' ')} failed (exit ${r.status}). Fix the error above and run setup again — it picks up where it left off.`);
 };
-const has = (cmd, argv) => spawnSync(cmd, argv, { stdio: 'ignore' }).status === 0;
 const approve = async (what) => {
   if (DRY) {
     p.log.info(`[dry run] would ${what}`);
@@ -64,6 +64,8 @@ const approve = async (what) => {
   return ask('confirm', { message: `OK to ${what}?`, initialValue: true });
 };
 
+const { printBanner } = await import(new URL('../../scripts/launcher/banner.mjs', import.meta.url));
+printBanner();
 p.intro(' AWS City setup ');
 p.note(
   [
@@ -72,6 +74,7 @@ p.note(
     'Rough cost while idle: prod ~$60–85/month (2 small Fargate tasks, load balancer, WAF, logs);',
     'staging ~$45–60/month (1 task). Check the AWS Pricing Calculator for your region.',
     'Claude on Bedrock is pay-per-use and capped by a daily quota + a budget kill switch.',
+    'The server image is built for you in AWS CodeBuild (a few cents per deploy): no Docker needed.',
     'You can remove everything later with: npm run setup -- --destroy',
   ].join('\n'),
   'What this does',
@@ -79,16 +82,17 @@ p.note(
 
 // ── 1. Preflight ─────────────────────────────────────────────────────────────
 const [major] = process.versions.node.split('.').map(Number);
-if (major < 22) bye(`Node ${process.versions.node} is too old: install Node 22 or newer (https://nodejs.org).`);
-if (!DRY && !flag('--destroy')) {
-  if (!has('docker', ['info'])) bye('Docker is needed to build the server image. Start Docker Desktop (or install it) and run setup again.');
-  if (!has('docker', ['buildx', 'version'])) bye('Docker buildx is needed (it builds the ARM64 image). Update Docker Desktop and run setup again.');
-}
+if (major < 24) bye(`Node ${process.versions.node} is too old: install Node 24 or newer (https://nodejs.org).`);
+// No Docker needed: the server image is built in AWS CodeBuild during the deploy (infra/lib/service-stack.ts).
 
 const envName = opt('--env') ?? (await ask('select', { message: 'Which environment?', options: [{ value: 'prod', label: 'prod', hint: 'the real one players use' }, { value: 'staging', label: 'staging', hint: 'a test copy' }], initialValue: saved.lastEnv ?? 'prod' }, saved.lastEnv));
 const prev = saved[envName] ?? {};
 
-const region = await ask('text', { message: 'AWS Region to deploy in', placeholder: 'us-west-2', initialValue: prev.region ?? process.env.AWS_REGION ?? 'us-west-2', validate: (v) => (/^[a-z]{2}(-gov)?-[a-z]+-\d$/.test(v) ? undefined : 'e.g. us-west-2') }, prev.region);
+// Only Regions where the server's Claude models have a Bedrock geo inference profile (infra/lib/models.ts).
+const region = await ask('text', { message: 'AWS Region to deploy in', placeholder: 'us-west-2', initialValue: prev.region ?? process.env.AWS_REGION ?? 'us-west-2', validate: (v) => (geoFor(v) ? undefined : `Claude needs one of: ${SUPPORTED_REGIONS.join(', ')}`) }, prev.region);
+if (!geoFor(region)) bye(unsupportedRegionMessage(region)); // a saved --yes answer skips validate
+const { main: MAIN_MODEL, light: LIGHT_MODEL } = modelsFor(region);
+const MODELS = [MAIN_MODEL, LIGHT_MODEL];
 const credentials = fromNodeProviderChain({ profile: process.env.AWS_PROFILE });
 const aws = (C) => new C({ region, credentials });
 
@@ -129,9 +133,15 @@ for (const modelId of offline ? [] : MODELS) {
 if (missing.length) {
   s.stop('Bedrock model access is not ready', 1);
   p.log.error(missing.join('\n'));
-  p.note(`Open https://${region}.console.aws.amazon.com/bedrock/home?region=${region}#/modelaccess\nand enable Anthropic Claude Opus 5 and Claude Sonnet 5, then run setup again.`, 'Enable model access');
+  // Commercial Regions have no Model access page any more: serverless models are enabled on first call, and
+  // Anthropic needs a one-time use-case form. The console's deep links aren't documented, so we point at the guide
+  // (https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) and name the console steps it gives.
+  p.note(
+    `In the Amazon Bedrock console (Region ${region}), open the Model catalog, pick an Anthropic Claude model and\nsubmit the one-time use-case form (once per account or organization). How-to:\nhttps://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html\nThe first call also needs aws-marketplace:Subscribe and a valid payment method. Access can take a few minutes; then run setup again.`,
+    'Enable Claude on Bedrock',
+  );
   if (!DRY) bye();
-} else s.stop(offline ? '[dry run] Bedrock check skipped' : 'Claude Opus 5 and Sonnet 5 are available');
+} else s.stop(offline ? '[dry run] Bedrock check skipped' : `${MAIN_MODEL} and ${LIGHT_MODEL} are available`);
 
 // ── 3. Domain: yours, or free HTTPS from CloudFront ──────────────────────────
 let zones = [];
@@ -203,7 +213,11 @@ if (useGoogle) {
 }
 
 // ── 6. Emails ────────────────────────────────────────────────────────────────
-const alarmEmail = await ask('text', { message: 'Email for alarms and budget alerts (you’ll get a confirmation email to click)', initialValue: prev.alarmEmail ?? '', validate: (v) => (!v || /^\S+@\S+\.\S+$/.test(v) ? undefined : 'an email address, or leave empty') }, prev.alarmEmail);
+// The AI cut-off works without an email, but in prod nobody would hear about alarms or the cut-off.
+const emailOptional = envName !== 'prod';
+const alarmEmail = await ask('text', { message: 'Email for alarms and budget alerts (you’ll get a confirmation email to click)', initialValue: prev.alarmEmail ?? '', validate: (v) => (/^\S+@\S+\.\S+$/.test(v ?? '') || (emailOptional && !v) ? undefined : emailOptional ? 'an email address, or leave empty' : 'prod needs an email for alarms and the budget cut-off') }, prev.alarmEmail);
+if (!alarmEmail && !emailOptional) bye('prod needs alarmEmail (alarms and the budget cut-off notify it).');
+if (!alarmEmail) p.log.warn('No alarm email: the AI still switches off at 100% of the budget, but nobody is told. Add one before going live.');
 const monthlyBudgetUsd = Number(await ask('text', { message: 'Monthly AWS budget in USD (AI switches off at 100%)', initialValue: String(prev.monthlyBudgetUsd ?? (envName === 'prod' ? 300 : 50)), validate: (v) => (Number(v) > 0 ? undefined : 'a number') }, prev.monthlyBudgetUsd));
 const useSes = await ask('confirm', { message: 'Send sign-up emails from your own address with Amazon SES? (otherwise Cognito’s default sender, ~50/day)', initialValue: Boolean(prev.sesFromEmail) }, Boolean(prev.sesFromEmail));
 let sesFromEmail = '';
@@ -232,6 +246,22 @@ const allowDev = await ask(
 );
 const extensionIds = [...(allowDev ? [DEV_EXTENSION_ID] : []), ...(storeId ? [storeId] : [])];
 if (!extensionIds.length) p.log.warn('No extension can sign in yet: publish to the Chrome Web Store and re-run setup with its id (or allow the local build).');
+// Chrome/Edge are always on; Firefox and Safari players sign in with the same accounts when enabled.
+const browsers = await ask(
+  'multiselect',
+  {
+    message: 'Which other browsers should players be able to use? (Chrome and Edge always work)',
+    options: [
+      { value: 'firefox', label: 'Firefox', hint: `add-on id ${FIREFOX_ADDON_ID}` },
+      { value: 'safari', label: 'Safari', hint: 'needs Xcode + an Apple Developer account to publish' },
+    ],
+    initialValues: [...(prev.firefoxAddonId ? ['firefox'] : []), ...(prev.safari ? ['safari'] : [])],
+    required: false,
+  },
+  [...(prev.firefoxAddonId ? ['firefox'] : []), ...(prev.safari ? ['safari'] : [])],
+);
+const firefoxAddonId = browsers.includes('firefox') ? FIREFOX_ADDON_ID : '';
+const safari = browsers.includes('safari');
 
 // ── 8. GitHub CI/CD (optional) ───────────────────────────────────────────────
 let githubRepo = saved.githubRepo ?? '';
@@ -247,7 +277,7 @@ if (wantCi) {
 
 // ── 9. Save the answers (no secrets) ─────────────────────────────────────────
 const envConfig = {
-  region, domainName, hostedZoneId: zone ? zoneChoice : '', zoneName, cognitoDomainPrefix, extensionIds, googleClientId, sesFromEmail, alarmEmail,
+  region, domainName, hostedZoneId: zone ? zoneChoice : '', zoneName, cognitoDomainPrefix, extensionIds, firefoxAddonId, safari, googleClientId, sesFromEmail, alarmEmail,
   monthlyBudgetUsd, dailyModelCalls: prev.dailyModelCalls ?? 100, globalDailyModelCalls: prev.globalDailyModelCalls ?? (envName === 'prod' ? 20000 : 5000),
   minTasks: prev.minTasks ?? (envName === 'prod' ? 2 : 1), maxTasks: prev.maxTasks ?? (envName === 'prod' ? 10 : 3),
 };
@@ -283,11 +313,14 @@ const envFile = [
   `WXT_AWS_API_URL=${pick('Service', 'ApiUrl')}`,
   `WXT_COGNITO_DOMAIN=${pick('Auth', 'CognitoDomain')}`,
   `WXT_COGNITO_CLIENT_ID=${pick('Auth', 'CognitoClientId')}`,
+  ...(safari ? [`WXT_COGNITO_REDIRECT_URL=${pick('Data', 'AuthRelayUrl')}`] : []),
 ].join('\n');
 writeFileSync(`${ROOT}.env.production`, `${envFile}\n`);
 if (!existsSync(`${ROOT}node_modules`)) run('npm', ['ci']);
 run('npx', ['wxt', 'build', '--mode', 'production']);
 run('npx', ['wxt', 'zip', '--mode', 'production'], ROOT, { WXT_STORE_BUILD: 'true' });
+if (firefoxAddonId) run('npx', ['wxt', 'zip', '-b', 'firefox', '--mode', 'production']);
+if (safari) run('npx', ['wxt', 'build', '-b', 'safari', '--mode', 'production']);
 
 p.note(
   [
@@ -297,6 +330,8 @@ p.note(
     allowDev ? `Try it now: chrome://extensions → Developer mode → Load unpacked → .output/chrome-mv3 (id ${DEV_EXTENSION_ID}).` : 'The local build is not allowed to sign in (prod); use the store build.',
     'Publish:   upload .output/*-chrome.zip in the Chrome Web Store dashboard (docs/chrome-web-store.md),',
     '           then run setup again with the store id so store users can sign in too.',
+    firefoxAddonId ? 'Firefox:   upload .output/*-firefox.zip (+ the -sources.zip) to addons.mozilla.org (docs/firefox-addons.md).' : '',
+    safari ? 'Safari:    npm run safari:xcode, then build and submit the app in Xcode (docs/safari.md).' : '',
     alarmEmail ? `Confirm:   click the AWS Notification emails sent to ${alarmEmail}.` : '',
     githubRepo ? `GitHub:    add AWS_DEPLOY_ROLE_ARN (see the AWSCity-CI stack) + AWS_REGION=${region} to the ${envName} environment.` : '',
     'Kill switch / runbook: docs/runbook.md',

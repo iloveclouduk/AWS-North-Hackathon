@@ -1,0 +1,96 @@
+{
+  "asOf": "2026-10-10",
+  "note": "The citizens who look after the city: one per Well-Architected pillar. They patrol their districts, raise findings from the rules in wa-rules.json, and can fix some of them once you've taught them (level 2).",
+  "levels": [
+    {
+      "level": 1,
+      "name": "Spotter",
+      "can": "Spots issues and explains them",
+      "xp": 0
+    },
+    {
+      "level": 2,
+      "name": "Fixer",
+      "can": "Fixes issues on resources the city built, with your OK",
+      "xp": 20
+    },
+    {
+      "level": 3,
+      "name": "Caretaker",
+      "can": "Fixes issues anywhere in your account, with your OK and a typed confirmation",
+      "xp": 60
+    }
+  ],
+  "citizens": [
+    {
+      "id": "citizen:security",
+      "name": "Priya",
+      "roleId": "sde",
+      "pillar": "security",
+      "districts": [
+        "security",
+        "networking",
+        "storage"
+      ],
+      "greeting": "I check who can get in, and what's left open."
+    },
+    {
+      "id": "citizen:reliability",
+      "name": "Noor",
+      "roleId": "sre",
+      "pillar": "reliability",
+      "districts": [
+        "database",
+        "compute"
+      ],
+      "greeting": "I make sure one failure doesn't take the city down."
+    },
+    {
+      "id": "citizen:cost",
+      "name": "Lena",
+      "roleId": "tam",
+      "pillar": "cost",
+      "districts": [
+        "compute",
+        "storage",
+        "database"
+      ],
+      "greeting": "I look for things you're paying for but not using."
+    },
+    {
+      "id": "citizen:performance",
+      "name": "Maya",
+      "roleId": "sa",
+      "pillar": "performance",
+      "districts": [
+        "compute",
+        "networking",
+        "aiml"
+      ],
+      "greeting": "I make sure each job gets the right tool."
+    },
+    {
+      "id": "citizen:operational",
+      "name": "Ava",
+      "roleId": "pm",
+      "pillar": "operational",
+      "districts": [
+        "compute",
+        "security",
+        "aiml"
+      ],
+      "greeting": "I check that you can see what's happening and change it safely."
+    },
+    {
+      "id": "citizen:sustainability",
+      "name": "Rosa",
+      "roleId": "delivery",
+      "pillar": "sustainability",
+      "districts": [
+        "compute",
+        "storage"
+      ],
+      "greeting": "I find ways to do the same work with less energy."
+    }
+  ]
+}

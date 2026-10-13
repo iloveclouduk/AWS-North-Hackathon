@@ -3,7 +3,9 @@ import { askDistrict } from '@/app/runtime';
 import { agentName, useCity } from '@/state/store';
 import { districtById, servicesIn, type DistrictId } from '@/world/taxonomy';
 import { ChipRow } from './ChipRow';
-import { offlineReason } from './logic';
+import { feel } from './feedback';
+import { districtStyle, offlineReason } from './logic';
+import { Portrait } from './Portrait';
 
 const EMPTY: never[] = [];
 
@@ -18,36 +20,65 @@ export function ChatPanel({ districtId }: { districtId: string }) {
     end.current?.scrollIntoView({ block: 'end' });
   }, [msgs]);
   const d = districtById(districtId)!;
-  const names = servicesIn(districtId as DistrictId).map((s) => s.name.replace(/^(Amazon|AWS) /, ''));
+  const team = servicesIn(districtId as DistrictId);
+  const names = team.map((s) => s.name.replace(/^(Amazon|AWS) /, ''));
+  // Three different questions, never "S3 vs S3?".
+  const [a, b = a, c = b] = names;
+  const suggestions = [...new Set([`What is ${a} for?`, `When should I use ${b}?`, a !== c ? `${a} vs ${c}?` : `How do I start with ${a}?`])];
 
   const send = (q = text) => {
     if (offline) return;
+    feel.send();
     askDistrict(districtId, q);
     setText('');
   };
 
   return (
-    <div className="chat">
+    <div className="chat" style={districtStyle(d.color)}>
+      <header className="chat-head">
+        <span className="chat-team" aria-hidden="true">
+          {team.slice(0, 5).map((t) => (
+            <Portrait key={t.id} id={t.id} size={24} />
+          ))}
+        </span>
+        <span className="px">{d.hq}</span>
+      </header>
       <div className="chat-log" role="log" aria-live="polite">
         {msgs.length === 0 && (
           <p className="empty">
-            Ask the {d.name} team about {names.join(', ')}.
-            {focus?.title ? ` They can see you're on “${focus.title.slice(0, 50)}”.` : ''}
+            Ask the {d.name} team anything about {names.slice(0, 4).join(', ')}
+            {names.length > 4 ? '…' : '.'}
+            {focus?.title ? ` They can see you’re on “${focus.title.slice(0, 50)}”.` : ''}
           </p>
         )}
-        {msgs.map((m) => (
-          <div key={m.id} className={`bubble ${m.role}`} role={m.role === 'error' ? 'alert' : undefined}>
-            {m.role === 'agent' && <b>{agentName(m.agentId ?? '')}: </b>}
-            {m.role === 'error' && <span aria-hidden="true">⚠️ </span>}
-            {m.text}
-            {m.pending && <span className="typing">▍</span>}
-          </div>
-        ))}
+        {msgs.map((m) =>
+          m.role === 'agent' ? (
+            <div key={m.id} className="chat-row">
+              <Portrait id={m.agentId ?? 'concierge'} size={28} />
+              <div className="bubble agent">
+                <b className="bubble-who">{agentName(m.agentId ?? '')}</b>
+                {m.text}
+                {m.pending && (
+                  <span className="typing-dots" aria-label="typing">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div key={m.id} className={`bubble ${m.role}`} role={m.role === 'error' ? 'alert' : undefined}>
+              {m.role === 'error' && <span aria-hidden="true">⚠️ </span>}
+              {m.text}
+            </div>
+          ),
+        )}
         <div ref={end} />
       </div>
       {offline && <p className="muted offline-note">{offline}</p>}
       <ChipRow label="Suggested questions">
-        {[`What is ${names[0]} for?`, `When should I use ${names[1] ?? names[0]}?`, `${names[0]} vs ${names[2] ?? names[1] ?? names[0]}?`].map((q) => (
+        {suggestions.map((q) => (
           <button key={q} className="chip" onClick={() => send(q)} disabled={!!offline} title={offline}>
             {q}
           </button>
@@ -62,7 +93,7 @@ export function ChatPanel({ districtId }: { districtId: string }) {
       >
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder={`Ask ${d.hq}…`} aria-label="Question" disabled={!!offline} title={offline} />
         <button className="btn primary" type="submit" disabled={!text.trim() || !!offline} title={offline}>
-          Ask
+          Ask ➤
         </button>
       </form>
     </div>

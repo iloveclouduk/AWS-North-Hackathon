@@ -1,0 +1,198 @@
+/* ── HUD: logo, one progress readout, connection, a menu ── */
+.hud {
+  grid-area: hud;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  min-width: 0;
+}
+.logo {
+  margin-right: auto;
+  white-space: nowrap;
+}
+.logo b {
+  font-family: var(--font-pixel);
+  font-size: 10px; /* the pixel font only stays crisp on its 8px grid */
+  color: var(--ink-hi);
+  letter-spacing: 0.5px;
+}
+.hud .back {
+  margin-right: var(--s-2);
+}
+.where {
+  margin-right: auto;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.progress-readout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.progress-readout b {
+  color: var(--ink);
+  font-weight: 800;
+}
+.progress-readout .bump {
+  display: inline-block;
+  animation: bump var(--dur-3) var(--ease-out);
+}
+.progress-readout .bump b {
+  color: var(--accent);
+}
+.progress-readout .sep {
+  opacity: 0.5;
+}
+@keyframes bump {
+  40% {
+    transform: translateY(-2px);
+  }
+}
+
+/* connection: a small dot + word */
+.conn {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.dot {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  padding: 0 0 0 12px;
+  position: relative;
+}
+.dot::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.dot.connected::before {
+  background: var(--good);
+  box-shadow: 0 0 6px var(--good);
+}
+.dot.connecting::before {
+  background: var(--warn);
+  animation: pulse 1s steps(2) infinite;
+}
+.dot.error,
+.dot.disconnected {
+  color: var(--bad-ink);
+}
+.dot.error::before,
+.dot.disconnected::before {
+  background: var(--bad);
+}
+.dot.signed-out::before {
+  background: transparent;
+  border: 2px solid var(--accent);
+}
+.dot.mock::before {
+  background: var(--muted);
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* the ⋯ menu */
+.more {
+  position: relative;
+}
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: var(--z-tour);
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-2);
+  background: var(--panel-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: 0 12px 32px var(--shadow);
+  animation: enter var(--dur-2) var(--ease-out);
+  /* Bigger text (⋯ → Text size) makes the menu taller than a short side panel: scroll, never clip. */
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+.menu-label {
+  padding: var(--s-2) var(--s-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.menu-value {
+  color: var(--accent);
+  font-weight: 800;
+}
+.menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  background: none;
+  border: 0;
+  border-radius: var(--r-md);
+  text-align: left;
+  font-size: var(--fs-md);
+}
+.menu button:hover {
+  background: var(--panel-hi);
+}
+.menu button .icon {
+  margin-right: var(--s-2);
+}
+.menu hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: var(--s-2) 0;
+}
+.switch {
+  flex: none;
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: var(--r-pill);
+  background: var(--line-strong);
+  transition: background-color var(--dur-2);
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.switch.on {
+  background: var(--accent);
+}
+.switch.on::after {
+  transform: translateX(12px);
+  background: var(--accent-ink);
+}

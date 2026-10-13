@@ -1,6 +1,6 @@
 # 🏙️ AWS City
 
-**Learn AWS by living in it.** AWS City is a Chrome extension with a living isometric pixel city,
+**Learn AWS by living in it.** AWS City is a browser extension (Chrome, Edge, Firefox and Safari) with a living isometric pixel city,
 where every AWS service is a place and its agent does that service's real job:
 - Sally fishes objects out of **S3 Lake**.
 - Sir Shieldon blocks DDoS arrows at the **Shield Wall**.
@@ -15,21 +15,83 @@ You are **Kai**. Browse the AWS Console and the city grows with you.
   pages. It highlights each button and explains why; risky buttons are always your click.
 - **Build for real, safely.** Connect *your own* AWS account with a small, restricted role. Every
   change waits for your **Approve**.
+- **Live AWS status, in the city.** Real outages from the public AWS Health Dashboard show up as a
+  news ticker, a throbbing Region on the world map, and storms and fenced landmarks in that Region's
+  city (for example, Bahrain's 2026 disruption). Each incident explains what happened and what it
+  teaches, with a drill to practise on. AWS What's New launches scroll by too.
 - **Learn:**
-  - 288 flashcards;
-  - architecture puzzles scored on the 6 Well-Architected pillars;
-  - quests;
-  - 4 mini-games.
+  - 300 flashcards;
+  - architecture puzzles scored on the 6 Well-Architected pillars, including a "Region goes dark" drill;
+  - 22 quests that together cover all 36 services, with scenario questions;
+  - 6 mini-games whose questions get harder as you play.
 
 ---
 
-## Choose your path
+## For kids and parents: the quick path
+
+1. Install AWS City from your browser's store (below). The city opens in a tab by itself.
+2. Press **Play the demo** at the top. No account, no AWS, nothing real is created or charged.
+   When you want to keep your city, open the **⋯** menu and pick **Sign in to save your city**.
+
+No store? With [Node 24+](https://nodejs.org) installed, two lines open the demo in its own browser window:
+
+```bash
+git clone https://github.com/iloveclouduk/AWS-North-Hackathon.git && cd AWS-North-Hackathon
+npm install && npm run open
+```
+
+---
+
+## Get AWS City
+
+| Browser | Install | Opens as |
+|---|---|---|
+| **Chrome**, Edge, Brave, Opera | Chrome Web Store *(link once published)* | side panel |
+| **Firefox** 140+ | Firefox Add-ons *(link once published)* | sidebar |
+| **Safari** 16.4+ on macOS | Mac App Store *(link once published)* | full city in a tab (Safari has no side panel, so the Lookout and Console Copilot need Chrome, Edge or Firefox) |
+
+Publishing guides: [Chrome Web Store](docs/chrome-web-store.md) · [Firefox Add-ons](docs/firefox-addons.md) · [Safari](docs/safari.md).
+
+---
+
+## Start here: one command
+
+```bash
+git clone https://github.com/iloveclouduk/AWS-North-Hackathon.git && cd AWS-North-Hackathon
+npm install
+npm start
+```
+
+`npm start` draws the city, then asks two things and handles the rest:
+1. **How do you want to play?** 🎮 the demo (no AWS) · ☁️ real AWS on this computer · 🚀 put it online for everyone.
+2. **Which browser?** It lists the ones you have. *AWS City browser* (Chrome for Testing) opens with the extension
+   already loaded; Google Chrome, Edge and Brave take 3 guided clicks (they block auto-loading); Firefox opens with it
+   loaded; Safari builds the Xcode project and walks you through enabling it.
+
+For real AWS it connects your account the easy way — **sign in with your browser** (`aws login`, no keys to copy),
+**paste the keys** from Workshop Studio (it reads them from your clipboard), or **SSO** — checks Claude on Bedrock,
+then starts the local server. It remembers your answers for next time. Nothing needs Docker.
+
+**On stage, or in a hurry**, skip the questions:
+
+```bash
+npm start -- --demo --browser cft      # straight to the demo in the AWS City browser, zero clicks
+npm start -- --demo --browser chrome   # the same in Google Chrome (edge, brave, firefox, safari work too)
+npm start -- --help                    # every option (--live for real AWS, --no-intro to skip the animation)
+```
+
+Keep the `--`: without it npm keeps the options for itself. Once the city is open the terminal stays its control
+panel: **c** brings the city tab forward, **p** opens the S3 practice page, **a** the real AWS console, **r** reopens
+the browser and **q** (or Ctrl-C) closes everything. Click once in the city to turn the sound on: browsers keep a page
+quiet until you click it.
+
+## Choose your path (the commands behind `npm start`)
 
 | | You need | Time | Command |
 |---|---|---|---|
-| **1. Play now** (demo agents, no AWS) | Node 22+ | 2 min | `npm install && npm run open` |
-| **2. Run it on your own AWS** (real agents, sign-in, alarms) | an AWS account + Docker | ~25 min, mostly waiting | `npm run setup` |
-| **3. Develop against real AWS locally** | an AWS profile with Bedrock | 5 min | `npm run live` |
+| **1. Play now** (demo agents, no AWS) | Node 24+ | 2 min | `npm run open` |
+| **2. Run it on your own AWS** (real agents, sign-in, alarms) | an AWS account | ~25 min, mostly waiting | `npm run setup` |
+| **3. Develop against real AWS locally** | an AWS profile with Bedrock, AWS CLI 2.32+ | 5 min | `npm run live` (`-- --help` lists the options) |
 
 ### 1 · Play now
 
@@ -39,16 +101,25 @@ npm install
 npm run open          # builds the extension and opens Chromium with it loaded
 ```
 
+The first run downloads the AWS City browser (Chrome for Testing, about 150 MB) if it isn't there yet.
+The guided `npm start` and the scripts are built for macOS first; on Linux and Windows, use
+`npm run build` and load `.output/chrome-mv3` yourself (below).
+
 **Using your own Chrome:**
 1. Run `npm run build`.
 2. Open `chrome://extensions`.
 3. Turn on **Developer mode**.
 4. Click **Load unpacked** and pick `.output/chrome-mv3`.
 
+**Other browsers (demo mode):**
+- Firefox: `npm run dev:firefox` opens Firefox with the extension; click the toolbar icon for the sidebar.
+- Safari: `npm run safari:xcode`, press Run in Xcode, then allow unsigned extensions ([docs/safari.md](docs/safari.md)).
+
 **Getting around:**
-- The toolbar icon opens the **side panel**; **⤢** opens the full-screen city.
+- The toolbar icon opens the **side panel**; **⋯ → Open the full city in a tab ↗** opens the full-screen city.
 - Move Kai by clicking or with **WASD / arrow keys**, and press **E** to talk or enter.
-- The **?** button replays the tour.
+- **⋯ → Replay the tour** shows the first-run tour again.
+- `npm run open` opens the city and a safe S3 practice page. Add `-- --console` to open the real AWS console sign-in too.
 
 ### 2 · Run it on your own AWS (one command)
 
@@ -60,9 +131,12 @@ npm run setup         # a wizard: asks a few questions, checks everything, deplo
 **Before you start** (the wizard checks these and tells you exactly what's missing):
 1. **An AWS account where you're an admin**, signed in on this computer. Use `aws login`
    (AWS CLI 2.32+), `aws configure sso`, or `export AWS_PROFILE=<profile>`.
-2. **Docker Desktop running.** It builds the server image.
-3. **Claude model access in Amazon Bedrock.** In the Bedrock console, open **Model access** and
-   enable **Claude Opus 5** and **Claude Sonnet 5**. The wizard gives you the exact link.
+2. **Claude on Amazon Bedrock.** Serverless models are enabled on first use, but Anthropic asks each
+   account (or organization) for a one-time use-case form: in the Bedrock console, open the **Model catalog**,
+   pick a Claude model and submit it. The first call also needs `aws-marketplace:Subscribe` and a payment
+   method ([AWS docs](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html)). The wizard
+   checks the Region's Claude models (Opus 5.5 and Sonnet 5.5; Opus 5 and Sonnet 5 in India) and tells you how to
+   enable them.
 
 **What the wizard asks** (each answer is saved to `aws-city.config.json`, which is gitignored and
 contains no secrets):
@@ -70,7 +144,7 @@ contains no secrets):
 | Question | Why | If you're not sure |
 |---|---|---|
 | Environment | `prod` (players) or `staging` (test copy). Both can live in one account. | `staging` first, then `prod` |
-| Region | Where it runs. It must have Bedrock with Claude. | `us-west-2` |
+| Region | Where it runs. Claude runs through a Bedrock geo inference profile, so only these Regions work: US and Canada (`us.`), Europe (`eu.`), Sydney/Melbourne (`au.`), Mumbai/Hyderabad (`in.`); the wizard lists them (`infra/lib/models.ts`). | `us-west-2` |
 | Web address | A Route 53 domain gives `api.yourdomain.com`; otherwise CloudFront gives free HTTPS. | **No domain** |
 | Sign-in page name | Your Cognito sign-in address. The wizard checks it's free. | Accept the suggestion |
 | Google sign-in | Optional "Sign in with Google" ([guide](docs/google-sign-in.md)). Email + password always works. | Skip; add it later |
@@ -94,10 +168,11 @@ contains no secrets):
   ([guide](docs/chrome-web-store.md)), then run `npm run setup` again and enter the store id.
 
 **Other commands:**
-- `npm run setup -- --dry-run`: see every question and check, changing nothing.
-  This also works without an AWS login.
-- `npm run setup -- --destroy`: remove the stacks. Tables and buckets are kept, so no data is lost
-  by accident.
+- `npm run setup -- --dry-run`: see every question and check without changing anything in AWS (it still
+  writes your answers to `aws-city.config.json`). This also works without an AWS login.
+- `npm run setup -- --env staging`: skip the environment question (`--yes` accepts every saved answer).
+- `npm run setup -- --destroy --env staging`: remove that environment's stacks. Tables and buckets are kept,
+  so no data is lost by accident.
 
 **Cost while idle:**
 - **prod:** roughly **$60–85/month** for two small Fargate tasks, the load balancer, WAF and logs.
@@ -107,8 +182,9 @@ contains no secrets):
 ### 3 · Develop against real AWS locally
 
 ```bash
-aws configure --profile workshop      # or any profile with Bedrock access (AWS_CITY_PROFILE=<name>)
-npm run live                          # local server (real AWS + Claude) + the extension wired to it
+npm start                             # pick "Real AWS": signs you in, checks Claude on Bedrock, then runs live
+npm run live                          # the same, without the questions: profile aws-city / workshop / default
+npm run live -- --profile me --region eu-west-1 --browser firefox
 ```
 
 The local server listens on `127.0.0.1` only and uses your profile. Each change still needs your
@@ -120,7 +196,7 @@ Approve. It picks up refreshed keys within a minute.
 
 ```mermaid
 flowchart LR
-  subgraph Browser["Chrome extension (WXT + React + Phaser)"]
+  subgraph Browser["Browser extension: Chrome, Edge, Firefox, Safari (WXT + React + Phaser)"]
     City["Pixel city + side panel"] --- Copilot["Console Copilot<br/>(content script on console.aws.amazon.com)"]
   end
   City -- "WebSocket + REST<br/>Cognito JWT" --> Edge["CloudFront + edge WAF<br/>(or HTTPS ALB on your domain)"]
@@ -129,6 +205,7 @@ flowchart LR
   ECS --> S3[("S3<br/>screenshots, 1 day")]
   ECS --> Bedrock["Amazon Bedrock<br/>Claude"]
   ECS --> Docs["AWS Knowledge MCP<br/>(official docs, read-only)"]
+  ECS --> Health["AWS Health Dashboard + What's New<br/>(public feeds, read once for everyone)"]
   ECS -- "sts:AssumeRole + ExternalId" --> Player["Player's own account<br/>AWSCityPlayerRole"]
   Cognito["Cognito<br/>email / Google"] -. sign-in .- City
 ```
@@ -138,7 +215,7 @@ flowchart LR
   checked again after you approve.
 - **We never hold your keys.** Agents act in your account only through the role you install
   (`infra/player-role/player-role.yaml`). It's least-privilege: tiny, tagged, name-prefixed
-  resources, locked to one region, and it trusts only this deployment's server role. Delete the
+  resources, locked to one Region, and it trusts only this deployment's server role. Delete the
   `AWSCity` stack to revoke it.
 - **Console Copilot runs only when you start it, only on console pages.** It never clicks
   delete / IAM / billing controls and never reads secret fields; press Esc to stop.
@@ -161,8 +238,9 @@ docs/         contract, runbook, privacy policy, store listing, Google & Chrome 
 
 | Command | What it does |
 |---|---|
-| `npm run check` | Type-check + unit tests (extension) |
-| `npm run smoke` / `smoke:copilot` / `smoke:city` | Playwright runs; screenshots in `.output/smoke`; must print "no page errors" |
+| `npm run check` | Type-check + unit tests (extension), React component tests included |
+| `npm run lint` | ESLint: rules of hooks and accessibility (jsx-a11y) |
+| `npm run smoke` / `smoke:copilot` | Playwright runs; screenshots in `.output/smoke`; must print "no page errors" |
 | `cd server && npm test` | Server tests (auth, tenants, approvals, Copilot, docs grounding, player-role drift) |
 | `cd infra && npm test && npx cdk synth -q` | Infra tests + cdk-nag |
 | `npm run art` | Regenerate the pixel art |
@@ -175,13 +253,14 @@ The backend contract is [docs/backend-contract.md](docs/backend-contract.md); it
 
 | Symptom | Fix |
 |---|---|
-| Setup: *Bedrock model access is not ready* | Enable Claude Opus 5 + Sonnet 5 under Bedrock → Model access in that region, then re-run. |
+| Setup: *Bedrock model access is not ready* | Submit Anthropic's one-time use-case form (Bedrock → Model catalog → a Claude model) and check `aws-marketplace:Subscribe` + a payment method; wait a few minutes, then re-run. |
 | Setup: *sign-in name is taken* | Pick another name; it can't contain `aws`, `amazon` or `cognito`. |
-| Deploy fails building the image | Start Docker Desktop and make sure `docker buildx version` works (the ARM64 image needs buildx). |
+| Deploy fails building the image | The image is built in AWS CodeBuild: the error links to the build log (CloudWatch → `/aws/codebuild/ContainerImageBuildArm64…`). |
+| `npm run dev` shows a blank page | Branded Chrome blocks auto-loading; install the AWS City browser once with `npx playwright install chromium` (or just use `npm start`). |
 | No alarm or budget emails | Click **Confirm subscription** in the AWS Notifications email. |
 | "Sign in" loops in the extension | That build's extension id isn't allowed: re-run `npm run setup` (allow the local build, or add the store id). |
 | "The city's AI is resting" | The kill switch is off or the budget was hit (see the [runbook](docs/runbook.md)). |
-| Player can't link their account | Create the stack from the in-game link *in the same region*, then paste the 12-digit account id. |
+| Player can't link their account | Create the stack from the in-game link *in the same Region*, then paste the 12-digit account id. |
 
 ## For contributors using Claude Code
 
@@ -207,3 +286,7 @@ development session only, and the game's agents never use it (see `CLAUDE.md`).
   AWS City is an independent learning project, not affiliated with or endorsed by Amazon.
 - **Fonts:** Nunito and Press Start 2P (OFL).
 - **Sounds:** [Kenney](https://kenney.nl), CC0.
+- **Learn more reading:** each building links (never copies) to [Tutorials Dojo](https://tutorialsdojo.com/aws-cheat-sheets/)
+  cheat sheets, [AWS Fundamentals](https://awsfundamentals.com/blog) articles and its book, and O'Reilly books
+  (*AWS Cookbook*, *Serverless Development on AWS*, *Generative AI on AWS*), credited with their authors
+  (`shared/further-reading.json`). The game's own cards are in our words and cite AWS docs.
