@@ -191,21 +191,44 @@ The frontend is complete against a mock backend; the AWS backend plugs in throug
   flags, religious, political or military sites. The world map draws each city's signature as a tiny skyline, lit while
   it's night there (`isNightAt`, solar time from the longitude, redrawn each minute). Proof: `npx vitest run tests/signatures.test.ts`.
 - **Learning visibly grows the city.** Every activity names the building it grew and how far (`growthOf`/`growthLine`,
-  `src/state/growth.ts`): under each flashcard, on every game's end card, in the puzzle result. Between levels a building
+  `src/state/growth.ts`): under each flashcard, on every game's end card, in the puzzle result. Each landmark grows a
+  **knowledge tower** in its district's style on the back of its lot (`art/tiles/growth_art.py`: none at Novice, mid-rise,
+  tower, skyscraper with crown and beacon at Master; the bespoke landmark stays in front, so a lake stays a lake); the
+  empty sky above every `lm:*` sprite is trimmed. A tier-up rises floor by floor (`Landmark.rise`, inside the one
+  celebration), buildings in front of Kai or the picked building fade (`src/game/occlusion.ts`), and the camera frames a
+  tall building by its middle without losing its ground (`buildingFocusY`, `src/game/camera.ts`). Between levels a building
   shows scaffolding (1/3 of the way) then a crane (2/3) (`constructionStage`, `TierProps.syncWorks`); a tier-up flies the
   camera there, and one earned while the city slept (game, HQ, world map) is celebrated on return. Drawings pay most
   (`src/learning/puzzleRewards.ts`: first pass 12/service + 10, better pass 4, a failed try 2 per right piece once a day);
   a puzzle's `best` is its best *pass* only, and the panel states the rule (70+, nothing missing). Games pay full stars
   for 3 rounds a day per game or a new best (`gameStars.ts`); a seen card never pays new-card stars again. District
   skylines average the buildings put up (at least 2). Proof: `npx vitest run tests/puzzle-rewards.test.ts tests/park.test.ts
-  tests/game-clock.test.ts tests/learning.test.ts tests/decor.test.ts`.
+  tests/game-clock.test.ts tests/learning.test.ts tests/decor.test.ts tests/art.test.ts tests/occlusion.test.ts
+  tests/camera.test.ts`; `npm run smoke` checks a fully known S3 Lake reads Level 7 and audits the citizen question.
+- **Past Master, crowns come from knowledge, not stars** (`src/state/mastery.ts`): Lv 5–7 (`tiers.legend` in
+  `shared/world.json`: Mentor, Architect, Legend) need cards remembered for a week (`MASTERED_DAYS`), a passed drawing
+  that uses the service, a finished quest and rounds of its game. Gold crowns stand on the tower's tip
+  (`art/tiles/legend_art.py`; the Legend's beam is night-lights only) and the sign stands above them; the building card
+  lists the next crown's steps. Proof: `npx vitest run tests/mastery.test.ts tests/art.test.ts`.
+- **Walking counts.** A quest's visit step counts when Kai *arrives* (`store.arrive`, from `goTo`'s callback or stepping
+  on the work spot), not on a tap; "Go →" and the tour walk him there (`src/state/walk.ts` `walkTo`), and a city that
+  can't (asleep behind a game or HQ) counts it at once, so a quest never sticks. Now and then one existing citizen has a
+  question (`src/state/requests.ts`, `src/game/Requests.ts`: a gold "?", at most 5 a day, no new walkers): reaching them
+  opens `RequestCard`, an ordinary flashcard review plus a 2⭐ thank-you. Open park rides are ridden (no stars). Six
+  golden tokens hide on each city's streets (`src/world/tokens.ts`, hashed placement, no `rng()`), glint within 4
+  tiles and are kept in `Progress.finds` (contract v2.9, union merge, earliest date). Mini-games count toward Today and
+  the streak, and S3 fishing pays once a round under the daily rule (`fishingStars`). Proof: `npx vitest run
+  tests/session.test.ts tests/requests.test.ts tests/tokens.test.ts tests/park.test.ts tests/game-clock.test.ts
+  tests/ui-logic.test.ts tests/contract.test.ts`, `cd server && npx vitest run test/progress.test.ts`.
 - **re:Play Park.** An AWS theme park on a 6×5 site the terrain reserves outside the gate in every Region (`terrain.park`,
   no `rng()`); `src/world/park.ts` lays out six rides (EventBridge wheel, Lambda coaster, CloudFront drop tower, Route 53
   carousel, S3 flume, SQS teacups), each open when its building reaches Practitioner in this city, else under wraps
   with a hint (`src/game/Park.ts`; tap opens the building). Pocket parks stand on the lots global services leave open
   (`openLots`). Sprites: `art/tiles/park_art.py` (+ `crane1x1`, `scaffold1x1`). Proof: `npx vitest run tests/park.test.ts`.
 - **The terminal city grows with the run.** `npm start`'s dashboard skyline fills in as steps finish (`stepsGrowth`,
-  `growthCaption`, `frame({ growth })`); one crane per unfinished step. A window already holding the browser profile is
+  `growthCaption`, `frame({ growth })`); one crane per unfinished step. Road vehicles are side views with a nose and a
+  tail (`vehicle()` in `scripts/launcher/banner.mjs`: windscreen, tyres, headlight and red tail light in the body,
+  mirrored for the left lane, never a floating arrow). A window already holding the browser profile is
   named, not a silent failure (`lockPid`, `ALREADY_OPEN`, `k` closes it). Proof: `npx vitest run tests/launcher.test.ts
   tests/launcher-skyline.test.ts`.
 - **Each service has workers on the street.** Every discovered service in the city sends a worker dressed as its agent

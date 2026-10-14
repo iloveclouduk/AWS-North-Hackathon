@@ -1,29 +1,106 @@
+<div align="center">
+
+<img src="docs/images/terminal.webp" alt="AWS City in the terminal: the title over a night skyline of AWS landmarks, with Lambda, S3, EC2, VPC and Bedrock vehicles driving by" width="760">
+
 # 🏙️ AWS City
 
-**Learn AWS by living in it.** AWS City is a browser extension (Chrome, Edge, Firefox and Safari) with a living isometric pixel city,
-where every AWS service is a place and its agent does that service's real job:
+### Learn AWS by living in it.
+
+**🏆 1st place, North Hackathon at Northumbria University**
+<!-- TODO: add the date, the prize and the team's names, e.g. "October 2026 · Team: …" -->
+
+[![CI](https://github.com/iloveclouduk/AWS-North-Hackathon/actions/workflows/ci.yml/badge.svg)](https://github.com/iloveclouduk/AWS-North-Hackathon/actions/workflows/ci.yml)
+![Node 24+](https://img.shields.io/badge/node-24%2B-339933?logo=nodedotjs&logoColor=white)
+![Chrome · Edge · Firefox · Safari](https://img.shields.io/badge/browsers-Chrome%20%C2%B7%20Edge%20%C2%B7%20Firefox%20%C2%B7%20Safari-4285F4)
+![Built on AWS](https://img.shields.io/badge/built%20on-AWS-FF9900?logo=amazonwebservices&logoColor=white)
+![Claude on Amazon Bedrock](https://img.shields.io/badge/agents-Claude%20on%20Amazon%20Bedrock-D97757)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+A browser extension with a living isometric pixel city, where **every AWS service is a place** and its agent does
+that service's real job. The more you learn, the taller your city grows.
+
+[**▶ Play in 2 minutes**](#for-kids-and-parents-the-quick-path) · [Run it on your AWS](#2--run-it-on-your-own-aws-one-command) · [How it works](#how-it-works)
+
+</div>
+
+<p align="center"><img src="docs/images/city-night.webp" alt="A grown AWS City at night: knowledge towers in each district's colour, the river, the AZ islands and the lake" width="900"></p>
+
+---
+
+## Welcome to the city
+
+You are **Kai**, in the team's gold jacket. Every building is an AWS service, and its agent works there:
 - Sally fishes objects out of **S3 Lake**.
 - Sir Shieldon blocks DDoS arrows at the **Shield Wall**.
 - Ruby pairs DNS dancers at the **Route 53 Dance Hall**.
 - Lola only cooks when an order arrives at the **Lambda Food Stall**.
 
-You are **Kai**. Browse the AWS Console and the city grows with you.
+Browse the AWS Console and the city grows with you: open a service's page and its building goes up.
 
-**What you can do**
+### 🌆 Your knowledge, made tall
+
+Every building grows with what you learn there. A **Novice** starts small. At **Practitioner** a tower in its
+district's colour rises behind it. **Expert** adds a setback storey, and **Master** is a skyscraper with the
+district's crown and a beacon. The building rises floor by floor when you level it up.
+
+Past Master, stars aren't enough. Three **gold crowns** (Mentor, Architect, Legend) are earned only with real
+knowledge: cards you remember for a week, a passed architecture drawing, a finished quest and rounds of the game.
+The Legend's crown shines a beam over the city at night.
+
+<p align="center"><img src="docs/images/growth.webp" alt="S3 Lake and the DynamoDB Library from Novice to Master, then wearing one, two and three gold crowns" width="760"></p>
+
+<p align="center"><img src="docs/images/legend.webp" alt="S3 Lake reaches Level 7, Legend: Sally cheers &quot;A Legend crown! You really know this&quot; and the card shows three crowns" width="900"></p>
+
+### 🚶 A city to explore
+
+- **Walk there.** A quest's visit counts when Kai arrives, and "Go →" walks him over.
+- **Citizens ask for help.** A gold **?** over a passer-by means a quick AWS question. Answer it and that building grows.
+- **Six golden tokens** are hidden on every city's streets. They glint only when you're close.
+- **re:Play Park** rides open as your buildings level up. Tap one and Kai hops on.
+- **Each AWS Region is its own city**, built from real facts: its Availability Zones are islands across the river.
+
+### 🎮 Play, learn, grow
+
+- **6 mini-games**, each built for one service: S3 fishing, the Lambda kitchen, the Route 53 dance, the Shield wall,
+  EC2 rush hour and the DynamoDB sorting office. Questions get harder as you play, and an Expert round opens at level 3.
+- **300 flashcards** with spaced repetition, in simple words first and the full answer one tap away.
+- **Architecture puzzles** scored on the 6 Well-Architected pillars, including a "Region goes dark" drill.
+- **22 quests** that together cover all 36 services, each ending with *Explain it back*.
+- **Today**: a few cards, a puzzle, a game and a fix keep your streak alive.
+
+<p align="center"><img src="docs/images/mini-games.webp" alt="Four mini-games: S3 fishing, the Lambda food stall, the Route 53 dance hall and the Shield wall" width="760"></p>
+
+### ☁️ Real AWS, safely
+
 - **Ask anything.** The agents answer in plain words, grounded in the official AWS docs, with links.
-- **Console Copilot.** Tick *Do it in my console* and an agent walks you through real AWS Console
-  pages. It highlights each button and explains why; risky buttons are always your click.
-- **Build for real, safely.** Connect *your own* AWS account with a small, restricted role. Every
-  change waits for your **Approve**.
-- **Live AWS status, in the city.** Real outages from the public AWS Health Dashboard show up as a
-  news ticker, a throbbing Region on the world map, and storms and fenced landmarks in that Region's
-  city (for example, Bahrain's 2026 disruption). Each incident explains what happened and what it
-  teaches, with a drill to practise on. AWS What's New launches scroll by too.
-- **Learn:**
-  - 300 flashcards;
-  - architecture puzzles scored on the 6 Well-Architected pillars, including a "Region goes dark" drill;
-  - 22 quests that together cover all 36 services, with scenario questions;
-  - 6 mini-games whose questions get harder as you play.
+- **Console Copilot.** Tick *Do it in my console* and an agent walks you through real AWS Console pages. It highlights
+  each button and explains why, and risky buttons are always your click.
+- **Build for real.** Connect *your own* AWS account with a small, restricted role. Every change waits for your
+  **Approve**.
+- **City care.** Citizens spot real issues in your account (a public bucket, a table without backups) and explain
+  the fix. You approve each one.
+- **Live AWS status.** Real outages from the public AWS Health Dashboard arrive as a news ticker, a throbbing Region on
+  the world map, and storms over that Region's city (for example, Bahrain's 2026 disruption).
+
+| | |
+|---|---|
+| <img src="docs/images/deploy-approve.webp" alt="A deploy preview waiting for the player's Approve"> | <img src="docs/images/aws-status.webp" alt="A storm over the Bahrain city during a real AWS Health event"> |
+| **Every change waits for your Approve** | **Real AWS status, as weather** |
+
+### 📸 Screenshots
+
+| | |
+|---|---|
+| [<img src="docs/images/shots/agent-at-work.webp" alt="Connie dispatches Sally the Angler; the panel shows her 5-step S3 task to store holiday photos cheaply">](docs/images/shots/agent-at-work.webp) | [<img src="docs/images/shots/lifecycle-step.webp" alt="Sally sets an S3 lifecycle rule while Ivy checks her badge allows s3:PutObject only">](docs/images/shots/lifecycle-step.webp) |
+| **Agents do the real job.** Ask for something and watch them work, step by step. | **Least privilege, out loud.** Each step names the API call, and the security citizen checks the role. |
+| [<img src="docs/images/shots/architecture-puzzle.webp" alt="An architecture puzzle: drag Route 53, CloudFront and S3 onto a diagram of a static website">](docs/images/shots/architecture-puzzle.webp) | [<img src="docs/images/shots/flashcards.webp" alt="An EC2 flashcard about placement groups, with Didn't know, Knew it and Easy buttons">](docs/images/shots/flashcards.webp) |
+| **Draw the architecture.** Drop services on a real AWS diagram, scored on the Well-Architected pillars. | **Cards in plain words.** Spaced repetition, with the full answer and AWS docs one tap away. |
+| [<img src="docs/images/shots/building-card.webp" alt="The EC2 Factory card: level, progress, Play Rush Hour, Learn with cards and further reading">](docs/images/shots/building-card.webp) | [<img src="docs/images/shots/city-care.webp" alt="Noor the reliability citizen says I spotted a problem, tap me, beside the DynamoDB Library">](docs/images/shots/city-care.webp) |
+| **Every building is a lesson.** Its level, its game, its cards and a "which one should I pick?" guide. | **City care.** Citizens spot real issues and explain the fix; you approve each one. |
+| [<img src="docs/images/shots/world-map-build.webp" alt="The world map of AWS Regions next to the Build tab's blueprints and practice account">](docs/images/shots/world-map-build.webp) | [<img src="docs/images/shots/letters.webp" alt="The Day 1 Quarter: Amazon's letters to shareholders from 1997, each with an AWS takeaway">](docs/images/shots/letters.webp) |
+| **Every Region is a city.** Build from blueprints with a practice account first. | **Day 1 culture.** Letters to Shareholders, the Leadership Principles and Golden Jacket Hall. |
+| [<img src="docs/images/shots/expo-hall.webp" alt="The re:Invent Expo Hall: AWS launches by year from S3 in 2006 onwards, and a launch-year quiz">](docs/images/shots/expo-hall.webp) | [<img src="docs/images/citizen-question.webp" alt="A citizen's question card: three answers, the right one ticked, and the building it grew">](docs/images/citizen-question.webp) |
+| **re:Invent Expo Hall.** Two decades of launches, and a quest to guess the year. | **Help a citizen.** A quick question in the street grows the building it's about. |
 
 ---
 
@@ -276,6 +353,16 @@ enabled in `.claude/settings.json`. Install them once:
 Note that aws-core's AWS MCP server can call AWS APIs **with your credentials**. It's for your own
 development session only, and the game's agents never use it (see `CLAUDE.md`).
 
+## The team
+
+Built at the **North Hackathon at Northumbria University**, where AWS City won **1st place**. 🏆
+<!-- TODO: the team's names and links, and a thank-you to the organisers, judges and mentors. -->
+
+## License
+
+The code is [MIT](LICENSE). The AWS Architecture Icons, the Kenney sounds and the fonts keep their own terms (below),
+and AWS, Amazon and the service names are trademarks of Amazon.
+
 ## Credits
 
 - **Characters:** the team's Habbo-style pixel generator (`art/characters`).
@@ -290,3 +377,7 @@ development session only, and the game's agents never use it (see `CLAUDE.md`).
   cheat sheets, [AWS Fundamentals](https://awsfundamentals.com/blog) articles and its book, and O'Reilly books
   (*AWS Cookbook*, *Serverless Development on AWS*, *Generative AI on AWS*), credited with their authors
   (`shared/further-reading.json`). The game's own cards are in our words and cite AWS docs.
+
+---
+
+<p align="center"><sub>Made with ☕ in Newcastle upon Tyne · <b>Learn AWS by living in it.</b></sub></p>

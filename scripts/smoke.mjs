@@ -357,6 +357,52 @@ await shot('42-world-incidents');
 await city(() => (window.awsCity.useCity.getState().select(undefined), window.awsCity.useCity.getState().enterRegion('us-west-2')));
 await wait(1000);
 
+// A citizen's question (src/game/Requests.ts raises it when Kai walks up): an accessible dialog, and answering it is a
+// real flashcard review.
+const s3Cards = JSON.parse(fs.readFileSync('shared/flashcards.json', 'utf8')).cards.s3;
+const asked = s3Cards[0];
+const repsBefore = await city((id) => window.awsCity.useCity.getState().progress.cards?.[id]?.reps ?? 0, asked.id);
+await city((r) => window.awsCity.bus.emit('citizenRequest', { name: 'Priya', request: r }), {
+  cardId: asked.id, serviceId: 's3', question: asked.q, right: 1, answer: asked.a,
+  options: ['A queue that holds messages until a worker is ready.', asked.simple ?? asked.a, 'A firewall in front of your web app.'],
+});
+await wait(600);
+if (!(await page.locator('.request-card').count())) errors.push('citizen question: the card did not open');
+await audit('citizen question');
+await page.locator('.request-option').nth(1).click();
+await wait(500);
+await shot('50-citizen-question');
+const repsAfter = await city((id) => window.awsCity.useCity.getState().progress.cards?.[id]?.reps ?? 0, asked.id);
+if (repsAfter <= repsBefore) errors.push('citizen question: answering did not review the card');
+await page.keyboard.press('Escape');
+await wait(300);
+if (await page.locator('.request-card').count()) errors.push('Escape should close the citizen question');
+
+// Past Master, crowns come from knowledge (src/state/mastery.ts): every S3 card known for a month, a passed S3 drawing,
+// a finished S3 quest and rounds of fishing make S3 Lake Lv 7, and its card says so.
+const s3Puzzle = JSON.parse(fs.readFileSync('shared/puzzles.json', 'utf8')).puzzles.find((z) => z.required.includes('s3'));
+const s3Quest = JSON.parse(fs.readFileSync('shared/quests.json', 'utf8')).quests.find((q) => q.serviceIds.includes('s3'));
+await city(({ cards, puzzle, quest }) => {
+  const p = structuredClone(window.awsCity.useCity.getState().progress);
+  p.cities = p.cities ?? {};
+  p.cities['us-west-2'] = p.cities['us-west-2'] ?? { landmarks: {} };
+  p.cities['us-west-2'].landmarks.s3 = { discovered: true, xp: 400 };
+  for (const id of cards) p.cards = { ...p.cards, [id]: { interval: 40, ease: 2.5, due: Date.now() + 40 * 86_400_000, reps: 6 } };
+  p.puzzles = { ...p.puzzles, [puzzle]: { best: 90 } };
+  p.quests = { ...p.quests, [quest]: { status: 'done', step: 0 } };
+  p.games = { ...p.games, fishing: { best: 5, plays: 9 } };
+  window.awsCity.loadProgress(p);
+}, { cards: s3Cards.map((c) => c.id), puzzle: s3Puzzle.id, quest: s3Quest.id });
+await wait(800);
+await city(() => window.awsCity.useCity.getState().select('s3'));
+await page.locator('.tabs button[title="Places"]').click();
+await wait(1200);
+const crowned = await page.locator('.place-tier').first().textContent().catch(() => '');
+console.log('S3 Lake:', crowned?.trim());
+if (!/Level 7/.test(crowned ?? '')) errors.push(`crowns: a fully known S3 Lake should be Level 7, the card says "${crowned?.trim()}"`);
+await shot('51-crowned');
+await city(() => window.awsCity.useCity.getState().select(undefined));
+
 // The first-run tour (skipped under automation; opened here through the store): 3 steps, the last starts the first job.
 await city(() => window.awsCity.useCity.getState().setTourOpen(true));
 await wait(700);
