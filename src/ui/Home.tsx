@@ -1,7 +1,10 @@
 import { startQuest as notifyQuest, submitPrompt } from '@/app/runtime';
 import { agentName, useCity } from '@/state/store';
 import { QUESTS } from '@/world/content';
-import { placeFor, TIER_NAMES } from '@/world/places';
+import { PLACES, placeFor, TIER_NAMES } from '@/world/places';
+import { bus } from '@/state/bus';
+import { isDiscovered } from '@/state/selectors';
+import type { Progress } from '@/backend/contract';
 import { districtById, FEATURED_REQUESTS as REQUESTS } from '@/world/taxonomy';
 import { ActivityFeed, TaskCard } from './ActivityFeed';
 import { feel } from './feedback';
@@ -203,7 +206,13 @@ export function Home({ openTab }: { openTab: OpenTab }) {
   );
 }
 
-const GOAL_TAB: Record<TodayGoal['id'], Parameters<OpenTab>[0]> = { cards: 'learn', puzzles: 'arch', fixes: 'feed' };
+const GOAL_TAB: Record<Exclude<TodayGoal['id'], 'games'>, Parameters<OpenTab>[0]> = { cards: 'learn', puzzles: 'arch', fixes: 'feed' };
+
+/** The discovered building in this city whose game was played least (the Today game goal takes you there). */
+export function gameBuilding(p: Progress, region: string | undefined) {
+  const open = PLACES.filter((pl) => pl.game && isDiscovered(p, pl.serviceId, region));
+  return open.sort((a, b) => (p.games?.[a.game!]?.plays ?? 0) - (p.games?.[b.game!]?.plays ?? 0))[0]?.serviceId;
+}
 
 /**
  * Today, in one small row under the next step (never a second big button): a few cards, a puzzle, a fix. Done ones get
@@ -215,8 +224,10 @@ function Today({ openTab, care }: { openTab: OpenTab; care: boolean }) {
   const certGoal = useCity((s) => s.prefs.certGoal);
   const progress = useCity((s) => s.progress);
   const streak = useCity((s) => s.progress.streak);
+  const region = useCity((s) => s.cityRegion);
   const day = dayKey();
-  const goals = todayGoals(log, day, { learn: ladder.tabs.has('learn'), puzzles: ladder.learnBuild, care });
+  const game = gameBuilding(progress, region);
+  const goals = todayGoals(log, day, { learn: ladder.tabs.has('learn'), puzzles: ladder.learnBuild, care, games: !!game });
   const cert = CERTS.certifications.find((c) => c.id === certGoal);
   if (!goals.length && !cert) return null;
   const steps = cert ? certProgress(progress, cert) : [];
@@ -239,7 +250,10 @@ function Today({ openTab, care }: { openTab: OpenTab; care: boolean }) {
                 className={`today-goal ${ok ? 'done' : ''}`}
                 onClick={() => {
                   feel.tap();
-                  openTab(GOAL_TAB[g.id]);
+                  if (g.id !== 'games') return openTab(GOAL_TAB[g.id]);
+                  // a game starts from its building's card: fly there and open it
+                  bus.emit('flyTo', { id: game! });
+                  useCity.getState().select(game!);
                 }}
               >
                 <span aria-hidden="true">{ok ? '✅' : '◻️'}</span>

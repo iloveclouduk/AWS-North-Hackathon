@@ -219,6 +219,10 @@ describe("Today's goals on Home", () => {
     // Yesterday's log doesn't count today.
     expect(todayGoals(log, '2026-10-13', open)[0].have).toBe(0);
     expect(todayGoals(undefined, '2026-10-12', { learn: false, puzzles: false, care: false })).toEqual([]);
+    // a mini-game goal once a game building stands in the city (old logs have no games count)
+    const games = todayGoals(log, '2026-10-12', { learn: false, puzzles: false, care: false, games: true });
+    expect(games.map((x) => [x.id, x.have, x.goal])).toEqual([['games', 0, 1]]);
+    expect(todayGoals({ ...log, games: 2 }, '2026-10-12', { learn: false, puzzles: false, care: false, games: true })[0].have).toBe(1);
   });
 });
 

@@ -263,6 +263,8 @@ export abstract class MiniGame extends Phaser.Scene {
     const xp = roundStars(Math.min(expert() ? 38 : 25, Math.round((this.score / 10) * (expert() ? EXPERT_STARS : 1))), countRound(this.gameId), this.score > best);
     s.recordGame(this.gameId, this.score);
     if (xp > 0) s.addXp(this.serviceId, xp);
+    // a round played counts toward Today and the streak (src/state/progress.ts)
+    if (this.score > 0) s.noteLearning('games');
     const newBest = this.score > best;
     const { width: w, height: h } = this.scale;
     this.endShade = this.add.rectangle(0, 0, w, h, PAL.bg, 0.72).setOrigin(0).setDepth(200);

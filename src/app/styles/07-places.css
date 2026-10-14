@@ -322,3 +322,19 @@ details.world[open] > summary::after {
 .explain-reply {
   margin: 0;
 }
+
+/* ── past Master: the next gold crown's checklist (src/state/mastery.ts) ── */
+.crown-next {
+  margin-top: var(--s-2, 6px);
+  font-size: var(--fs-sm);
+}
+.crown-next ul {
+  list-style: none;
+  margin: var(--s-1, 4px) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.crown-next li.got {
+  color: var(--good-ink);
+}

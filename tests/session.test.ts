@@ -74,7 +74,35 @@ describe('quests and puzzles', () => {
     useCity.getState().select('lambda');
     const p = useCity.getState().progress;
     expect(landmarkOf(p, 'lambda')?.discovered).toBe(true);
-    expect(p.quests?.['compute-first-function']?.step).toBe(1);
+    // a tap only picks it: the visit counts when Kai walks there
+    expect(p.quests?.['compute-first-function']?.step).toBe(0);
+    useCity.getState().arrive('lambda');
+    expect(useCity.getState().progress.quests?.['compute-first-function']?.step).toBe(1);
+  });
+
+  it('a visit step counts at once when the city can\'t walk Kai there (asleep behind a game)', async () => {
+    const { walkTo } = await import('@/state/walk');
+    useCity.setState({ progress: { version: 1, landmarks: {}, updatedAt: '2026-01-01T00:00:00Z', quests: { 'compute-first-function': { status: 'active', step: 0, count: 0 } } } });
+    walkTo('lambda');
+    expect(useCity.getState().selected).toBe('lambda');
+    expect(useCity.getState().progress.quests?.['compute-first-function']?.step).toBe(1);
+  });
+
+  it('a city that takes the walk counts the visit only on arrival', async () => {
+    const { walkTo } = await import('@/state/walk');
+    const { bus } = await import('@/state/bus');
+    useCity.setState({ progress: { version: 1, landmarks: {}, updatedAt: '2026-01-01T00:00:00Z', quests: { 'compute-first-function': { status: 'active', step: 0, count: 0 } } } });
+    let arrive = () => {};
+    const off = bus.on('walkTo', ({ id, accept }) => {
+      accept();
+      useCity.getState().select(id);
+      arrive = () => useCity.getState().arrive(id);
+    });
+    walkTo('lambda');
+    expect(useCity.getState().progress.quests?.['compute-first-function']?.step).toBe(0);
+    arrive();
+    expect(useCity.getState().progress.quests?.['compute-first-function']?.step).toBe(1);
+    off();
   });
 
   it('selecting a landmark no quest points at does not discover it', () => {

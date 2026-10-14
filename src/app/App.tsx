@@ -6,6 +6,7 @@ import { ChatPanel } from '@/ui/ChatPanel';
 import { Hud } from '@/ui/Hud';
 import { Celebrate } from '@/ui/Celebrate';
 import { CarrierCard } from '@/ui/CarrierCard';
+import { RequestCard } from '@/ui/RequestCard';
 import { ChoiceCard } from '@/ui/ChoiceCard';
 import { IncidentCard } from '@/ui/IncidentCard';
 import { NewsTicker } from '@/ui/NewsTicker';
@@ -194,6 +195,7 @@ export function App({ layout }: { layout: Layout }) {
         <CityAnnouncer />
         <SoundCaptions />
         <CarrierCard />
+        <RequestCard />
         <WorldIntro />
         {view.name === 'city' && (
           <button className="world-btn" onClick={() => openWorld()} title={`You're in ${regionCity} (${cityRegion}). Zoom out to the world map to visit another Region.`} aria-label={`World map. You're in ${regionCity}.`}>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CORE, fitZoom, frameTarget } from '@/game/camera';
+import { buildingFocusY, CORE, fitZoom, frameTarget } from '@/game/camera';
 import { CITY_ISO, toScreen } from '@/game/iso';
 import { GRID, TOWN_SQUARE } from '@/world/layout';
 
@@ -36,5 +36,22 @@ describe('camera framing', () => {
     }
     expect(fitZoom(20000, 20000)).toBe(4);
     expect(fitZoom(300, 200)).toBe(0);
+  });
+});
+
+describe('framing a building (buildingFocusY)', () => {
+  it('frames a short building just above its ground, as before', () => {
+    expect(buildingFocusY(500, 460, 800, 2)).toBe(470);
+  });
+
+  it('frames a tall tower by its middle, so the tower and its crown show', () => {
+    expect(buildingFocusY(500, 260, 800, 2)).toBe(380);
+  });
+
+  it('never so high that the ground leaves the view', () => {
+    // 200 world px visible at zoom 4: the ground stays 40 px above the bottom edge
+    const y = buildingFocusY(500, 100, 800, 4);
+    expect(y).toBe(500 - 100 + 40);
+    expect(500 - y).toBeLessThan(800 / 4 / 2);
   });
 });

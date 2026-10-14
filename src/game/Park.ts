@@ -1,9 +1,10 @@
 // re:Play Park in the city (src/world/park.ts lays it out): six rides on the terrain's park site, each open once its
 // service's building reaches Practitioner here, else under wraps. Open rides turn (three frames, still under reduced
-// motion) and light up at night; tapping a ride opens its building's card; hovering a closed one says what opens it.
+// motion) and light up at night. Tapping an open ride rides it (Kai walks over, it spins fast, he hops off with a tip);
+// tapping a closed one opens its building's card; hovering a closed one says what opens it.
 import Phaser from 'phaser';
 import type { Progress } from '@/backend/contract';
-import { parkLayout, rideHint, type ParkPiece } from '@/world/park';
+import { parkLayout, rideAction, rideHint, RIDE_MS, type ParkPiece, type Ride } from '@/world/park';
 import type { Rect } from '@/world/layout';
 import { useCity } from '@/state/store';
 import { bus } from '@/state/bus';
@@ -30,7 +31,14 @@ export class Park {
   private night = 0;
   private tip?: Phaser.GameObjects.Text;
 
-  constructor(private scene: Phaser.Scene) {}
+  /** Rides being ridden now, until (scene ms): they turn three times as fast. */
+  private riding = new Map<string, number>();
+
+  constructor(
+    private scene: Phaser.Scene,
+    /** Kai rides: the scene walks him to `piece` and calls `start` when he's on. */
+    private onRide?: (ride: Ride, piece: ParkPiece, start: () => void) => void,
+  ) {}
 
   /** Lays the park out on `site` for this progress; only rebuilds when a ride opened or closed (or the site moved). */
   sync(site: Rect | undefined, p: Progress, region: string) {
@@ -49,8 +57,10 @@ export class Park {
       if (piece.ride) {
         const ride = piece.ride;
         img.setInteractive({ useHandCursor: true, pixelPerfect: true });
-        img.on('pointerup', () => {
+        img.on('pointerup', (ptr: Phaser.Input.Pointer) => {
+          if (ptr.getDistance() >= 8) return; // a drag pans the camera
           click();
+          if (rideAction(piece) === 'ride' && this.onRide) return this.onRide(ride, piece, () => this.spin(ride.id, img));
           useCity.getState().select(ride.serviceId);
           bus.emit('select', { id: ride.serviceId });
         });
@@ -66,15 +76,25 @@ export class Park {
     for (const p of this.placed) p.lights?.setAlpha(n);
   }
 
-  /** Per frame: open rides turn. */
+  /** A ride with Kai on it: frames turn fast for RIDE_MS; a ride without frames rocks instead. */
+  private spin(id: string, img: Phaser.GameObjects.Image) {
+    if (reducedMotion()) return;
+    this.riding.set(id, this.scene.time.now + RIDE_MS);
+    const ride = this.placed.find((p) => p.piece.ride?.id === id)?.piece.ride;
+    if (!ride?.frames) this.scene.tweens.add({ targets: img, y: '-=3', yoyo: true, repeat: Math.round(RIDE_MS / 240), duration: 120, ease: 'Sine.easeInOut' });
+  }
+
+  /** Per frame: open rides turn (a ridden one three times as fast). */
   animate(time: number) {
-    if (reducedMotion() || time - this.frameAt < FRAME_MS) return;
+    if (reducedMotion() || time - this.frameAt < FRAME_MS / 3) return;
     this.frameAt = time;
-    this.frame = (this.frame + 1) % 3;
+    this.frame = (this.frame + 1) % 9;
     for (const p of this.placed) {
       const r = p.piece.ride;
       if (!r || !p.piece.open || !r.frames) continue;
-      const f = `park:${r.id}${this.frame}`;
+      const fast = (this.riding.get(r.id) ?? 0) > time;
+      if (!fast && this.frame % 3) continue;
+      const f = `park:${r.id}${fast ? this.frame % 3 : Math.floor(this.frame / 3)}`;
       if (hasSprite(f)) p.img.setFrame(f);
       if (p.lights && hasSprite(`${f}@lights`)) p.lights.setFrame(`${f}@lights`);
     }

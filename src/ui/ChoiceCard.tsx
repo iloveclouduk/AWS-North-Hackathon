@@ -69,7 +69,7 @@ export function ChoiceCard() {
                 <span className="choice-mark" aria-hidden="true">
                   {state === 'right' ? '✓' : state === 'wrong' ? '✗' : String.fromCharCode(65 + shown)}
                 </span>
-                <Plain text={o.text} />
+                <Plain text={o.text} still />
               </button>
             );
           })}

@@ -46,6 +46,11 @@ export function rideOpen(p: Progress, ride: Ride, region?: string) {
 }
 
 /** "Reach Practitioner at Lambda Kitchen to open the Lambda Coaster". */
+/** What tapping a ride does: an open one is ridden (no stars: it's a treat, not a farm), a closed one opens its building. */
+export const rideAction = (piece: Pick<ParkPiece, 'open' | 'ride'>) => (piece.ride && piece.open ? 'ride' : 'select');
+/** How long a ride lasts (ms). */
+export const RIDE_MS = 3000;
+
 export const rideHint = (ride: Ride) => `Reach ${TIER_NAMES[RIDE_TIER]} at ${placeFor(ride.serviceId)?.place ?? ride.serviceId} to open the ${ride.name}`;
 
 /** Everything on the site: six rides (open or under wraps), the entrance arch, a ticket booth and fences. */

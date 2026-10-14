@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { openConsole, snap, submitPrompt, type Layout } from '@/app/runtime';
 import { bus } from '@/state/bus';
 import { tierOf, useCity } from '@/state/store';
+import { buildingLevelName, crownSteps, LEGEND_NAMES, MAX_CROWNS, levelOf } from '@/state/mastery';
+import type { Progress } from '@/backend/contract';
 import { landmarkOf } from '@/state/cities';
 import { placeFor, SPECIAL_AGENTS, TIER_NAMES, TIER_XP } from '@/world/places';
 import { districtById, serviceById, servicesIn, type DistrictId } from '@/world/taxonomy';
@@ -90,6 +92,7 @@ export function LandmarkCard({ openTab, layout }: { openTab?: OpenTab; layout?: 
   if (!svc || !place) return null;
   const d = districtById(svc.districtId)!;
   const tier = tierOf(progress, id, cityRegion);
+  const level = levelOf(progress, id, cityRegion);
   const xp = landmarkOf(progress, id, cityRegion)?.xp ?? 0;
   const next = TIER_XP[Math.min(tier + 1, 4)];
   const prev = TIER_XP[Math.max(tier, 0)];
@@ -125,7 +128,8 @@ export function LandmarkCard({ openTab, layout }: { openTab?: OpenTab; layout?: 
           <div className="muted">{svc.name}</div>
           {tier >= 0 && (
             <div className="place-tier">
-              Level {tier} · <b>{TIER_NAMES[tier]}</b>
+              Level {level} · <b>{buildingLevelName(level, TIER_NAMES)}</b>
+              {level > 4 && ' 👑'.repeat(level - 4)}
             </div>
           )}
         </div>
@@ -148,7 +152,8 @@ export function LandmarkCard({ openTab, layout }: { openTab?: OpenTab; layout?: 
           <div className="meter district" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={`Progress to ${TIER_NAMES[Math.min(tier + 1, 4)]}`}>
             <i style={{ width: `${Math.max(4, pct)}%` }} />
           </div>
-          <span className="muted">{tier < 4 ? `${xp} ⭐ · ${next - xp} more to grow to ${TIER_NAMES[tier + 1]}` : `${xp} ⭐ · fully grown!`}</span>
+          <span className="muted">{tier < 4 ? `${xp} ⭐ · ${next - xp} more to grow to ${TIER_NAMES[tier + 1]}` : `${xp} ⭐ · Master`}</span>
+          {tier >= 4 && <CrownNext progress={progress} id={id} level={level} />}
         </div>
       )}
       <section className="place-do" aria-label="What can I do here?">
@@ -254,5 +259,26 @@ function PickAPlace() {
         </ul>
       )}
     </>
+  );
+}
+
+/** Past Master: what the next gold crown asks (src/state/mastery.ts), so the building keeps growing with real knowledge. */
+function CrownNext({ progress, id, level }: { progress: Progress; id: string; level: number }) {
+  const crowns = level - 4;
+  if (crowns >= MAX_CROWNS) return <p className="crown-next">👑 Every crown is on the tower. A true Legend!</p>;
+  const steps = crownSteps(progress, id)[crowns]!;
+  return (
+    <div className="crown-next">
+      <p>
+        👑 Next crown: <b>{LEGEND_NAMES[crowns]}</b> (Lv {level + 1})
+      </p>
+      <ul>
+        {steps.map((st) => (
+          <li key={st.label} className={st.done ? 'got' : ''}>
+            {st.done ? '✅' : '◻️'} {st.label}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

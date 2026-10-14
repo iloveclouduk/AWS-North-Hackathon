@@ -1,7 +1,7 @@
 import { planDeploy, releaseCare, startQuest as notifyQuest, submitPrompt } from '@/app/runtime';
 import type { Unlock } from '@/state/ladder';
-import { bus } from '@/state/bus';
 import { useCity } from '@/state/store';
+import { walkTo } from '@/state/walk';
 import { QUESTS, type Quest, type QuestStep } from '@/world/content';
 import { districtById } from '@/world/taxonomy';
 import { feel } from './feedback';
@@ -18,8 +18,7 @@ export type OpenTab = (t: 'learn' | 'arch' | 'deploy' | 'feed' | 'quests' | 'map
 export function runQuestStep(step: QuestStep, openTab: OpenTab) {
   switch (step.kind) {
     case 'visit':
-      bus.emit('flyTo', { id: step.serviceId });
-      useCity.getState().select(step.serviceId);
+      walkTo(step.serviceId);
       break;
     case 'cards':
       useCity.getState().select(step.serviceId);

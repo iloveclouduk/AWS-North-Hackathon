@@ -41,4 +41,14 @@ describe('mini-game stars', async () => {
     expect(roundStars(20, FULL_ROUNDS_A_DAY + 5, true)).toBe(20);
     expect(countRound('shield', '2026-10-14', seen)).toBe(0);
   });
+
+  it('S3 fishing pays once a round, under the same daily rule', async () => {
+    const { fishingStars } = await import('@/learning/gameStars');
+    expect(fishingStars(5, true, 0, false)).toBe(20);
+    expect(fishingStars(3, false, 0, false)).toBe(9);
+    // the 4th round of the day pays half, unless it's a new best
+    expect(fishingStars(5, true, FULL_ROUNDS_A_DAY, false)).toBe(10);
+    expect(fishingStars(5, true, FULL_ROUNDS_A_DAY, true)).toBe(20);
+    expect(fishingStars(0, false, 0, false)).toBe(0);
+  });
 });

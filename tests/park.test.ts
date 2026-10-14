@@ -76,3 +76,12 @@ describe('buildings grow between levels', async () => {
     expect(growthLine(growthOf(progress({ s3: 99_999 }), 's3', 'us-west-2'))).toMatch(/fully grown$/);
   });
 });
+
+describe('riding the park (src/game/Park.ts)', () => {
+  it('an open ride is ridden; a closed one, or a plain prop, opens its building instead', async () => {
+    const { rideAction, RIDES } = await import('@/world/park');
+    expect(rideAction({ ride: RIDES[0], open: true })).toBe('ride');
+    expect(rideAction({ ride: RIDES[0], open: false })).toBe('select');
+    expect(rideAction({ open: true })).toBe('select');
+  });
+});

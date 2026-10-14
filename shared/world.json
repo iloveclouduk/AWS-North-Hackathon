@@ -3,6 +3,7 @@
   "tiers": {
     "names": ["Construction site", "Novice", "Practitioner", "Expert", "Master"],
     "xp": [0, 10, 40, 100, 200],
+    "legend": ["Mentor", "Architect", "Legend"],
     "certifications": [
       "",
       "AWS Certified Cloud Practitioner · AI Practitioner · AI Business Strategist",

@@ -8,6 +8,7 @@ import { feel } from './feedback';
 import { activeSteps } from '@/state/ladder';
 import { isTourDone, markTourDone, readPref, TIP_ASK_KEY, TIP_COPILOT_KEY, writePref } from './logic';
 import { Portrait } from './Portrait';
+import { walkTo } from '@/state/walk';
 
 interface Step {
   title: string;
@@ -95,7 +96,8 @@ export function Tour({ layout }: { layout: Layout }) {
         // Straight to the first job's landmark: one place built, one toast, no tour of the whole city.
         const target = firstJobTarget();
         bus.emit('flyTo', { id: target ?? 'plaza' });
-        if (target) useCity.getState().select(target);
+        // Kai walks there: the first visit step counts when he arrives (src/ui/QuestLog.tsx walkTo)
+        if (target) walkTo(target);
       }
       if (opener.current instanceof HTMLElement) opener.current.focus();
     },

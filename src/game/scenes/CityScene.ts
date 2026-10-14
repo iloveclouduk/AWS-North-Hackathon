@@ -28,6 +28,11 @@ import { postcardCaption, postcardName, savePostcard } from '../postcard';
 import { DayNight } from '../DayNight';
 import { CITY_ISO, cornerScreen, toScreen, toTile } from '../iso';
 import { Landmark, type LandmarkSpec } from '../Landmark';
+import { buildingLevelName, levelOf } from '@/state/mastery';
+import { Requests } from '../Requests';
+import { Tokens } from '../Tokens';
+import { RIDE_MS } from '@/world/park';
+import { fadeFor, type Focus, type Occluder } from '../occlusion';
 import { Packets } from '../Packets';
 import { RegionOverlay } from '../RegionOverlay';
 import { flowThrough, FLOWS, hasGoldenJacket, KAI_SHEET } from '@/world/culture';
@@ -40,7 +45,7 @@ import { keysBelongToUi } from '../keys';
 import { reducedMotion } from '../motion';
 import { crisp, TEXT_FONT } from '../SpeechBubble';
 import { mayAutoPan } from '../calm';
-import { frameTarget } from '../camera';
+import { buildingFocusY, frameTarget } from '../camera';
 import { Landscape } from '../Landscape';
 import { Park } from '../Park';
 import { growthOf } from '@/state/growth';
@@ -180,7 +185,28 @@ export class CityScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(SEA_CSS).setRoundPixels(true);
     this.map = new CityMap(this);
     this.landscape = new Landscape(this);
-    this.park = new Park(this);
+    // An open ride: Kai walks to its gate, it spins fast with him on it, then he hops off with a tip (no stars).
+    this.park = new Park(this, (ride, piece, start) => {
+      const ring: Tile[] = [];
+      for (let x = piece.x - 1; x <= piece.x + piece.w; x++) for (let y = piece.y - 1; y <= piece.y + piece.h; y++) {
+        const edge = x < piece.x || x >= piece.x + piece.w || y < piece.y || y >= piece.y + piece.h;
+        if (edge && this.world.walkable(x, y)) ring.push({ x, y });
+      }
+      const me = this.player.tile;
+      ring.sort((a, b) => Math.abs(a.x - me.x) + Math.abs(a.y - me.y) - (Math.abs(b.x - me.x) + Math.abs(b.y - me.y)));
+      const gate = ring[0];
+      const on = () => {
+        start();
+        this.player.emote('dance', RIDE_MS);
+        this.time.delayedCall(RIDE_MS, () => {
+          const s = useCity.getState();
+          const tip = tipFor(ride.serviceId, Math.max(1, tierOf(s.progress, ride.serviceId, s.cityRegion)), this.tipTurn++);
+          this.player.say(tip ? `Wheee! 💡 ${tip}` : `Wheee! The ${ride.name}!`, { holdMs: 4000 });
+        });
+      };
+      if (gate) this.player.goTo(gate, on);
+      else on();
+    });
     this.focusRing = this.add.graphics().setDepth(9_000);
     this.dayNight = new DayNight(this);
     this.weather = new Weather(this, surfaceFor(this.scale.width));
@@ -241,6 +267,15 @@ export class CityScene extends Phaser.Scene {
       },
     );
     this.citizens.ensure(this.citizenTarget());
+    this.requests = new Requests(this, () => this.citizens?.list ?? [], () => this.player);
+    // Six golden tokens hidden on the streets: they glint when Kai is near; stepping on one picks it up.
+    this.tokens = new Tokens(this, sidewalks, (_token, fact, found, of) => {
+      this.play('discover');
+      this.player.emote('jump', 900);
+      const all = found >= of;
+      this.player.say(all ? `🏆 All ${of} golden tokens in this city! ${fact}` : `✨ Golden token ${found}/${of}! ${fact}`, { holdMs: 5000, tone: all ? 'done' : 'speech' });
+    });
+    this.tokens.sync();
     this.workers = new Workers(this, { ...this.world, wanderable: (x, y) => this.map.isSidewalk(x, y) }, (id, w) => this.workerTalk(id, w));
 
     this.patrols = new Patrols(this, this.world, {
@@ -325,7 +360,11 @@ export class CityScene extends Phaser.Scene {
     this.player.update(time, dt);
     this.player.setUiScale(ui);
     this.updateHint(time, ui);
+    this.updateFade(time);
+    this.updateArrival();
     this.citizens?.update(time, dt);
+    this.requests?.update(time, ui);
+    this.tokens?.update(time, this.player.tile);
     this.workers?.update(time, dt);
     if (time - this.workersAt > WORKERS_EVERY_MS) {
       this.workersAt = time;
@@ -501,6 +540,8 @@ export class CityScene extends Phaser.Scene {
     }
     // A rebuilt landmark gets this Region's badge and open/closed state back.
     if (rebuilt) this.syncInventory(useCity.getState().inventory);
+    this.syncLevels(p);
+    this.tokens?.sync();
     this.syncDue(p);
     // Agents whose landmark isn't in this Region's city move out (a new Region starts empty).
     for (const [id, a] of this.agents) {
@@ -740,6 +781,42 @@ export class CityScene extends Phaser.Scene {
     this.nearest()?.fn();
   }
 
+  /** Kai's tile when last checked: walking onto a landmark's work spot (keys or clicks) is arriving there. */
+  private kaiTile = '';
+  private updateArrival() {
+    const key = `${this.player.gx},${this.player.gy}`;
+    if (key === this.kaiTile) return;
+    this.kaiTile = key;
+    for (const l of LANDMARKS) {
+      if (l.workSpot.x === this.player.gx && l.workSpot.y === this.player.gy && this.landmarks.has(l.id)) useCity.getState().arrive(l.id);
+    }
+  }
+
+  /** A citizen with a question now and then (src/game/Requests.ts). */
+  private requests?: Requests;
+  /** Golden tokens on the streets (src/game/Tokens.ts). */
+  private tokens?: Tokens;
+  private fadeAt = 0;
+  /** Tall buildings in front of Kai or the selected building turn see-through (src/game/occlusion.ts). */
+  private updateFade(time: number) {
+    if (time - this.fadeAt < 200) return;
+    this.fadeAt = time;
+    const focus: Focus[] = [{ x: this.player.sprite.x, y: this.player.sprite.y - 20, depth: this.player.sprite.depth }];
+    const sel = useCity.getState().selected;
+    const picked = sel ? this.landmarks.get(sel) : undefined;
+    if (picked) {
+      const b = picked.img.getBounds();
+      focus.push({ id: sel, x: b.centerX, y: b.bottom - 12, depth: picked.img.depth });
+    }
+    const boxes: Occluder[] = [];
+    for (const [id, lm] of this.landmarks) {
+      const b = lm.img.getBounds();
+      boxes.push({ id, depth: lm.img.depth, x: b.x, y: b.y, w: b.width, h: b.height });
+    }
+    const fade = fadeFor(boxes, focus, (id, x, y) => this.landmarks.get(id)?.solidAt(x, y) ?? false);
+    for (const [id, lm] of this.landmarks) lm.setFaded(fade.has(id));
+  }
+
   private updateHint(time: number, ui: number) {
     if (time - this.hintAt > 200) {
       this.hintAt = time;
@@ -797,8 +874,11 @@ export class CityScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.stopFollow();
     this.following = undefined;
-    if (reducedMotion()) cam.centerOn(c.x, c.y - 30);
-    else cam.pan(c.x, c.y - 30, 700, 'Sine.easeInOut');
+    // A Master's knowledge tower and its crowns stay in frame (src/game/camera.ts buildingFocusY).
+    const top = this.landmarks.get(id)?.topY;
+    const y = top === undefined ? c.y - 30 : buildingFocusY(c.y, top, cam.height, cam.zoom);
+    if (reducedMotion()) cam.centerOn(c.x, y);
+    else cam.pan(c.x, y, 700, 'Sine.easeInOut');
   }
 
   private follow(a: Agent) {
@@ -843,7 +923,8 @@ export class CityScene extends Phaser.Scene {
       });
       return;
     }
-    this.player.goTo(l.workSpot);
+    // a quest's visit step counts when Kai gets there (no path: goTo arrives at once, so it never gets stuck)
+    this.player.goTo(l.workSpot, () => useCity.getState().arrive(id));
   }
 
   // ── reacting to the backend / browser ────────────────────────────────────
@@ -930,6 +1011,13 @@ export class CityScene extends Phaser.Scene {
         reply(inView ? r : undefined);
       }),
       bus.on('discovered', ({ serviceId, quiet }) => this.onDiscovered(serviceId, quiet)),
+      // A quest's "Go →": the camera goes, Kai walks, the visit counts on arrival.
+      bus.on('walkTo', ({ id, accept }) => {
+        if (!this.sys.isActive() || !landmarkLayout(id)) return;
+        accept();
+        this.flyTo(id);
+        this.onLandmarkClick(id);
+      }),
       bus.on('questDone', ({ questId }) => this.onQuestDone(questId)),
       // A tier-up is the canvas's one signal for it (no toast): the building bounces, confetti, a fanfare and a banner,
       // always; the agent's cheer only when no other bubble holds the floor.
@@ -972,6 +1060,10 @@ export class CityScene extends Phaser.Scene {
   private teardown() {
     for (const off of this.offs) off();
     this.offs = [];
+    this.requests?.destroy();
+    this.requests = undefined;
+    this.tokens?.destroy();
+    this.tokens = undefined;
     this.workers?.destroy();
     this.workers = undefined;
     this.region?.destroy();
@@ -1471,15 +1563,52 @@ export class CityScene extends Phaser.Scene {
    * offset ~300 screen px toward the side the dive came from (takeDiveFrom), then pans and zooms to the usual framing
    * over 700 ms. Back from an interior there's no offset, just the zoom. Reduced motion jumps straight to the framing.
    */
+  /** The level each building showed last, by Region and service: a new crown (Lv 5–7) is celebrated once. */
+  private levelSeen = new Map<string, number>();
+
+  /** Signs show Lv 1–7 and Master towers wear their crowns (src/state/mastery.ts: earned from real knowledge). */
+  private syncLevels(p: Progress) {
+    const region = useCity.getState().cityRegion;
+    for (const [id, lm] of this.landmarks) {
+      if (!lm.spec.showStars) continue;
+      const lv = levelOf(p, id, region);
+      const key = `${region}:${id}`;
+      const prev = this.levelSeen.get(key);
+      this.levelSeen.set(key, lv);
+      lm.setLevel(lv);
+      if (prev === undefined || lv <= prev || lv <= 4) continue;
+      if (!this.sys.isActive()) this.pendingTierUps.set(id, Math.max(lv, this.pendingTierUps.get(id) ?? 0));
+      else this.celebrateTier(id, lv, true);
+    }
+  }
+
   /** Tier-ups earned while the city was asleep, by service: celebrated after the player arrives back. */
   private pendingTierUps = new Map<string, number>();
 
-  /** A building's tier-up: it bounces, confetti, a banner, a fanfare, its agent cheers; the camera goes to see it. */
+  /**
+   * A building's tier-up: its knowledge tower rises floor by floor (art/tiles/growth_art.py), then it bounces, confetti,
+   * a banner, a fanfare, its agent cheers; the camera goes to see it.
+   */
   private celebrateTier(serviceId: string, tier: number, fly: boolean) {
     if (fly && this.mayAutoPan() && this.landmarks.has(serviceId)) this.flyTo(serviceId);
-    this.landmarks.get(serviceId)?.celebrate();
+    const lm = this.landmarks.get(serviceId);
+    if (tier > 4) {
+      // A crown past Master: it drops onto the tower, the same one moment (no toast).
+      const name = buildingLevelName(tier, TIER_NAMES);
+      lm?.crownDrop();
+      lm?.celebrate();
+      this.burst(serviceId);
+      this.floatText(serviceId, `👑 ${name}!`, true);
+      this.play('levelup');
+      const a = this.agents.get(serviceId);
+      if (this.cheer(a, `A ${name} crown! You really know this. 👑`, { tone: 'done' })) a?.emote('jump', 1200);
+      return;
+    }
     this.burst(serviceId);
-    this.time.delayedCall(250, () => this.burst(serviceId));
+    lm?.rise(() => {
+      lm.celebrate();
+      this.burst(serviceId);
+    });
     this.floatText(serviceId, `⭐ ${TIER_NAMES[tier]}!`, true);
     this.play('levelup');
     const a = this.agents.get(serviceId);

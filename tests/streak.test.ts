@@ -68,8 +68,10 @@ describe('the streak', () => {
     let log = bumpDay(undefined, 'cards', '2026-10-10');
     log = bumpDay(log, 'cards', '2026-10-10');
     log = bumpDay(log, 'puzzles', '2026-10-10');
-    expect(log).toEqual({ day: '2026-10-10', cards: 2, puzzles: 1, fixes: 0 });
-    expect(bumpDay(log, 'fixes', '2026-10-11')).toEqual({ day: '2026-10-11', cards: 0, puzzles: 0, fixes: 1 });
+    expect(log).toEqual({ day: '2026-10-10', cards: 2, puzzles: 1, fixes: 0, games: 0 });
+    expect(bumpDay(log, 'fixes', '2026-10-11')).toEqual({ day: '2026-10-11', cards: 0, puzzles: 0, fixes: 1, games: 0 });
+    // a log saved before games counted gains the field on the first round
+    expect(bumpDay({ day: '2026-10-11', cards: 1, puzzles: 0, fixes: 0 }, 'games', '2026-10-11').games).toBe(1);
   });
 });
 

@@ -124,3 +124,32 @@
   background: var(--accent-soft);
   color: var(--ink);
 }
+
+/* ── a citizen's question in the street (src/ui/RequestCard.tsx) ── */
+.request-q {
+  font-size: var(--fs-md, 1rem);
+  color: var(--ink-hi);
+}
+.request-options {
+  display: grid;
+  gap: var(--s-2, 6px);
+}
+.request-option {
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.35;
+}
+.request-option.right {
+  border-color: var(--good);
+  background: color-mix(in srgb, var(--good) 18%, var(--panel));
+}
+.request-option.wrong {
+  border-color: var(--bad-line);
+  background: var(--bad-soft);
+}
+.request-result {
+  display: grid;
+  gap: var(--s-2, 6px);
+  margin-top: var(--s-3, 10px);
+}

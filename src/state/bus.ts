@@ -5,6 +5,7 @@
 import type { AwsIncident, CityFinding, ServerEvent } from '@/backend/contract';
 import type { Cargo } from '@/world/carriers';
 import type { PageFocus } from './types';
+import type { CitizenRequest } from './requests';
 
 export interface BusEvents {
   /** Every event from the backend, after the store has applied it. */
@@ -16,6 +17,13 @@ export interface BusEvents {
   tierUp: { serviceId: string; tier: number };
   /** Camera fly-to a landmark id ('s3', 'hq:storage', 'plaza') or district id. */
   flyTo: { id: string };
+  /**
+   * UI asks Kai to walk to a landmark (a quest's visit step): the city calls `accept()` when it will, and the visit
+   * counts when Kai arrives. Not accepted (the city asleep behind a game or HQ) → the caller counts it at once.
+   */
+  walkTo: { id: string; accept: () => void };
+  /** Kai reached a citizen with a question (src/state/requests.ts): the UI shows it. */
+  citizenRequest: { request: CitizenRequest; name: string };
   /** Lookout is snapping a photo (animation). */
   snap: { phase: 'start' | 'done' | 'failed' };
   /** Game → UI */

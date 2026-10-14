@@ -51,13 +51,15 @@ export interface DayLog {
   cards: number;
   puzzles: number;
   fixes: number;
+  /** Mini-game rounds (absent in logs saved before games counted). */
+  games?: number;
 }
-export type LearningKind = 'cards' | 'puzzles' | 'fixes';
+export type LearningKind = 'cards' | 'puzzles' | 'fixes' | 'games';
 
 /** Adds one learning action to the day's log, starting a fresh log when the day has changed. */
 export const bumpDay = (log: DayLog | undefined, kind: LearningKind, today: string): DayLog => {
-  const base = log?.day === today ? log : { day: today, cards: 0, puzzles: 0, fixes: 0 };
-  return { ...base, [kind]: base[kind] + 1 };
+  const base = log?.day === today ? log : { day: today, cards: 0, puzzles: 0, fixes: 0, games: 0 };
+  return { ...base, [kind]: (base[kind] ?? 0) + 1 };
 };
 
 const pickBy = <T>(a: Record<string, T> | undefined, b: Record<string, T> | undefined, better: (x: T, y: T) => T) => {
@@ -94,6 +96,9 @@ export const mergeProgress = (a: Progress, b: Progress): Progress => {
   if (quests) merged.quests = quests;
   if (puzzles) merged.puzzles = puzzles;
   if (games) merged.games = games;
+  // v2.9: a token found stays found; the earlier date is when it was found.
+  const finds = pickBy(a.finds, b.finds, (x, y) => (x < y ? x : y));
+  if (finds) merged.finds = finds;
   const streak = mergeStreak(a.streak, b.streak);
   if (streak) merged.streak = streak;
   // v2.5: the bill switch is a choice, not a score: the newer copy's choice wins, and a copy that never set it doesn't
@@ -107,7 +112,7 @@ export const mergeProgress = (a: Progress, b: Progress): Progress => {
 /** True when `b` adds nothing to `a` (so there's nothing to load or save). */
 export const sameProgress = (a: Progress, b: Progress) => JSON.stringify(mergeProgress(a, b)) === JSON.stringify(mergeProgress(a, a));
 
-/** Today's three small goals on Home: a few cards, one puzzle, one fix. Each only once its area is open. */
+/** Today's small goals on Home: a few cards, one puzzle, one mini-game, one fix. Each only once its area is open. */
 export interface TodayGoal {
   id: LearningKind;
   label: string;
@@ -115,11 +120,12 @@ export interface TodayGoal {
   goal: number;
 }
 export const TODAY_CARDS = 5;
-export function todayGoals(log: DayLog | undefined, day: string, open: { learn: boolean; puzzles: boolean; care: boolean }): TodayGoal[] {
+export function todayGoals(log: DayLog | undefined, day: string, open: { learn: boolean; puzzles: boolean; care: boolean; games?: boolean }): TodayGoal[] {
   const today = log?.day === day ? log : undefined;
   const goals: TodayGoal[] = [];
   if (open.learn) goals.push({ id: 'cards', label: `Review ${TODAY_CARDS} cards`, have: Math.min(TODAY_CARDS, today?.cards ?? 0), goal: TODAY_CARDS });
   if (open.puzzles) goals.push({ id: 'puzzles', label: 'Pass a puzzle', have: Math.min(1, today?.puzzles ?? 0), goal: 1 });
+  if (open.games) goals.push({ id: 'games', label: 'Play a mini-game', have: Math.min(1, today?.games ?? 0), goal: 1 });
   if (open.care) goals.push({ id: 'fixes', label: 'Fix something in the city', have: Math.min(1, today?.fixes ?? 0), goal: 1 });
   return goals;
 }

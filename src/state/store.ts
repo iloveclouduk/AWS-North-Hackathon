@@ -362,6 +362,10 @@ export interface CityState {
   today?: DayLog;
   /** A learning action (a card reviewed, a puzzle passed, a fix approved): counts toward today and the streak. */
   noteLearning(kind: LearningKind): void;
+  /** Kai reached a landmark (walked there): a quest's visit step counts on arrival, not on a tap. */
+  arrive(id: string): void;
+  /** v2.9: Kai picked up a golden token (src/world/tokens.ts). False if it was already found. */
+  collectFind(id: string): boolean;
 }
 
 let nextId = 1;
@@ -958,7 +962,13 @@ export const useCity = create<CityState>()((set, get) => ({
     // A quest pointing at a landmark the city hasn't built yet builds it, so "Go →" never lands on an empty plot
     // and the step's flashcard deck is open.
     if (!isDiscovered(get().progress, selected, get().cityRegion) && questTargets(get().progress).has(selected)) get().discover(selected);
-    get().questEvent((st) => st.kind === 'visit' && st.serviceId === selected);
+  },
+  arrive: (id) => get().questEvent((st) => st.kind === 'visit' && st.serviceId === id),
+  collectFind: (id) => {
+    const p = get().progress;
+    if (p.finds?.[id]) return false;
+    set({ progress: { ...p, finds: { ...p.finds, [id]: dayKey() }, updatedAt: new Date().toISOString() } });
+    return true;
   },
   setFocusPuzzle: (focusPuzzle) => set({ focusPuzzle }),
   setAutoSnap: (autoSnap) => set({ autoSnap }),

@@ -9,6 +9,7 @@ import { syncClock } from './games/clock';
 import { growthLine, growthOf } from '@/state/growth';
 import { dealRound, expert, expertOpen, pace, setExpert } from '../pace';
 import { onSceneEnd } from './lifecycle';
+import { countRound, fishingStars } from '@/learning/gameStars';
 
 /**
  * S3 Lake mini-game: every fish is an object. Hook one, then drop it in the right storage-class
@@ -253,7 +254,6 @@ export class FishingScene extends Phaser.Scene {
     const right = choice === item.answer;
     if (right) {
       this.correct++;
-      useCity.getState().addXp('s3', 3);
       sfx('correct', { own: true });
       this.player.play(`${KAI_SHEET}:jump:SE`);
       this.time.delayedCall(700, () => this.player.play(`${KAI_SHEET}:idle:SE`));
@@ -275,13 +275,16 @@ export class FishingScene extends Phaser.Scene {
     const perfect = this.correct === ROUND;
     const s = useCity.getState();
     const best = s.progress.games?.fishing?.best ?? 0;
-    // Counted like the other games: the next round deals harder catches (dealRound) and the best score is kept.
+    // Paid once, like the other games: full for the first rounds of the day or a new best, half after
+    // (src/learning/gameStars.ts). The next round deals harder catches (dealRound) and the best score is kept.
+    const stars = fishingStars(this.correct, perfect, countRound('fishing'), this.correct > best);
     s.recordGame('fishing', this.correct);
-    if (perfect) s.addXp('s3', 5);
+    if (stars > 0) s.addXp('s3', stars);
+    if (this.correct > 0) s.noteLearning('games');
     const record = this.correct > best && best > 0 ? ' New best!' : '';
     // The building the round grew, and how far (src/state/growth.ts), like the other games' end card.
     const g = growthOf(useCity.getState().progress, 's3', useCity.getState().cityRegion);
-    this.setInfo(`${last}\n\n🏆 ${this.correct}/${ROUND} objects in the right bucket${perfect ? ' — perfect! +5 bonus ⭐' : ''}.${record}\n🏗️ ${growthLine(g)}\nTip: Lifecycle rules can move files to cheaper shelves for you.`);
+    this.setInfo(`${last}\n\n🏆 ${this.correct}/${ROUND} objects in the right bucket${perfect ? ' — perfect!' : ''}.${stars ? ` +${stars} ⭐` : ''}${record}\n🏗️ ${growthLine(g)}\nTip: Lifecycle rules can move files to cheaper shelves for you.`);
     const { width: w, height: h } = this.scale;
     this.summaryButtons = [];
     const button = (x: number, label: string, color: string, bg: string, run: () => void) => {

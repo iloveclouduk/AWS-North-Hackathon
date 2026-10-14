@@ -41,3 +41,14 @@ export function frameTarget(viewW: number, viewH: number): Frame {
   const c = toScreen(CITY_ISO, r.x + (r.w - 1) / 2, r.y + (r.h - 1) / 2);
   return { zoom: MIN_ZOOM, x: c.x, y: c.y, target: 'square' };
 }
+
+/**
+ * The world y to centre on when the camera goes to a building whose ground is at `groundY` and whose top (its roof, or
+ * the crown on its knowledge tower) is at `topY`: a short building is framed as before (just above its ground), a tall
+ * one by its middle so the tower shows, but never so high that its ground (where its agent works) leaves the view.
+ */
+export function buildingFocusY(groundY: number, topY: number, viewH: number, zoom: number, margin = 40) {
+  const visible = viewH / zoom;
+  const mid = (groundY + topY) / 2;
+  return Math.max(Math.min(mid, groundY - 30), groundY - visible / 2 + margin);
+}

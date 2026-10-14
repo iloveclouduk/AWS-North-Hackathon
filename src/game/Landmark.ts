@@ -3,6 +3,8 @@ import type { Rect } from '@/world/layout';
 import { addSprite, hasSprite } from './assets';
 import { cornerScreen, footprintDepth, type Iso } from './iso';
 import { inView } from './labels';
+import { reducedMotion } from './motion';
+import { FADED } from './occlusion';
 import { crisp, TEXT_FONT } from './SpeechBubble';
 import { CSS, labelStyle } from './theme';
 
@@ -41,6 +43,11 @@ export class Landmark {
   /** Where the sign belongs (world px), before it's kept inside the view. */
   private anchor = { x: 0, y: 0 };
   private bouncing = false;
+  /** The level the sign shows (1–4 tiers, 5–7 with crowns, src/state/mastery.ts); defaults to the tier. */
+  private level?: number;
+  /** Gold crowns on the knowledge tower's tip (art/tiles/legend_art.py), and their night glow. */
+  private crown?: Phaser.GameObjects.Image;
+  private crownLights?: Phaser.GameObjects.Image;
 
   constructor(
     private scene: Phaser.Scene,
@@ -85,6 +92,7 @@ export class Landmark {
     this.night = n;
     // A disrupted building has lost power; a degraded one is half lit.
     this.lights?.setAlpha(this.outage?.severity === 'disruption' ? 0 : this.outage ? n * 0.5 : n);
+    this.crownLights?.setAlpha(this.outage ? 0 : n);
   }
 
   /** Show "×n" beside the sign when the account has some here; nothing at 0 (a row of grey ×0s is noise). */
@@ -129,8 +137,47 @@ export class Landmark {
     this.setNight(this.night);
   }
 
+  /** Lv 5–7: a crown per level past Master stands on the tower's tip (only buildings with a tower: tier 4 sprites). */
+  setLevel(level: number) {
+    if (level === (this.level ?? this.spec.tier)) return;
+    this.level = level;
+    this.crown?.destroy();
+    this.crownLights?.destroy();
+    this.crown = this.crownLights = undefined;
+    const crowns = level - 4;
+    if (crowns >= 1 && hasSprite(`legend:${crowns}`)) {
+      const top = this.img.getTopCenter();
+      const x = Math.round(top.x ?? this.img.x);
+      const y = Math.round((top.y ?? this.img.y) + 3);
+      this.crown = addSprite(this.scene, `legend:${crowns}`, x, y).setDepth(this.img.depth + 0.5);
+      if (hasSprite(`legend:${crowns}@lights`)) {
+        this.crownLights = addSprite(this.scene, `legend:${crowns}@lights`, x, y).setDepth(70_001).setBlendMode(Phaser.BlendModes.ADD).setAlpha(this.night);
+      }
+      this.crown.setAlpha(this.img.alpha);
+    }
+    // The sign stands on the tallest thing: the crown's tip, else the roof.
+    const top = (this.crown ?? this.img).getTopCenter().y ?? this.img.y;
+    this.anchor = { x: this.anchor.x, y: Math.round(top - 2) };
+    this.sign.setPosition(this.anchor.x, this.anchor.y);
+    this.placeExtras();
+    if (!this.closed && !this.outage) this.sign.setText(this.label());
+  }
+
+  /** World y of the building's highest point: the crown's tip, else its roof (the camera frames tall buildings by it). */
+  get topY() {
+    return (this.crown ?? this.img).getTopCenter().y ?? this.img.y;
+  }
+
+  /** A new crown: it drops onto the tower's tip with a little bounce. */
+  crownDrop() {
+    if (!this.crown || reducedMotion()) return;
+    const y = this.crown.y;
+    this.scene.tweens.add({ targets: [this.crown, this.crownLights].filter(Boolean), y: { from: y - 30, to: y }, duration: 700, ease: 'Bounce.easeOut' });
+  }
+
   private label() {
-    const lv = this.spec.showStars && this.spec.tier >= 1 ? ` · Lv ${this.spec.tier}` : '';
+    const level = this.level ?? this.spec.tier;
+    const lv = this.spec.showStars && level >= 1 ? ` · Lv ${level}${level > 4 ? ' 👑' : ''}` : '';
     return (this.spec.tier === 0 ? '🚧 ' : '') + this.spec.label + lv + (this.due ? ` · 🃏 ${this.due}` : '');
   }
 
@@ -156,7 +203,7 @@ export class Landmark {
       this.sign.setText(`${bad ? '⛈️' : '🌧️'} ${this.spec.label}\n${this.outage.why}`).setColor(bad ? CSS.badInk : CSS.goldHi).setAlign('center');
       this.drawFence(bad ? 0xe5676b : 0xe8c15a);
     } else {
-      this.img.clearTint().setAlpha(1);
+      this.img.clearTint().setAlpha(this.faded ? FADED : 1);
       this.lights?.setVisible(true);
       this.sign.setText(this.label()).setColor(CSS.inkHi);
     }
@@ -232,10 +279,49 @@ export class Landmark {
     this.placeExtras();
   }
 
+  /** True while a tall building in front of what the player follows is see-through (src/game/occlusion.ts). */
+  private faded = false;
+  setFaded(on: boolean) {
+    if (on === this.faded || this.closed) return;
+    this.faded = on;
+    this.scene.tweens.add({ targets: [this.img, this.crown].filter(Boolean), alpha: on ? FADED : 1, duration: 180 });
+  }
+
+  /** A pixel of the building (not its transparent margin) at world (x, y), for the fade's outline test. */
+  solidAt(x: number, y: number) {
+    const local = this.img.getLocalPoint(x, y);
+    const f = this.img.frame;
+    return this.scene.textures.getPixelAlpha(Math.floor(local.x), Math.floor(local.y), f.texture.key, f.name) > 0;
+  }
+
+  /**
+   * A level-up: the new building rises out of the ground floor by floor (8 px steps), then bounces. `done` runs at the
+   * end. Reduced motion shows it at once.
+   */
+  rise(done?: () => void) {
+    const h = this.img.height;
+    if (reducedMotion() || h < 16) return done?.();
+    const floors = Math.ceil(h / 8);
+    const layers = [this.img, this.lights].filter((o): o is Phaser.GameObjects.Image => !!o);
+    const show = (k: number) => layers.forEach((o) => o.setCrop(0, Math.max(0, o.height - k * 8 * (o.height / h)), o.width, o.height));
+    show(0);
+    this.scene.tweens.addCounter({
+      from: 0,
+      to: floors,
+      duration: Math.min(1400, 300 + floors * 30),
+      ease: 'Quad.easeOut',
+      onUpdate: (tw) => show(Math.round(tw.getValue() ?? floors)),
+      onComplete: () => {
+        layers.forEach((o) => o.setCrop());
+        done?.();
+      },
+    });
+  }
+
   celebrate() {
     this.bouncing = true;
     this.scene.tweens.add({
-      targets: [this.img, this.lights, this.sign, this.icon].filter(Boolean),
+      targets: [this.img, this.lights, this.crown, this.crownLights, this.sign, this.icon].filter(Boolean),
       y: '-=6',
       yoyo: true,
       duration: 160,
@@ -248,6 +334,8 @@ export class Landmark {
   }
 
   destroy() {
+    this.crown?.destroy();
+    this.crownLights?.destroy();
     this.img.destroy();
     this.lights?.destroy();
     this.sign.destroy();
