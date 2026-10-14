@@ -6,3 +6,5 @@ export declare function playIntro(o?: { animate?: boolean }): Promise<void>;
 export declare const ROOF_TIPS: string;
 export declare const introGrowth: (t: number) => number;
 export declare function lotsFor(width: number, o?: { compact?: boolean }): unknown[];
+export interface Cell { ch: string; fg?: string; bg?: string; bold?: boolean }
+export declare function vehicle(kind: 'car' | 'sports' | 'truck' | 'bus' | 'van', label: string, body: string, ink: string, right?: boolean): [(Cell | undefined)[], (Cell | undefined)[]];

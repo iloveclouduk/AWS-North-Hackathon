@@ -532,14 +532,59 @@ function drawCrane(g, lot, G, local, t) {
 }
 
 // ── the road ─────────────────────────────────────────────────────────────────
-// Two-row cars: [label, body colour, text colour, lane (0 = to the right, 1 = to the left), speed (cells/s), start]
+// Vehicles are side views drawn facing right, mirrored for the left lane, so each has a nose and a tail: a
+// windscreen that slopes forward, a headlight in the nose and a red tail light, tyres under the body. Template
+// letters: B body, L the label on the body, l the label in a glass cabin, G glass, W a wheel, H the headlight,
+// T the tail light, '.' road (nothing drawn);
+// any other glyph is drawn in the body colour over the road (a roof line, a sloped windscreen).
+// [kind, label, body colour, text colour, lane (0 = to the right, 1 = to the left), speed (cells/s), start]
 const CARS = [
-  [' λ ', C.orange, C.ink, 0, 24, 0],
-  [' S3 ', C.storage, C.ink, 0, 17, 46],
-  [' EC2 ', C.compute, C.ink, 1, 21, 10],
-  [' VPC ', C.networking, C.text, 1, 14, 60],
-  [' Bedrock ', C.ai, C.ink, 0, 12, 80],
+  ['car', ' λ ', C.orange, C.ink, 0, 24, 0],
+  ['truck', ' S3 ', C.storage, C.ink, 0, 17, 46],
+  ['bus', ' EC2 ', C.compute, C.ink, 1, 21, 10],
+  ['van', ' VPC ', C.networking, C.text, 1, 14, 60],
+  ['sports', ' Bedrock ', C.ai, C.ink, 0, 12, 80],
 ];
+// Two rows each, facing right; `L`/`l` stands for the whole label. Row 2's B run stretches to row 1's length.
+const SHAPES = {
+  car: ['▄▟l▙▄▄', 'TBW*WBH'],
+  sports: ['▗▄▟l▙▄▄▄▖', 'TBW*WBBH'],
+  truck: ['BLB.▄▙', 'TBWW*WBH'],
+  bus: ['BLBGBGG', 'TBWW*WWH'],
+  van: ['BLBG▙', 'TBW*WH'],
+};
+const TYRE = '#14172A';
+const TAIL = '#FF4D4D';
+const GLASS = '#9ED8F5';
+const MIRROR = { '▟': '▙', '▙': '▟', '▛': '▜', '▜': '▛', '▗': '▖', '▖': '▗', '▘': '▝', '▝': '▘', '▌': '▐', '▐': '▌', '◢': '◣', '◣': '◢' };
+/** One vehicle as two rows of cells facing `right` (or mirrored), ready to stamp on the road. Exported for tests. */
+export function vehicle(kind, label, body, ink, right = true) {
+  // mirror the template, not the cells, so the label still reads left to right
+  const flip = (s) => [...s].reverse().map((k) => MIRROR[k] ?? k).join('');
+  const [top, bottom] = right ? SHAPES[kind] : SHAPES[kind].map(flip);
+  const lab = [...label];
+  const cell = (k, i = 0) => {
+    switch (k) {
+      case 'B': return { ch: ' ', bg: body };
+      case 'L': return { ch: lab[i], fg: ink, bg: body, bold: true };
+      case 'l': return { ch: lab[i], fg: C.ink, bg: GLASS, bold: true };
+      case 'G': return { ch: ' ', bg: GLASS };
+      case 'W': return { ch: '●', fg: TYRE, bg: body };
+      // each lamp fills the half of its cell at the vehicle's end
+      case 'H': return { ch: right ? '▐' : '▌', fg: C.window, bg: body };
+      case 'T': return { ch: right ? '▌' : '▐', fg: TAIL, bg: body };
+      case '.': return undefined;
+      default: return { ch: k, fg: body };
+    }
+  };
+  const row1 = [...top].flatMap((k) => (k === 'L' || k === 'l' ? lab.map((_, i) => cell(k, i)) : [cell(k)]));
+  const fixed = [...bottom].filter((k) => k !== '*').length;
+  const row2 = [...bottom].flatMap((k) => (k === '*' ? Array.from({ length: Math.max(0, row1.length - fixed) }, () => cell('B')) : [cell(k)]));
+  return [row1, row2];
+}
+/** Stamps a vehicle row onto the grid (undefined cells leave the road showing). */
+const stamp = (g, x, y, row) => row.forEach((c, i) => c && put(g, x + i, y, c.ch, c));
+
 const zebraAt = (W, lots) => {
   const spheres = lots.find((l) => l.style === 'spheres');
   return spheres ? spheres.x + Math.floor(spheres.w / 2) - 2 : Math.floor(W / 2) - 2;
@@ -556,23 +601,15 @@ function road(W, t, lots) {
   }
   const zx = zebraAt(W, lots);
   for (let y = 1; y <= 5; y++) text(g, zx, y, '▄▄▄▄', { fg: C.line });
-  for (const [label, body, ink, lane, speed, start] of CARS) {
-    const n = [...label].length;
-    const len = n + 5; // ▗▅ label ▅▖ + headlight
-    const pos = Math.floor((start + speed * t) % (W + len));
+  for (const [kind, label, body, ink, lane, speed, start] of CARS) {
     const right = lane === 0;
-    const cx = right ? pos - len : W - pos;
+    const [top, bottom] = vehicle(kind, label, body, ink, right);
+    const len = top.length;
+    const pos = Math.floor((start + speed * t) % (W + len));
     const y = right ? 1 : 4;
-    const bx = right ? cx : cx + 1; // body start (the headlight leads)
-    put(g, bx, y, '▗', { fg: body });
-    put(g, bx + 1, y, '▅', { fg: body });
-    text(g, bx + 2, y, label, { fg: ink, bg: body, bold: true });
-    put(g, bx + 2 + n, y, '▅', { fg: body });
-    put(g, bx + 3 + n, y, '▖', { fg: body });
-    text(g, bx, y + 1, `▝●${'▀'.repeat(n)}●▘`, { fg: body });
-    for (const wx of [bx + 1, bx + 2 + n]) put(g, wx, y + 1, '●', { fg: '#C9CEDB' });
-    if (right) put(g, bx + 4 + n, y, '▶', { fg: C.window });
-    else put(g, cx, y, '◀', { fg: C.window });
+    const bx = right ? pos - top.length : W - pos;
+    stamp(g, bx, y, top);
+    stamp(g, bx, y + 1, bottom);
   }
   return g;
 }
@@ -588,17 +625,17 @@ function roadCompact(W, t, lots) {
   }
   const zx = zebraAt(W, lots);
   for (let y = 1; y <= 3; y++) text(g, zx, y, '▄▄▄▄', { fg: C.line });
-  for (const [label, body, ink, lane, speed, start] of CARS) {
-    const len = [...label].length + 1;
+  for (const [, label, body, ink, lane, speed, start] of CARS) {
+    // one row: tail light, the label on the body, headlight in the nose
+    const lab = [...label].map((ch) => ({ ch, fg: ink, bg: body, bold: true }));
+    const len = lab.length + 2;
     const pos = Math.floor((start + speed * t) % (W + len));
     if (lane === 0) {
       const cx = pos - len;
-      text(g, cx, 1, label, { fg: ink, bg: body, bold: true });
-      put(g, cx + len - 1, 1, '▶', { fg: C.window });
+      stamp(g, cx, 1, [{ ch: '▌', fg: TAIL, bg: body }, ...lab, { ch: '▐', fg: C.window, bg: body }]);
     } else {
       const cx = W - pos;
-      put(g, cx, 3, '◀', { fg: C.window });
-      text(g, cx + 1, 3, label, { fg: ink, bg: body, bold: true });
+      stamp(g, cx, 3, [{ ch: '▌', fg: C.window, bg: body }, ...lab, { ch: '▐', fg: TAIL, bg: body }]);
     }
   }
   return g;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { frame, INTRO_SECONDS } from '../scripts/launcher/banner.mjs';
+import { frame, INTRO_SECONDS, vehicle } from '../scripts/launcher/banner.mjs';
 import { renderDashboard, wrap, type DashState } from '../scripts/launcher/dashboard.mjs';
 import {
   browserFromArg,
@@ -147,8 +147,28 @@ describe('the title scene', () => {
 
   it('is the same picture for the same moment, and the traffic moves', () => {
     expect(frame(1.5, 120)).toEqual(frame(1.5, 120));
-    const road = (t: number) => frame(t, 120, { color: false }).find((l) => l.includes('▶'));
+    const road = (t: number) => frame(t, 120, { color: false }).find((l) => l.includes('Bedrock'));
+    expect(road(1.5)).toBeDefined();
     expect(road(1.5)).not.toEqual(road(1.6));
+  });
+
+  it('draws vehicles with a nose and a tail, not floating arrows', () => {
+    for (const w of [80, 120]) for (const t of [0.5, 1.5, 2.6]) expect(frame(t, w, { color: false }).join('')).not.toMatch(/[▶◀]/);
+    for (const kind of ['car', 'sports', 'truck', 'bus', 'van'] as const) {
+      const [top, bottom] = vehicle(kind, ' EC2 ', '#ED7100', '#111111');
+      expect(top.length).toBe(bottom.length);
+      // facing right: the headlight (warm) is in the nose, the tail light (red) at the back
+      expect(bottom.at(-1)).toMatchObject({ ch: '▐', fg: '#FFE38A' });
+      expect(bottom[0]).toMatchObject({ ch: '▌', fg: '#FF4D4D' });
+      expect(bottom.filter((c) => c?.ch === '●').length).toBeGreaterThanOrEqual(2);
+      // mirrored for the left lane: lamps swap ends, the label still reads left to right
+      const [ltop, lbottom] = vehicle(kind, ' EC2 ', '#ED7100', '#111111', false);
+      expect(lbottom[0]).toMatchObject({ ch: '▌', fg: '#FFE38A' });
+      expect(lbottom.at(-1)).toMatchObject({ ch: '▐', fg: '#FF4D4D' });
+      expect(ltop.map((c) => c?.ch ?? '').join('')).toContain(' EC2 ');
+      // not a saucer: the profile is not its own mirror image
+      expect(top.map((c) => c?.ch ?? '.').join('')).not.toBe(ltop.map((c) => c?.ch ?? '.').join(''));
+    }
   });
 
   it('plain mode has no colour codes', () => {
