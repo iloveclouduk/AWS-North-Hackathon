@@ -17,6 +17,21 @@ export interface Resource {
 /** ok = readable; locked = IAM denies reading it; error = transient failure (last known resources are kept). */
 export type ServiceStatus = 'ok' | 'locked' | 'error';
 
+/** Account- or Region-wide settings the checks need. A missing field means "couldn't read it" (no finding). */
+export interface AccountSettings {
+  /** EBS encryption by default, in this Region. */
+  ebsEncryptionByDefault?: boolean;
+  /**
+   * Account-level S3 Block Public Access as four flags, '1' = on, in the order BlockPublicAcls, IgnorePublicAcls,
+   * BlockPublicPolicy, RestrictPublicBuckets (S3 applies the most restrictive mix of account and bucket, setting by setting).
+   */
+  s3AccountBpa?: string;
+  /** Trails logging this Region, plus CloudTrail Lake event data stores (0 = nothing keeps the record past 90 days). */
+  trails?: number;
+  /** EBS volumes not attached to any instance (status "available"), at most 50. */
+  unattachedVolumes?: { id: string; name: string; sizeGiB: number }[];
+}
+
 export interface WorldSnapshot {
   takenAt: string;
   region: string;
@@ -24,6 +39,7 @@ export interface WorldSnapshot {
   credentials: 'ok' | 'expired';
   services: Record<Service, ServiceStatus>;
   resources: Resource[];
+  account?: AccountSettings;
 }
 
 export type AwsEvent =

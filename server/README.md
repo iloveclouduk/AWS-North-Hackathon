@@ -10,32 +10,32 @@ this build instead of drifting.
 
 **Why local, not API Gateway + Lambda:** the AWS Workshop Studio account denies CloudFormation and
 `iam:CreateRole`, so Lambdas (which need an execution role) can't be deployed. The server runs next to the
-browser on `127.0.0.1:8787`, uses the `workshop` AWS CLI profile, and the extension never sees AWS keys.
+browser on `127.0.0.1:8787`, uses your AWS CLI profile (`workshop` when run directly; `npm start` sets it), and the extension never sees AWS keys.
 The contract is transport-shaped (WebSocket + REST), so a Lambda version can replace it later without
 frontend changes.
 
 ## Connect the frontend
 
-```bash
-cd server && npm install && npm start
-```
-
-`npm start` prints the values for the repo root's `.env.local`:
-
-```
-WXT_BACKEND=aws
-WXT_AWS_WS_URL=ws://127.0.0.1:8787/ws
-WXT_AWS_API_URL=http://127.0.0.1:8787
-```
-
-`AwsBackend` doesn't send a token yet (`getAuthToken` is unset), so allow the extension by origin:
-copy its ID from `chrome://extensions` (or `about:debugging` in Firefox), then restart the server with
+From the repo root, one command does all of this for you:
 
 ```bash
-EXTENSION_ORIGIN=chrome-extension://<id> npm start     # comma-separate several origins
+npm start          # pick "Real AWS": AWS sign-in, Bedrock check, server, extension build, browser
+npm run live       # the same without questions (npm run live -- --help)
 ```
 
-Anything else (curl, tests) must send the printed token: `Authorization: Bearer <token>`, or `?token=` on the WebSocket.
+It builds the extension against `ws://127.0.0.1:8787`, starts this server with your AWS profile, and allows
+exactly that build's origin (the unpacked extension id is fixed by `extension.pubkey`; Firefox's UUID is pinned
+with a pref; Safari gets a one-off token).
+
+### By hand (advanced)
+
+```bash
+cd server && npm ci && EXTENSION_ORIGIN=chrome-extension://<id> AWS_CITY_PROFILE=<profile> npm start
+```
+
+and build the extension with `WXT_BACKEND=aws`, `WXT_AWS_WS_URL=ws://127.0.0.1:8787/ws`,
+`WXT_AWS_API_URL=http://127.0.0.1:8787`. Comma-separate several origins. Anything else (curl, tests) must
+send the printed token: `Authorization: Bearer <token>`, or `?token=` on the WebSocket.
 
 ## How the contract is implemented
 
@@ -47,6 +47,8 @@ Anything else (curl, tests) must send the printed token: `Authorization: Bearer 
 | `page.classify` | Lookout (Bedrock vision on the uploaded screenshot, or URL/title) → `page.classified` with valid service ids only. |
 | `POST /screenshots` | Returns a **single-use, signed upload URL** on this server (a local stand-in for a presigned S3 PUT). Images are kept in memory for 10 minutes. |
 | `GET/PUT /progress` | `server/.data/progress.json`; the newest `updatedAt` wins. |
+| `city.inventory` zones / regionStatus (v2.5) | `src/state/inventory.ts`: `ec2:DescribeAvailabilityZones` (zone type availability-zone) for the home Region and every Region with resources, and `ec2:DescribeRegions {AllRegions}`, each cached 24 h (a Region that can't be read is left out and retried after an hour). |
+| `bill.enable` → `city.bill` (v2.5) | `src/state/bill.ts`: `ce:GetCostAndUsage` (us-east-1), month to date, UnblendedCost by SERVICE and REGION, mapped to landmarks by `shared/ce-services.json`. **Off by default** (each request costs $0.01): read when turned on, then at most once a day per player; the switch and the last read are cached in the player's store (`server/.data/bill.json` locally, `USER#<sub>`/`BILL` in DynamoDB hosted). Errors become one sentence (`unavailable`). |
 | Live console changes | The poller reads EC2, security groups, DynamoDB, S3, Lambda, RDS and API Gateway every 10 s. Changes become `agent.message` from that landmark's agent, with a short lesson. IAM-denied services are reported by `iam`, and expired credentials as `error`. |
 
 "Agent animation = real AWS activity": `agent.state working` is only sent around real calls (the AWS SDK
@@ -82,6 +84,8 @@ npm run build    # type-check
 | `AWS_CITY_TOKEN` | random per start | fix it to keep the same token across restarts |
 | `AWS_CITY_MODEL` | `us.anthropic.claude-opus-5` | Bedrock inference profile |
 | `AWS_CITY_FALLBACK_MODEL` | `us.anthropic.claude-sonnet-5` | retried once if the main model refuses |
+| `AWS_CITY_AGENT_ENGINE` | `classic` | `strands` runs the landmark agents on Strands too (the citizens always do) |
+| `AWS_CITY_ALLOW_FIXES` | `false` locally, `true` hosted | let the citizens apply approved fixes; the workshop profile isn't role-scoped, so it's off locally |
 
 ### Workshop credentials
 
@@ -107,7 +111,7 @@ src/world.ts              re-exports the frontend's contract, taxonomy and place
 src/contract/             orchestrator (task/chat/lookout), aws-feed (console → messages), uploads, progress
 src/agents/               actions (allowlist → tools), policy, service (serialised writes), executor (AWS SDK),
                           runner (tool loop), llm (Bedrock), personas (built from places.ts)
-src/state/                poller (AWS reads), diff, model
+src/state/                poller (AWS reads), diff, model, inventory (the account mirror, AZs, Regions), bill (Cost Explorer)
 src/translate/lessons.ts  short lessons per resource kind and state
 src/http.ts               REST + WebSocket, auth, guards
 ```

@@ -1,0 +1,71 @@
+/* ── layout ── */
+.app {
+  display: grid;
+  height: 100%;
+}
+/* Side panel: the city on top, the panel below gets at least half the height (the map can grow on request). */
+.app-panel {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(150px, 34%) minmax(0, 1fr);
+  grid-template-areas: 'hud' 'stage' 'side';
+}
+.app-panel.stage-tall {
+  grid-template-rows: auto minmax(200px, 54%) minmax(0, 1fr);
+}
+.app-full {
+  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-rows: auto 1fr;
+  grid-template-areas: 'hud hud' 'stage side';
+}
+.stage {
+  grid-area: stage;
+  position: relative;
+  min-height: 0;
+  margin: 0 var(--s-4) var(--s-4);
+  border: 1px solid var(--black);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg-deep);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+.app-full .stage {
+  margin: var(--s-4);
+}
+.stage-size {
+  position: absolute;
+  right: var(--s-3);
+  bottom: var(--s-3);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: var(--ink);
+  background: rgba(21, 23, 27, 0.78);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  backdrop-filter: blur(4px);
+}
+.stage-size:hover {
+  background: var(--panel-hi);
+}
+.side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.app-full .side {
+  border-top: 0;
+  border-left: 1px solid var(--line);
+}
+.game {
+  position: absolute;
+  inset: 0;
+}
+.game canvas {
+  display: block;
+}

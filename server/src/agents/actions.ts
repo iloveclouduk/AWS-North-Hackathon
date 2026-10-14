@@ -39,13 +39,17 @@ export const ACTION_SCHEMAS = {
     .object({ id: z.string().min(1).max(255) })
     .strict()
     .describe('Look closely at any building: return the details AWS reports for one resource (read-only).'),
+  review_architecture: z
+    .object({})
+    .strict()
+    .describe('Well-Architected check of everything the city can see: a scorecard over the 6 pillars with doc links (read-only). Explain the most useful finding.'),
 } as const;
 
 export type ActionName = keyof typeof ACTION_SCHEMAS;
 export type Action = { [K in ActionName]: { type: K } & z.infer<(typeof ACTION_SCHEMAS)[K]> }[ActionName];
 
 export const DESTRUCTIVE: ReadonlySet<ActionName> = new Set(['terminate_instance', 'delete_table', 'delete_bucket']);
-export const READ_ONLY: ReadonlySet<ActionName> = new Set(['describe_resource']);
+export const READ_ONLY: ReadonlySet<ActionName> = new Set(['describe_resource', 'review_architecture']);
 
 export const isActionName = (name: string): name is ActionName => Object.hasOwn(ACTION_SCHEMAS, name);
 
@@ -72,6 +76,7 @@ export const ACTION_SERVICE: Record<ActionName, string | null> = {
   create_bucket: 's3',
   delete_bucket: 's3',
   describe_resource: null, // read-only, any agent
+  review_architecture: null,
 };
 
 /** The AWS API name shown on the agent's name tag while the call runs. */
@@ -85,6 +90,7 @@ export const AWS_API: Record<ActionName, string> = {
   create_bucket: 's3:CreateBucket',
   delete_bucket: 's3:DeleteBucket',
   describe_resource: 'city:DescribeResource',
+  review_architecture: 'wellarchitected:Review',
 };
 
 /** Actions an agent may use: its own service's actions plus read-only ones (least privilege per agent). */

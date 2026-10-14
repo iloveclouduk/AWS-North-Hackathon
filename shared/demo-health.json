@@ -1,0 +1,251 @@
+{
+  "source": "Bahrain and UAE: the public AWS Health Dashboard as it stood on 2026-10-11 (AWS's own updates, abridged). The us-west-2 event is a practice drill the demo makes up (drill: true), never AWS's. News: AWS What's New (aws.amazon.com/about-aws/whats-new/), 2026-10-09 to 2026-10-11.",
+  "asOf": "2026-10-11",
+  "incidents": [
+    {
+      "id": "arn:aws:health:me-south-1::event/MULTIPLE_SERVICES/AWS_MULTIPLE_SERVICES_OPERATIONAL_ISSUE/AWS_MULTIPLE_SERVICES_OPERATIONAL_ISSUE_E6426_01AD72B4E1E",
+      "region": "me-south-1",
+      "regionName": "Bahrain",
+      "azIds": [
+        "mes1-az2"
+      ],
+      "severity": "disruption",
+      "status": "open",
+      "title": "Increased Error Rates",
+      "services": [
+        "AWS Amplify",
+        "AWS Amplify Admin",
+        "AWS App Mesh",
+        "AWS AppConfig",
+        "AWS AppSync",
+        "AWS Application Migration Service",
+        "AWS Backup",
+        "AWS Batch",
+        "AWS Certificate Manager",
+        "AWS Client VPN",
+        "AWS Cloud Map",
+        "AWS Cloud9"
+      ],
+      "serviceCount": 144,
+      "serviceIds": [
+        "apigateway",
+        "athena",
+        "aurora",
+        "beanstalk",
+        "bedrock",
+        "cloudwatch",
+        "cognito",
+        "dynamodb",
+        "ebs",
+        "ec2",
+        "ecs",
+        "efs",
+        "eks",
+        "elasticache",
+        "eventbridge",
+        "fargate",
+        "glue",
+        "guardduty",
+        "kms",
+        "lakeformation",
+        "lambda",
+        "neptune",
+        "rds",
+        "redshift",
+        "s3",
+        "sagemaker",
+        "shield",
+        "sqs",
+        "vpc"
+      ],
+      "started": "2026-03-02T05:56:27.000Z",
+      "updated": "2026-09-15T10:22:28.000Z",
+      "log": [
+        {
+          "at": "2026-09-15T10:22:28.000Z",
+          "text": "We are providing an update on the disruption affecting the Middle East (Bahrain) (me-south-1) Region. The damage to our infrastructure spanned multiple Availability Zones and exceeded what our regional and multi-AZ services are designed to withstand. After a thorough assessment, we have determined that we are unable to restore access to the resources and data hosted exclusively in this Region. When the first Availability Zone was damaged in March, we began recommending that customers migrate their workloads to other Regions, and most did so before the Region became unavailable following the disruption of a second Availability Zone in April. Since then, we have supported the remaining customers in re-establishing their operations in alternate Regions, using backups where available or implementing alternative solutions to mitigate the impact of inaccessible data. In parallel, we assessed all affected infrastructure and exhausted every option for restoring data and resources that had not been migrated before the Region became unavailable. We remain committed to supporting our customers in Bahrain in the long term and will share a further update in early 2027. …"
+        },
+        {
+          "at": "2026-04-30T07:07:11.000Z",
+          "text": "We are providing an update on the ongoing service disruption. The Middle East (Bahrain) Region (ME-SOUTH-1) has suffered damage due to the conflict in the Middle East and is currently unavailable. Customers should recover their resources in other Regions from remote backups. Relevant billing operations are currently suspended while we restore normal operations in this AWS Region. This process is expected to take several months."
+        },
+        {
+          "at": "2026-03-03T06:27:00.000Z",
+          "text": "We continue to work towards restoring power in the affected Availability Zone (mes1-az2) in the ME-SOUTH-1 Region. We have no updated guidance on expected recovery times, and still expect this to take at least a day to fully restore power and connectivity. AWS infrastructure is designed to be highly resilient, but given the uncertainty of the current situation, we encourage our customers to replicate Amazon S3 and critical data from the ME-SOUTH-1 Region to another AWS Region. For customers requiring guidance on alternate regions, we recommend considering AWS Regions in the United States, Europe, or Asia Pacific, as appropriate for your latency and data residency requirements. We will provide another update by March 3 at 3:00 AM PST, or sooner if new information becomes available. For more information on Cross-Region Replication, refer [1]. For more information on S3 Batch Replication, see [2]. For a simple script to quickly set up and start S3 Replication, see [3]. If you have questions or concerns, please contact AWS Support [4]. …"
+        }
+      ]
+    },
+    {
+      "id": "arn:aws:health:me-central-1::event/MULTIPLE_SERVICES/AWS_MULTIPLE_SERVICES_OPERATIONAL_ISSUE/AWS_MULTIPLE_SERVICES_OPERATIONAL_ISSUE_5E6B8_EF2498889B5",
+      "region": "me-central-1",
+      "regionName": "UAE",
+      "azIds": [
+        "mec1-az2",
+        "mec1-az1",
+        "mec1-az3"
+      ],
+      "severity": "disruption",
+      "status": "open",
+      "title": "Increased Error Rates",
+      "services": [
+        "AWS Amplify",
+        "AWS AppConfig",
+        "AWS AppSync",
+        "AWS Application Migration Service",
+        "AWS Backup",
+        "AWS Batch",
+        "AWS Certificate Manager",
+        "AWS Client VPN",
+        "AWS Cloud Map",
+        "AWS CloudFormation",
+        "AWS CloudHSM",
+        "AWS CloudShell"
+      ],
+      "serviceCount": 135,
+      "serviceIds": [
+        "apigateway",
+        "athena",
+        "aurora",
+        "beanstalk",
+        "bedrock",
+        "cloudwatch",
+        "cognito",
+        "dynamodb",
+        "ebs",
+        "ec2",
+        "ecs",
+        "efs",
+        "eks",
+        "elasticache",
+        "eventbridge",
+        "fargate",
+        "glue",
+        "guardduty",
+        "kms",
+        "lakeformation",
+        "lambda",
+        "neptune",
+        "rds",
+        "redshift",
+        "s3",
+        "sagemaker",
+        "shield",
+        "sqs",
+        "vpc"
+      ],
+      "started": "2026-03-01T12:51:25.000Z",
+      "updated": "2026-09-15T10:27:10.000Z",
+      "log": [
+        {
+          "at": "2026-09-15T10:27:10.000Z",
+          "text": "We are providing an update on the disruption affecting the Middle East (UAE) (me-central-1) Region. After a thorough assessment, we have determined that we are unable to restore access to the resources and data hosted exclusively in the mec1-az2 Availability Zone. We continue to work on recovering regional resources, as well as zonal resources hosted in the other affected Availability Zones (mec1-az1 and mec1-az3). Since the disruption began in March, most customers have been able to re-establish their operations in other Regions by restoring backups or copying data that remained accessible. AWS Support remains available to help customers who need assistance moving their applications to alternate Regions. We remain committed to supporting our customers in the UAE. We are working on replacing the affected infrastructure and will provide an update on the restoration of our services in the coming months. We have notified the relevant authorities and continue to work with them toward that goal."
+        },
+        {
+          "at": "2026-04-30T07:25:54.000Z",
+          "text": "We are providing an update on the ongoing service disruption. The Middle East (UAE) Region (ME-CENTRAL-1) has suffered damage as a result of the conflict in the Middle East and is currently unable to reliably support customer applications. While some workloads continue to function normally, we strongly recommend customers migrate all accessible resources to other Regions and restore inaccessible resources from remote backups as soon as possible. Relevant billing operations are currently suspended while we restore normal operations in this AWS Region. This process is expected to take several months."
+        },
+        {
+          "at": "2026-03-03T05:13:38.000Z",
+          "text": "We continue to work towards recovery of the two impaired Availability Zones (mec1-az2 and mec1-az3) in the ME-CENTRAL-1 Region with a focus on restoring functionality to foundational services. Since our last update we have made incremental progress in recovering the DynamoDB control plane which will not be visible to external customers but are required for the restoration of service. Similarly we have made progress with the S3 control plane. The recovery of these foundational services, when complete, will enable a broad range of dependent AWS services to recover. We still estimate that the recovery time is at least a day before we are able to fully restore power and connectivity. We will provide you with another update by March 3 2:00 AM PST, or sooner if new information becomes available."
+        }
+      ]
+    }
+  ],
+  "drill": {
+    "id": "demo-drill-usw2",
+    "region": "us-west-2",
+    "regionName": "Oregon",
+    "azIds": [
+      "usw2-az1"
+    ],
+    "severity": "degradation",
+    "status": "open",
+    "title": "Practice drill: increased Lambda error rates in one Availability Zone",
+    "services": [
+      "AWS Lambda",
+      "Amazon API Gateway"
+    ],
+    "serviceCount": 2,
+    "serviceIds": [
+      "apigateway",
+      "lambda"
+    ],
+    "log": [
+      {
+        "text": "Practice drill (not a real AWS event). Requests to functions in one Availability Zone (usw2-az1) are failing more often. Functions spread across several zones keep answering from the healthy ones."
+      },
+      {
+        "text": "Practice drill: the zone has recovered. Nothing was lost because the city's functions run in more than one zone."
+      }
+    ],
+    "drill": true
+  },
+  "news": [
+    {
+      "id": "5fbfb72381fa592cedddb6e51148739df6abd5f3",
+      "title": "AWS Security Hub now exports findings to S3 in CSV or JSON format",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/security-hub-exports-s3-csv-json/",
+      "date": "2026-10-09T22:00:00.000Z",
+      "serviceIds": []
+    },
+    {
+      "id": "ccba9fc4ff504d1272a3a71c84cf9360b27a5a10",
+      "title": "Amazon EC2 R8gd instances are now available in additional regions",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/amazon-ec2-r8gd-thf/",
+      "date": "2026-10-09T19:29:00.000Z",
+      "serviceIds": [
+        "ec2"
+      ]
+    },
+    {
+      "id": "aba89b58b3614be9bbc3c8326cdfe7f5f6ec7a3d",
+      "title": "Amazon EC2 R8g instances now available in additional regions",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/amazon-ec2-r8g-instances-thf/",
+      "date": "2026-10-09T19:19:00.000Z",
+      "serviceIds": [
+        "ec2"
+      ]
+    },
+    {
+      "id": "12a87baced37a4b986a86406b1308c287d4c913d",
+      "title": "Amazon Bedrock now supports reasoning summaries for OpenAI models",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/amazon-bedrock-reasoning-summaries-openai/",
+      "date": "2026-10-09T17:44:00.000Z",
+      "serviceIds": [
+        "bedrock"
+      ]
+    },
+    {
+      "id": "b67137aab065cab2e9c0d1c9305bb73a6268d08b",
+      "title": "Anthropic Claude Sonnet 5.5 and Claude Opus 5.5 are now available on Kiro in AWS GovCloud (US)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/06/kiro-claude-5-5-aws-govcloud-us/",
+      "date": "2026-10-09T17:13:00.000Z",
+      "serviceIds": []
+    },
+    {
+      "id": "a3ff4bd451204e2201cbb51b5ba1f192adbb3c6f",
+      "title": "Amazon Connect Customer now provides automated checks to improve performance evaluation forms",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/amazon-connect-customer-automated-checks-evaluation-forms/",
+      "date": "2026-10-09T17:00:00.000Z",
+      "serviceIds": []
+    },
+    {
+      "id": "f642327ff28e004e9e652e42fd7df6b0bf6202ac",
+      "title": "Amazon S3 Vectors metadata pre-filtering is now available in AWS GovCloud (US) Regions",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/s3-vectors-metadata-pre-filtering-in-govcloud-regions/",
+      "date": "2026-10-09T17:00:00.000Z",
+      "serviceIds": [
+        "s3"
+      ]
+    },
+    {
+      "id": "53d8a630312f111fa40f8ad015de5c4b48ad15e6",
+      "title": "AWS Lambda supports OAuth authentication for self-managed Apache Kafka event sources",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/aws-Lambda-supports-oauth-kafka-esm/",
+      "date": "2026-10-09T16:30:00.000Z",
+      "serviceIds": [
+        "lambda"
+      ]
+    }
+  ]
+}

@@ -21,6 +21,28 @@
    "carry"
   ]
  },
+ "player-gold": {
+  "role": "player",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign",
+   "open_door",
+   "type",
+   "carry"
+  ]
+ },
  "ec2": {
   "role": "agent",
   "anims": [
@@ -734,6 +756,139 @@
    "hold_sign"
   ]
  },
+ "amz_sde": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "amz_sa": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "amz_tam": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "amz_sre": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "amz_pm": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "amz_delivery": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
+ "amz_warehouse": {
+  "role": "citizen",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ]
+ },
  "citizen0": {
   "role": "citizen",
   "anims": [
@@ -923,5 +1078,1356 @@
    "blow_kiss",
    "hold_sign"
   ]
+ },
+ "ec2-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "ec2"
+ },
+ "lambda-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "cook",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "lambda"
+ },
+ "ecs-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "ecs"
+ },
+ "fargate-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "fargate"
+ },
+ "eks-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "eks"
+ },
+ "beanstalk-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "beanstalk"
+ },
+ "s3-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "s3"
+ },
+ "ebs-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "ebs"
+ },
+ "efs-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "efs"
+ },
+ "glue-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "file",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "glue"
+ },
+ "athena-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "athena"
+ },
+ "lakeformation-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "lakeformation"
+ },
+ "dynamodb-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "file",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "dynamodb"
+ },
+ "rds-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "rds"
+ },
+ "aurora-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "think",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "aurora"
+ },
+ "elasticache-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "cook",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "elasticache"
+ },
+ "redshift-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "redshift"
+ },
+ "neptune-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "think",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "neptune"
+ },
+ "vpc-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "vpc"
+ },
+ "route53-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "dance",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "route53"
+ },
+ "cloudfront-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "cloudfront"
+ },
+ "apigateway-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "apigateway"
+ },
+ "sqs-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "carry",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "sqs"
+ },
+ "eventbridge-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "eventbridge"
+ },
+ "iam-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "iam"
+ },
+ "cognito-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "cognito"
+ },
+ "kms-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "lock",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "kms"
+ },
+ "shield-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "guard",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "shield"
+ },
+ "guardduty-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "guardduty"
+ },
+ "cloudwatch-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "cloudwatch"
+ },
+ "bedrock-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "think",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "bedrock"
+ },
+ "agentcore-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "agentcore"
+ },
+ "sagemaker-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "sagemaker"
+ },
+ "q-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "q"
+ },
+ "rekognition-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "rekognition"
+ },
+ "textract-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "file",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "textract"
+ },
+ "concierge-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "check",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "concierge"
+ },
+ "lookout-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "scan",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "lookout"
+ },
+ "builder-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "hammer",
+   "type"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "builder"
+ },
+ "mia-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "mia"
+ },
+ "dre-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "dre"
+ },
+ "noah-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "noah"
+ },
+ "zed-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "zed"
+ },
+ "victor-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "victor"
+ },
+ "sky-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "sky"
+ },
+ "luna-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "luna"
+ },
+ "amz_sde-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "amz_sde"
+ },
+ "amz_sa-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "amz_sa"
+ },
+ "amz_tam-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "amz_tam"
+ },
+ "amz_sre-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "amz_sre"
+ },
+ "amz_pm-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "amz_pm"
+ },
+ "amz_delivery-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "amz_delivery"
+ },
+ "amz_warehouse-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "amz_warehouse"
+ },
+ "citizen0-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen0"
+ },
+ "citizen1-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen1"
+ },
+ "citizen2-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen2"
+ },
+ "citizen3-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen3"
+ },
+ "citizen4-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen4"
+ },
+ "citizen5-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen5"
+ },
+ "citizen6-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen6"
+ },
+ "citizen7-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen7"
+ },
+ "citizen8-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen8"
+ },
+ "citizen9-crowd": {
+  "role": "crowd",
+  "anims": [
+   "idle",
+   "walk",
+   "wave",
+   "hi",
+   "talk",
+   "laugh",
+   "sit",
+   "jump",
+   "fish",
+   "drink",
+   "dance",
+   "sleep",
+   "blow_kiss",
+   "hold_sign"
+  ],
+  "frame": [
+   36,
+   54
+  ],
+  "of": "citizen9"
  }
 }

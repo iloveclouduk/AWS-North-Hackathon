@@ -1,0 +1,142 @@
+/* ── architecture board ── */
+.arch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.story {
+  color: var(--info-ink);
+  margin: var(--s-1) 0;
+  line-height: 1.5;
+}
+.arch-label {
+  margin: var(--s-3) 0 0;
+}
+.reqs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--quote);
+}
+.reqs li {
+  position: relative;
+  padding: var(--s-1) 0 var(--s-1) var(--s-6);
+}
+.reqs li::before {
+  content: '';
+  position: absolute;
+  left: var(--s-2);
+  top: 0.65em;
+  width: 4px;
+  height: 4px;
+  background: var(--quote);
+}
+.palette,
+.board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+}
+/* the design is a building lot */
+.board {
+  min-height: 56px;
+  padding: var(--s-4);
+  border: 2px dashed var(--line);
+  border-radius: var(--r-md);
+  background:
+    repeating-linear-gradient(45deg, transparent 0 6px, rgba(255, 255, 255, 0.02) 6px 12px),
+    var(--panel-3);
+}
+.board.is-empty {
+  justify-content: center;
+}
+.svc {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  background: var(--panel-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  padding: var(--s-2) var(--s-4) var(--s-2) var(--s-5);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  transition: transform var(--dur-1);
+}
+.svc:hover {
+  background: var(--panel-hi);
+}
+.svc:active {
+  transform: translateY(1px);
+}
+.svc.on {
+  background: color-mix(in srgb, var(--district, var(--accent)) 28%, var(--panel-2));
+  animation: drop var(--dur-2) var(--ease-step);
+}
+@keyframes drop {
+  from {
+    transform: translateY(-6px);
+  }
+}
+.result {
+  animation: enter var(--dur-2) var(--ease-step);
+}
+.result.pass {
+  border-color: var(--good);
+}
+.result.fail {
+  border-color: var(--bad);
+}
+/* "To pass: 70 or more with nothing missing…" and "+12 ⭐ S3 Lake +12 · …" (ResultPanel). */
+.result-rule {
+  margin-bottom: var(--s-2);
+  font-weight: 700;
+  color: var(--ink-hi);
+}
+.result-grew {
+  margin-bottom: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--ink-hi);
+  font-size: var(--fs-sm);
+}
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s-3);
+}
+.result.pass .result-head .px {
+  color: var(--good);
+}
+.result.fail .result-head .px {
+  color: var(--bad-ink);
+}
+.result .score {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: var(--fs-pixel-lg);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line-strong);
+  background: var(--sunken);
+}
+.pillars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2) var(--s-5);
+  margin: var(--s-3) 0;
+}
+.pillar {
+  font-size: var(--fs-sm);
+}
+/* bars fill one after another */
+.pillar .meter i {
+  animation: fill var(--dur-3) var(--ease-step) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+@keyframes fill {
+  from {
+    width: 0;
+  }
+}

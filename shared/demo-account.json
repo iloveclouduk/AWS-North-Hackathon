@@ -1,0 +1,676 @@
+{
+  "asOf": "2026-10-10",
+  "note": "The demo city's pretend AWS account (MockBackend, no network). Items mirror what city.inventory would list; serviceId null = a type with no landmark yet. `findings` plant one finding per rule in wa-rules.json on the resource with that ARN; \"region\" = an account-wide setting. A resource the city didn't build (managedByGame false), or an account-wide setting, needs a typed confirmation to fix. Read by src/backend/mockAccount.ts. `explain` is the citizen's scripted answer to Explain (what happens if you ignore it, and what to do), so it adds to the card instead of repeating it. Findings arrive in this order, spread out over the first minute or so. Items carry region and az; links are the data moving between Regions and AZs (world map arcs, AZ bridges).",
+  "accountId": "123456789012",
+  "region": "us-west-2",
+  "items": [
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:instance/i-0a1b2c3d4e5f60718",
+      "type": "AWS::EC2::Instance",
+      "name": "build-runner",
+      "serviceId": "ec2",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "us-west-2",
+      "az": "us-west-2a"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:instance/i-0f9e8d7c6b5a40312",
+      "type": "AWS::EC2::Instance",
+      "name": "aws-city-quest-house",
+      "serviceId": "ec2",
+      "districtId": "compute",
+      "managedByGame": true,
+      "region": "us-west-2",
+      "az": "us-west-2b"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:instance/i-0b2c3d4e5f6a70819",
+      "type": "AWS::EC2::Instance",
+      "name": "reporting-server",
+      "serviceId": "ec2",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "us-west-2",
+      "az": "us-west-2a"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:instance/i-0c3d4e5f6a7b80910",
+      "type": "AWS::EC2::Instance",
+      "name": "web-worker-1",
+      "serviceId": "ec2",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "us-west-2",
+      "az": "us-west-2c"
+    },
+    {
+      "arn": "arn:aws:lambda:us-west-2:123456789012:function:thumbnailer",
+      "type": "AWS::Lambda::Function",
+      "name": "thumbnailer",
+      "serviceId": "lambda",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:lambda:us-west-2:123456789012:function:legacy-report-job",
+      "type": "AWS::Lambda::Function",
+      "name": "legacy-report-job",
+      "serviceId": "lambda",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:lambda:us-west-2:123456789012:function:aws-city-order-cook",
+      "type": "AWS::Lambda::Function",
+      "name": "aws-city-order-cook",
+      "serviceId": "lambda",
+      "districtId": "compute",
+      "managedByGame": true,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:ecs:us-west-2:123456789012:cluster/web-cluster",
+      "type": "AWS::ECS::Cluster",
+      "name": "web-cluster",
+      "serviceId": "ecs",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:ecs:us-west-2:123456789012:service/web-cluster/web",
+      "type": "AWS::ECS::Service",
+      "name": "web",
+      "serviceId": "ecs",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:s3:::aws-city-123456789012-quest",
+      "type": "AWS::S3::Bucket",
+      "name": "aws-city-123456789012-quest",
+      "serviceId": "s3",
+      "districtId": "storage",
+      "managedByGame": true,
+      "region": "global"
+    },
+    {
+      "arn": "arn:aws:s3:::team-photo-share",
+      "type": "AWS::S3::Bucket",
+      "name": "team-photo-share",
+      "serviceId": "s3",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "global"
+    },
+    {
+      "arn": "arn:aws:s3:::company-logs-archive",
+      "type": "AWS::S3::Bucket",
+      "name": "company-logs-archive",
+      "serviceId": "s3",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "global"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:volume/vol-0123456789abcdef0",
+      "type": "AWS::EC2::Volume",
+      "name": "vol-build-runner-root",
+      "serviceId": "ebs",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:volume/vol-0fedcba9876543210",
+      "type": "AWS::EC2::Volume",
+      "name": "vol-quest-house-root",
+      "serviceId": "ebs",
+      "districtId": "storage",
+      "managedByGame": true,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:volume/vol-0aa11bb22cc33dd44",
+      "type": "AWS::EC2::Volume",
+      "name": "old-backup-disk",
+      "serviceId": "ebs",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:elasticfilesystem:us-west-2:123456789012:file-system/fs-0abc1234",
+      "type": "AWS::EFS::FileSystem",
+      "name": "shared-home",
+      "serviceId": "efs",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:glue:us-west-2:123456789012:job/nightly-etl",
+      "type": "AWS::Glue::Job",
+      "name": "nightly-etl",
+      "serviceId": "glue",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:glue:us-west-2:123456789012:database/sales",
+      "type": "AWS::Glue::Database",
+      "name": "sales",
+      "serviceId": "glue",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:athena:us-west-2:123456789012:workgroup/analysts",
+      "type": "AWS::Athena::WorkGroup",
+      "name": "analysts",
+      "serviceId": "athena",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:dynamodb:us-west-2:123456789012:table/city-quest-library",
+      "type": "AWS::DynamoDB::Table",
+      "name": "city-quest-library",
+      "serviceId": "dynamodb",
+      "districtId": "database",
+      "managedByGame": true,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:dynamodb:us-west-2:123456789012:table/sessions",
+      "type": "AWS::DynamoDB::Table",
+      "name": "sessions",
+      "serviceId": "dynamodb",
+      "districtId": "database",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:rds:us-west-2:123456789012:db:orders-db",
+      "type": "AWS::RDS::DBInstance",
+      "name": "orders-db",
+      "serviceId": "rds",
+      "districtId": "database",
+      "managedByGame": false,
+      "region": "us-west-2",
+      "az": "us-west-2a"
+    },
+    {
+      "arn": "arn:aws:elasticache:us-west-2:123456789012:cluster:page-cache",
+      "type": "AWS::ElastiCache::CacheCluster",
+      "name": "page-cache",
+      "serviceId": "elasticache",
+      "districtId": "database",
+      "managedByGame": false,
+      "region": "us-west-2",
+      "az": "us-west-2b"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:vpc/vpc-0a1b2c3d",
+      "type": "AWS::EC2::VPC",
+      "name": "main-vpc",
+      "serviceId": "vpc",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:subnet/subnet-0a1b2c3d",
+      "type": "AWS::EC2::Subnet",
+      "name": "main-private-a",
+      "serviceId": "vpc",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:security-group/sg-0c1d2e3f4a5b6c7d8",
+      "type": "AWS::EC2::SecurityGroup",
+      "name": "admin-access-sg",
+      "serviceId": "vpc",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:ec2:us-west-2:123456789012:security-group/sg-0123abcd4567ef890",
+      "type": "AWS::EC2::SecurityGroup",
+      "name": "web-alb-sg",
+      "serviceId": "vpc",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:route53:::hostedzone/Z0123456789ABCDEFGHIJ",
+      "type": "AWS::Route53::HostedZone",
+      "name": "example.com",
+      "serviceId": "route53",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "global"
+    },
+    {
+      "arn": "arn:aws:cloudfront::123456789012:distribution/E1A2B3C4D5E6F7",
+      "type": "AWS::CloudFront::Distribution",
+      "name": "site-cdn",
+      "serviceId": "cloudfront",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "global"
+    },
+    {
+      "arn": "arn:aws:apigateway:us-west-2::/restapis/a1b2c3d4e5",
+      "type": "AWS::ApiGateway::RestApi",
+      "name": "orders-api",
+      "serviceId": "apigateway",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:sqs:us-west-2:123456789012:order-events",
+      "type": "AWS::SQS::Queue",
+      "name": "order-events",
+      "serviceId": "sqs",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:sqs:us-west-2:123456789012:order-events-dlq",
+      "type": "AWS::SQS::Queue",
+      "name": "order-events-dlq",
+      "serviceId": "sqs",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:events:us-west-2:123456789012:rule/nightly-etl-schedule",
+      "type": "AWS::Events::Rule",
+      "name": "nightly-etl-schedule",
+      "serviceId": "eventbridge",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:iam::123456789012:role/thumbnailer-role",
+      "type": "AWS::IAM::Role",
+      "name": "thumbnailer-role",
+      "serviceId": "iam",
+      "districtId": "security",
+      "managedByGame": false,
+      "region": "global"
+    },
+    {
+      "arn": "arn:aws:iam::123456789012:role/AWSCityPlayerRole-us-west-2",
+      "type": "AWS::IAM::Role",
+      "name": "AWSCityPlayerRole-us-west-2",
+      "serviceId": "iam",
+      "districtId": "security",
+      "managedByGame": false,
+      "region": "global"
+    },
+    {
+      "arn": "arn:aws:kms:us-west-2:123456789012:key/1234abcd-12ab-34cd-56ef-1234567890ab",
+      "type": "AWS::KMS::Key",
+      "name": "orders-key",
+      "serviceId": "kms",
+      "districtId": "security",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:cognito-idp:us-west-2:123456789012:userpool/us-west-2_aBcDeFgHi",
+      "type": "AWS::Cognito::UserPool",
+      "name": "shop-users",
+      "serviceId": "cognito",
+      "districtId": "security",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:logs:us-west-2:123456789012:log-group:/aws/lambda/thumbnailer",
+      "type": "AWS::Logs::LogGroup",
+      "name": "/aws/lambda/thumbnailer",
+      "serviceId": "cloudwatch",
+      "districtId": "security",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:sagemaker:us-west-2:123456789012:notebook-instance/forecast-notebook",
+      "type": "AWS::SageMaker::NotebookInstance",
+      "name": "forecast-notebook",
+      "serviceId": "sagemaker",
+      "districtId": "aiml",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:states:us-west-2:123456789012:stateMachine:order-workflow",
+      "type": "AWS::StepFunctions::StateMachine",
+      "name": "order-workflow",
+      "serviceId": null,
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:sns:us-west-2:123456789012:order-alerts",
+      "type": "AWS::SNS::Topic",
+      "name": "order-alerts",
+      "serviceId": null,
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:secretsmanager:us-west-2:123456789012:secret:orders-db-password-AbCdEf",
+      "type": "AWS::SecretsManager::Secret",
+      "name": "orders-db-password",
+      "serviceId": null,
+      "districtId": "security",
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:kinesis:us-west-2:123456789012:stream/clickstream",
+      "type": "AWS::Kinesis::Stream",
+      "name": "clickstream",
+      "serviceId": null,
+      "districtId": null,
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:codebuild:us-west-2:123456789012:project/site-build",
+      "type": "AWS::CodeBuild::Project",
+      "name": "site-build",
+      "serviceId": null,
+      "districtId": null,
+      "managedByGame": false,
+      "region": "us-west-2"
+    },
+    {
+      "arn": "arn:aws:dynamodb:eu-west-1:123456789012:table/sessions",
+      "type": "AWS::DynamoDB::Table",
+      "name": "sessions",
+      "serviceId": "dynamodb",
+      "districtId": "database",
+      "managedByGame": false,
+      "region": "eu-west-1"
+    },
+    {
+      "arn": "arn:aws:lambda:eu-west-1:123456789012:function:session-api",
+      "type": "AWS::Lambda::Function",
+      "name": "session-api",
+      "serviceId": "lambda",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "eu-west-1"
+    },
+    {
+      "arn": "arn:aws:apigateway:eu-west-1::/restapis/abc123",
+      "type": "AWS::ApiGateway::RestApi",
+      "name": "session-api-eu",
+      "serviceId": "apigateway",
+      "districtId": "networking",
+      "managedByGame": false,
+      "region": "eu-west-1"
+    },
+    {
+      "arn": "arn:aws:s3:::company-logs-archive-tokyo",
+      "type": "AWS::S3::Bucket",
+      "name": "company-logs-archive-tokyo",
+      "serviceId": "s3",
+      "districtId": "storage",
+      "managedByGame": false,
+      "region": "ap-northeast-1"
+    },
+    {
+      "arn": "arn:aws:ec2:ap-northeast-1:123456789012:instance/i-0c3d4e5f6a7b80912",
+      "type": "AWS::EC2::Instance",
+      "name": "tokyo-edge",
+      "serviceId": "ec2",
+      "districtId": "compute",
+      "managedByGame": false,
+      "region": "ap-northeast-1",
+      "az": "ap-northeast-1a"
+    }
+  ],
+  "findings": [
+    {
+      "ruleId": "dynamodb-no-pitr",
+      "resource": "arn:aws:dynamodb:us-west-2:123456789012:table/city-quest-library",
+      "explain": "If someone deletes items by mistake, or a script overwrites them, the table only has what's in it now. With point-in-time recovery on, you can copy it into a new table as it was at any second in its recovery window (up to 35 days). The city built this table, so once you've taught me I can turn it on for you."
+    },
+    {
+      "ruleId": "s3-public-access",
+      "resource": "arn:aws:s3:::team-photo-share",
+      "explain": "Today the bucket is private, but nothing stops a policy or ACL from opening it up. One wrong click and every photo could be downloaded by anyone. Block Public Access is a safety catch that wins over any bucket policy or ACL that tries to make it public. The city didn't build this bucket, so you'll type its name to approve the fix."
+    },
+    {
+      "ruleId": "sg-world-admin",
+      "resource": "arn:aws:ec2:us-west-2:123456789012:security-group/sg-0c1d2e3f4a5b6c7d8",
+      "explain": "Bots try passwords on open SSH and RDP ports all day. If one gets in, it controls the server. Session Manager lets you log in without opening any port. The city didn't build this security group, so you'll type its name to approve."
+    },
+    {
+      "ruleId": "lambda-old-runtime",
+      "resource": "arn:aws:lambda:us-west-2:123456789012:function:legacy-report-job",
+      "explain": "It still runs today, but it stops getting security fixes, and later you can't change its code until you move it to a newer runtime. To fix it: test the code on a newer runtime, then change the runtime in the function's settings. I can't change code for you, so this one is yours."
+    },
+    {
+      "ruleId": "ebs-unattached",
+      "resource": "arn:aws:ec2:us-west-2:123456789012:volume/vol-0aa11bb22cc33dd44",
+      "explain": "Nothing reads or writes this disk, but it's billed every month. If you still need the data, take a snapshot first (cheaper to keep), then delete the volume in the EC2 console. I only explain this one, because deleting can't be undone."
+    },
+    {
+      "ruleId": "ec2-previous-generation",
+      "resource": "arn:aws:ec2:us-west-2:123456789012:instance/i-0b2c3d4e5f6a70819",
+      "explain": "Newer instance types give better performance, often for less money. Moving means stopping the server, changing its type and starting it again. Older servers may need new drivers first, so test and pick a quiet moment. I'll leave that to you."
+    },
+    {
+      "ruleId": "ec2-graviton-candidate",
+      "resource": "arn:aws:ec2:us-west-2:123456789012:instance/i-0c3d4e5f6a7b80910",
+      "explain": "Graviton servers do the same work with less energy and often cost less. Your software has to run on Arm, so test it on a Graviton instance first. This is a change you make, not me."
+    },
+    {
+      "ruleId": "ec2-imdsv1",
+      "resource": "arn:aws:ec2:us-west-2:123456789012:instance/i-0a1b2c3d4e5f60718",
+      "explain": "If an attacker tricks software on the server into fetching a URL for them, IMDSv1 hands over the temporary AWS keys of the server's role. IMDSv2 needs a token first, which stops most of those tricks. Check your software supports IMDSv2 before you require it. This server wasn't built by the city, so you'll type its name to approve."
+    },
+    {
+      "ruleId": "ebs-default-encryption",
+      "resource": "region",
+      "name": "ebs-default-encryption-us-west-2",
+      "explain": "Anyone can create an unencrypted disk today without noticing. Turning on encryption by default means every new disk in this Region is encrypted. Disks you already have stay as they are, and the default key has no monthly fee. It's an account-wide setting, so you'll type its name to approve."
+    }
+  ],
+  "links": [
+    {
+      "id": "ddb:sessions:eu-west-1",
+      "serviceId": "dynamodb",
+      "from": {
+        "region": "us-west-2"
+      },
+      "to": {
+        "region": "eu-west-1"
+      },
+      "kind": "replication",
+      "twoWay": true,
+      "label": "Practice account: global table sessions"
+    },
+    {
+      "id": "s3:company-logs-archive",
+      "serviceId": "s3",
+      "from": {
+        "region": "us-west-2"
+      },
+      "to": {
+        "region": "ap-northeast-1"
+      },
+      "kind": "replication",
+      "label": "Practice account: S3 replication company-logs-archive"
+    },
+    {
+      "id": "rds:orders-db",
+      "serviceId": "rds",
+      "from": {
+        "region": "us-west-2",
+        "az": "us-west-2a"
+      },
+      "to": {
+        "region": "us-west-2",
+        "az": "us-west-2b"
+      },
+      "kind": "standby",
+      "label": "Multi-AZ standby for orders-db"
+    },
+    {
+      "id": "elb:web",
+      "serviceId": "ec2",
+      "from": {
+        "region": "us-west-2",
+        "az": "us-west-2a"
+      },
+      "to": {
+        "region": "us-west-2",
+        "az": "us-west-2c"
+      },
+      "kind": "traffic",
+      "twoWay": true,
+      "label": "Load balancer traffic to web tasks"
+    }
+  ],
+  "zones": {
+    "us-west-2": [
+      {
+        "name": "us-west-2a",
+        "id": "usw2-az2"
+      },
+      {
+        "name": "us-west-2b",
+        "id": "usw2-az1"
+      },
+      {
+        "name": "us-west-2c",
+        "id": "usw2-az3"
+      },
+      {
+        "name": "us-west-2d",
+        "id": "usw2-az4"
+      }
+    ],
+    "eu-west-1": [
+      {
+        "name": "eu-west-1a",
+        "id": "euw1-az3"
+      },
+      {
+        "name": "eu-west-1b",
+        "id": "euw1-az1"
+      },
+      {
+        "name": "eu-west-1c",
+        "id": "euw1-az2"
+      }
+    ],
+    "ap-northeast-1": [
+      {
+        "name": "ap-northeast-1a",
+        "id": "apne1-az4"
+      },
+      {
+        "name": "ap-northeast-1b",
+        "id": "apne1-az3"
+      },
+      {
+        "name": "ap-northeast-1c",
+        "id": "apne1-az1"
+      },
+      {
+        "name": "ap-northeast-1d",
+        "id": "apne1-az2"
+      }
+    ]
+  },
+  "regionStatus": {
+    "af-south-1": "not-enabled",
+    "ap-east-1": "not-enabled",
+    "ap-east-2": "not-enabled",
+    "ap-northeast-1": "enabled",
+    "ap-northeast-2": "enabled",
+    "ap-northeast-3": "enabled",
+    "ap-south-1": "enabled",
+    "ap-south-2": "not-enabled",
+    "ap-southeast-1": "enabled",
+    "ap-southeast-2": "enabled",
+    "ap-southeast-3": "not-enabled",
+    "ap-southeast-4": "not-enabled",
+    "ap-southeast-5": "not-enabled",
+    "ap-southeast-6": "not-enabled",
+    "ap-southeast-7": "not-enabled",
+    "ca-central-1": "enabled",
+    "ca-west-1": "not-enabled",
+    "eu-central-1": "enabled",
+    "eu-central-2": "not-enabled",
+    "eu-north-1": "enabled",
+    "eu-south-1": "enabled",
+    "eu-south-2": "not-enabled",
+    "eu-west-1": "enabled",
+    "eu-west-2": "enabled",
+    "eu-west-3": "enabled",
+    "il-central-1": "not-enabled",
+    "me-central-1": "enabled",
+    "me-south-1": "not-enabled",
+    "mx-central-1": "not-enabled",
+    "sa-east-1": "enabled",
+    "us-east-1": "enabled",
+    "us-east-2": "enabled",
+    "us-west-1": "enabled",
+    "us-west-2": "enabled"
+  },
+  "bill": {
+    "note": "Month to date, about ten days in: two t4g.micro builders, a Multi-AZ db.t4g.micro for three days, a small cache, a nightly Glue job and a notebook. Prices from shared/prices.json. EBS volumes bill under \"EC2 - Other\", so they count as ec2.",
+    "currency": "USD",
+    "total": 11.55,
+    "byService": {
+      "ec2": 5.09,
+      "rds": 2.45,
+      "elasticache": 1.21,
+      "sagemaker": 0.55,
+      "route53": 0.5,
+      "glue": 0.44,
+      "kms": 0.32,
+      "s3": 0.27,
+      "dynamodb": 0.15,
+      "efs": 0.06,
+      "cloudwatch": 0.05,
+      "apigateway": 0.03,
+      "cloudfront": 0.02,
+      "lambda": 0.01,
+      "other": 0.4
+    },
+    "byRegion": {
+      "us-west-2": 9.57,
+      "ap-northeast-1": 1.39,
+      "global": 0.52,
+      "eu-west-1": 0.07
+    }
+  }
+}

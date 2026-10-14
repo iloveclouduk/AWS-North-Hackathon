@@ -1,0 +1,16 @@
+# Weekly dependency, action and base-image updates (actions stay pinned by SHA; Dependabot bumps the SHA).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories: ['/', '/server', '/infra']
+    schedule: { interval: weekly }
+    groups:
+      aws-sdk: { patterns: ['@aws-sdk/*', '@smithy/*'] }
+      cdk: { patterns: ['aws-cdk', 'aws-cdk-lib', 'cdk-nag', 'constructs'] }
+    open-pull-requests-limit: 10
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: /server
+    schedule: { interval: weekly }

@@ -2,30 +2,26 @@ import Phaser from 'phaser';
 import { useCity } from '@/state/store';
 import { FRAME_H, FRAME_W, PIVOT } from '../assets';
 import { sfx } from '../audio';
-import { UI_FONT } from '../SpeechBubble';
+import { crisp, UI_FONT } from '../SpeechBubble';
+import { FISH, type Fish, type StorageClass } from '@/world/minigames';
+import { KAI_SHEET } from '@/world/culture';
+import { syncClock } from './games/clock';
+import { growthLine, growthOf } from '@/state/growth';
+import { dealRound, expert, expertOpen, pace, setExpert } from '../pace';
+import { onSceneEnd } from './lifecycle';
+import { countRound, fishingStars } from '@/learning/gameStars';
 
 /**
  * S3 Lake mini-game: every fish is an object. Hook one, then drop it in the right storage-class
- * bucket based on how often it's accessed. Teaches Standard vs Standard-IA vs Glacier.
+ * bucket based on how often it's accessed. Teaches Standard vs Standard-IA vs the S3 Glacier archive classes.
  */
 
-type ClassId = 'standard' | 'ia' | 'glacier';
+type ClassId = StorageClass;
 const CLASSES: { id: ClassId; label: string; color: number; note: string }[] = [
   { id: 'standard', label: 'S3 Standard', color: 0x3f9b4f, note: 'hot · read often' },
   { id: 'ia', label: 'Standard-IA', color: 0x3a6fd8, note: 'warm · monthly' },
-  { id: 'glacier', label: 'Glacier', color: 0x7dd3fc, note: 'cold · archive' },
-];
-
-const FISH: { name: string; hint: string; answer: ClassId; why: string }[] = [
-  { name: 'profile-pic.jpg', hint: 'Shown on every page load', answer: 'standard', why: 'Read constantly → S3 Standard: no retrieval fees, millisecond access.' },
-  { name: 'app-bundle.js', hint: 'Downloaded by every visitor', answer: 'standard', why: 'Hot data → Standard (and put CloudFront in front of it!).' },
-  { name: 'thumbnail-42.png', hint: 'Loaded thousands of times a day', answer: 'standard', why: 'Frequent reads make Standard cheapest overall.' },
-  { name: 'invoice-2023.pdf', hint: 'Opened about once a month', answer: 'ia', why: 'Infrequent but must open instantly → Standard-IA: cheaper storage, small fee per read.' },
-  { name: 'quarterly-report.xlsx', hint: 'Checked a few times per quarter', answer: 'ia', why: 'Warm data → Standard-IA saves ~40% vs Standard.' },
-  { name: 'db-backup.sql.gz', hint: 'Restored only in emergencies, needs to be quick', answer: 'ia', why: 'Rare reads but fast restore → Standard-IA.' },
-  { name: 'audit-logs-2019.zip', hint: 'Kept 7 years for compliance, never read', answer: 'glacier', why: 'Archive → Glacier. Waiting hours to restore is fine; storage is pennies.' },
-  { name: 'tax-return-2015.pdf', hint: 'Must keep it, will never open it', answer: 'glacier', why: 'Cold archive → Glacier (Deep Archive is even cheaper).' },
-  { name: 'raw-footage-2018.mov', hint: 'Old project, kept just in case', answer: 'glacier', why: 'Rarely if ever touched → Glacier. Use a lifecycle rule to move it automatically.' },
+  // The S3 Glacier storage classes as one archive bucket (Flexible Retrieval, Deep Archive); the cards explain each.
+  { id: 'glacier', label: 'S3 Glacier', color: 0x7dd3fc, note: 'cold · archive' },
 ];
 
 const ROUND = 5;
@@ -33,7 +29,7 @@ type State = 'ready' | 'casting' | 'waiting' | 'bite' | 'reeling' | 'quiz' | 'su
 
 export class FishingScene extends Phaser.Scene {
   private state: State = 'ready';
-  private deck: typeof FISH = [];
+  private deck: Fish[] = [];
   private caught = 0;
   private correct = 0;
   private waterY = 0;
@@ -53,21 +49,32 @@ export class FishingScene extends Phaser.Scene {
   }
 
   create() {
+    syncClock(this);
     this.state = 'ready';
     this.caught = 0;
     this.correct = 0;
     this.swimmers = [];
-    this.deck = Phaser.Utils.Array.Shuffle([...FISH]).slice(0, ROUND);
+    this.deck = dealRound(FISH, useCity.getState().progress.games?.fishing?.plays ?? 0, ROUND);
     this.build();
     this.scale.on('resize', this.relayout, this);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.relayout, this));
-    this.events.once(Phaser.Scenes.Events.DESTROY, () => this.scale.off('resize', this.relayout, this));
+    onSceneEnd(this, () => this.scale.off('resize', this.relayout, this));
     this.input.on('pointerdown', (p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => !over.length && this.onClick(p));
   }
 
+  /**
+   * Re-lay out by restarting, but only before the first cast: mid-round the catch count would reset, and on the summary
+   * the result would be lost, so there the buttons just move to the new bottom centre ("Play again" picks up the size).
+   */
   private relayout() {
-    this.scene.restart();
+    if (this.state === 'summary') {
+      const { width: w, height: h } = this.scale;
+      for (const b of this.summaryButtons) b.text.setPosition(w / 2 + b.dx, h - 50);
+      return;
+    }
+    if (this.state === 'ready' && this.caught === 0) this.scene.restart();
   }
+
+  private summaryButtons: { text: Phaser.GameObjects.Text; dx: number }[] = [];
 
   private build() {
     const { width: w, height: h } = this.scale;
@@ -82,7 +89,7 @@ export class FishingScene extends Phaser.Scene {
     for (let i = 0; i < 14; i++) g.fillStyle(0xffffff, 0.15).fillRect(Math.random() * w, this.waterY + 10 + Math.random() * (h - this.waterY - 20), 30 + Math.random() * 40, 2);
 
     // pier
-    const pierW = Math.min(260, w * 0.34);
+    const pierW = Math.min(340, w * 0.42);
     g.fillStyle(0x8b5a2b, 1).fillRect(0, this.waterY - 18, pierW, 18);
     g.fillStyle(0x6b4423, 1);
     for (let x = 12; x < pierW; x += 48) g.fillRect(x, this.waterY, 10, 60);
@@ -92,13 +99,14 @@ export class FishingScene extends Phaser.Scene {
       const bx = 22 + i * ((pierW - 50) / 3);
       g.fillStyle(c.color, 1).fillRect(bx, this.waterY - 44, 30, 26);
       g.fillStyle(0x161622, 1).fillRect(bx - 2, this.waterY - 46, 34, 4);
-      this.add.text(bx + 15, this.waterY - 50, c.label.replace('S3 ', ''), { fontFamily: UI_FONT, fontSize: '16px', color: '#161622' }).setOrigin(0.5, 1);
+      // Labels on dark plates, staggered so neighbours never overlap on a narrow screen.
+      crisp(this.add.text(bx + 15, this.waterY - 50 - (i % 2) * 20, c.label.replace('S3 ', ''), { fontFamily: UI_FONT, fontSize: '12px', fontStyle: '800', color: '#ffffff', backgroundColor: '#140d1fd9', padding: { x: 5, y: 2 } })).setOrigin(0.5, 1);
     });
 
     // player with a rod
     // Kai, the player, fishing (team sprite, 2× for the close-up)
-    this.player = this.add.sprite(pierW - 40, this.waterY - 18, 'char:player', 0).setOrigin(PIVOT.x / FRAME_W, PIVOT.y / FRAME_H).setScale(2);
-    this.player.play('player:idle:SE');
+    this.player = this.add.sprite(pierW - 40, this.waterY - 18, `char:${KAI_SHEET}`, 0).setOrigin(PIVOT.x / FRAME_W, PIVOT.y / FRAME_H).setScale(2);
+    this.player.play(`${KAI_SHEET}:idle:SE`);
     this.rodTip.set(this.player.x + 26, this.player.y - 62);
 
     this.line = this.add.graphics().setDepth(5);
@@ -106,12 +114,15 @@ export class FishingScene extends Phaser.Scene {
 
     for (let i = 0; i < 6; i++) this.spawnSwimmer(i);
 
-    this.hud = this.add.text(w - 12, 10, '', { fontFamily: UI_FONT, fontSize: '16px', color: '#0f172a', backgroundColor: '#ffffffcc', padding: { x: 8, y: 4 } }).setOrigin(1, 0).setDepth(20);
+    // The same title bar as the other mini-games (MiniGame.chrome): dark plate, orange title, stat chip.
+    this.add.rectangle(0, 0, w, 34, 0x140d1f, 0.94).setOrigin(0).setDepth(19);
+    this.add.rectangle(0, 34, w, 2, 0x000000).setOrigin(0).setDepth(19);
+    crisp(this.add.text(12, 17, '🎣 S3 Lake', { fontFamily: UI_FONT, fontSize: '14px', fontStyle: '800', color: '#ffb84d' })).setOrigin(0, 0.5).setDepth(20);
+    this.hud = crisp(this.add.text(w - 12, 17, '', { fontFamily: UI_FONT, fontSize: '13px', fontStyle: '800', color: '#ffffff', backgroundColor: '#2d2144', padding: { x: 8, y: 3 } })).setOrigin(1, 0.5).setDepth(20);
     this.info = this.add
-      .text(w / 2, 40, '', { fontFamily: UI_FONT, fontSize: '16px', color: '#ffffff', stroke: '#0f172a', strokeThickness: 4, align: 'center', wordWrap: { width: w - 40 } })
+      .text(w / 2, 46, '', { fontFamily: UI_FONT, fontSize: '14px', fontStyle: '700', color: '#ffffff', backgroundColor: '#140d1fd9', padding: { x: 10, y: 6 }, align: 'center', wordWrap: { width: Math.min(520, w - 40) } })
       .setOrigin(0.5, 0)
       .setDepth(20);
-    this.add.text(12, 10, '🎣 S3 Lake', { fontFamily: UI_FONT, fontSize: '16px', color: '#0f172a' }).setDepth(20);
     this.updateHud();
     this.setInfo('Click the water to cast. Each fish is an S3 object — choose the right storage class!');
   }
@@ -128,7 +139,15 @@ export class FishingScene extends Phaser.Scene {
     c.setScale(dir, 1);
     c.setData('dir', dir);
     c.setData('speed', 30 + Math.random() * 40);
+    c.setData('lane', i);
+    c.setData('laneY', y);
     this.swimmers.push(c);
+  }
+
+  /** A new fish takes the first lane no fish swims in, so the lake stays spread out. */
+  private freeLane() {
+    const used = new Set(this.swimmers.map((f) => f.getData('lane') as number));
+    return [0, 1, 2, 3, 4, 5].find((i) => !used.has(i)) ?? Math.floor(Math.random() * 6);
   }
 
   override update(_t: number, dt: number) {
@@ -152,8 +171,8 @@ export class FishingScene extends Phaser.Scene {
 
   private cast(x: number, y: number) {
     this.state = 'casting';
-    this.player.play('player:fish:SE');
-    sfx('whoosh', 0.3);
+    this.player.play(`${KAI_SHEET}:fish:SE`);
+    sfx('whoosh', { own: true });
     this.bobber.setPosition(this.rodTip.x, this.rodTip.y).setVisible(true);
     this.tweens.add({
       targets: this.bobber,
@@ -185,15 +204,17 @@ export class FishingScene extends Phaser.Scene {
         this.tweens.killTweensOf(this.bobber);
         this.tweens.add({ targets: this.bobber, y: this.waterY + 22, yoyo: true, repeat: 3, duration: 110 });
         this.setInfo('❗ BITE! Click now!');
-        this.biteTimer = this.time.delayedCall(1100, () => this.miss());
+        this.biteTimer = this.time.delayedCall(pace(1100, 3), () => this.miss());
       },
     });
   }
 
   private miss() {
     if (this.state !== 'bite') return;
-    this.hooked?.setData('target', false);
+    const fish = this.hooked;
     this.hooked = undefined;
+    // The one that got away swims back down to its own lane (not along the surface).
+    if (fish) this.tweens.add({ targets: fish, y: fish.getData('laneY') as number, duration: 600, ease: 'Quad.easeOut', onComplete: () => fish.setData('target', false) });
     this.reset('It got away! Click the water to cast again.');
   }
 
@@ -212,14 +233,14 @@ export class FishingScene extends Phaser.Scene {
     const cw = Math.min(420, w - 24);
     const card = this.add.container(w / 2, this.waterY + 20).setDepth(30);
     const bg = this.add.rectangle(0, 0, cw, 190, 0xffffff).setStrokeStyle(3, 0x161622).setOrigin(0.5, 0);
-    const t1 = this.add.text(0, 12, `📄 ${item.name}`, { fontFamily: UI_FONT, fontSize: '16px', color: '#161622' }).setOrigin(0.5, 0);
-    const t2 = this.add.text(0, 40, `“${item.hint}”\nWhich bucket (storage class)?`, { fontFamily: UI_FONT, fontSize: '16px', color: '#374151', align: 'center' }).setOrigin(0.5, 0);
+    const t1 = crisp(this.add.text(0, 12, `📄 ${item.name}`, { fontFamily: UI_FONT, fontSize: '16px', color: '#161622' })).setOrigin(0.5, 0);
+    const t2 = crisp(this.add.text(0, 40, `“${item.hint}”\nWhich bucket (storage class)?`, { fontFamily: UI_FONT, fontSize: '16px', color: '#374151', align: 'center' })).setOrigin(0.5, 0);
     card.add([bg, t1, t2]);
     const bw = (cw - 40) / 3;
     CLASSES.forEach((c, i) => {
       const x = -cw / 2 + 12 + bw / 2 + i * (bw + 8);
       const b = this.add.rectangle(x, 110, bw, 56, c.color).setStrokeStyle(2, 0x161622).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
-      const l = this.add.text(x, 118, `${c.label}\n${c.note}`, { fontFamily: UI_FONT, fontSize: '16px', color: '#ffffff', align: 'center', stroke: '#161622', strokeThickness: 3 }).setOrigin(0.5, 0);
+      const l = crisp(this.add.text(x, 118, `${c.label}\n${c.note}`, { fontFamily: UI_FONT, fontSize: '16px', color: '#ffffff', align: 'center', stroke: '#161622', strokeThickness: 3 })).setOrigin(0.5, 0);
       b.on('pointerdown', () => this.answer(item, c.id));
       card.add([b, l]);
     });
@@ -233,17 +254,16 @@ export class FishingScene extends Phaser.Scene {
     const right = choice === item.answer;
     if (right) {
       this.correct++;
-      useCity.getState().addXp('s3', 3);
-      sfx('correct', 0.4);
-      this.player.play('player:jump:SE');
-      this.time.delayedCall(700, () => this.player.play('player:idle:SE'));
+      sfx('correct', { own: true });
+      this.player.play(`${KAI_SHEET}:jump:SE`);
+      this.time.delayedCall(700, () => this.player.play(`${KAI_SHEET}:idle:SE`));
     }
     this.hooked?.destroy();
     this.swimmers = this.swimmers.filter((f) => f !== this.hooked);
     this.hooked = undefined;
-    this.spawnSwimmer(this.swimmers.length);
+    this.spawnSwimmer(this.freeLane());
     this.updateHud();
-    if (!right) sfx('wrong', 0.4);
+    if (!right) sfx('wrong', { own: true });
     const verdict = right ? `✅ Correct! ${item.why}` : `❌ Not quite. ${item.why}`;
     if (this.caught >= ROUND) return this.summary(verdict);
     this.reset(`${verdict}\nClick the water to cast again.`);
@@ -253,15 +273,42 @@ export class FishingScene extends Phaser.Scene {
     this.state = 'summary';
     this.bobber.setVisible(false);
     const perfect = this.correct === ROUND;
-    if (perfect) useCity.getState().addXp('s3', 5);
-    this.setInfo(`${last}\n\n🏆 ${this.correct}/${ROUND} objects in the right bucket${perfect ? ' — perfect! +5 bonus XP' : ''}.\nTip: S3 Lifecycle rules can move objects between classes automatically.`);
+    const s = useCity.getState();
+    const best = s.progress.games?.fishing?.best ?? 0;
+    // Paid once, like the other games: full for the first rounds of the day or a new best, half after
+    // (src/learning/gameStars.ts). The next round deals harder catches (dealRound) and the best score is kept.
+    const stars = fishingStars(this.correct, perfect, countRound('fishing'), this.correct > best);
+    s.recordGame('fishing', this.correct);
+    if (stars > 0) s.addXp('s3', stars);
+    if (this.correct > 0) s.noteLearning('games');
+    const record = this.correct > best && best > 0 ? ' New best!' : '';
+    // The building the round grew, and how far (src/state/growth.ts), like the other games' end card.
+    const g = growthOf(useCity.getState().progress, 's3', useCity.getState().cityRegion);
+    this.setInfo(`${last}\n\n🏆 ${this.correct}/${ROUND} objects in the right bucket${perfect ? ' — perfect!' : ''}.${stars ? ` +${stars} ⭐` : ''}${record}\n🏗️ ${growthLine(g)}\nTip: Lifecycle rules can move files to cheaper shelves for you.`);
     const { width: w, height: h } = this.scale;
-    const again = this.add.text(w / 2, h - 50, '🎣 Play again', { fontFamily: UI_FONT, fontSize: '16px', color: '#ffffff', backgroundColor: '#3f9b4f', padding: { x: 12, y: 8 } }).setOrigin(0.5).setDepth(30).setInteractive({ useHandCursor: true });
-    again.on('pointerdown', () => this.scene.restart());
+    this.summaryButtons = [];
+    const button = (x: number, label: string, color: string, bg: string, run: () => void) => {
+      const text = crisp(this.add.text(x, h - 50, label, { fontFamily: UI_FONT, fontSize: '14px', fontStyle: '800', color, backgroundColor: bg, padding: { x: 14, y: 8 } }))
+        .setOrigin(0.5)
+        .setDepth(30)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', run);
+      this.summaryButtons.push({ text, dx: x - w / 2 });
+    };
+    const leave = () => (setExpert(false), useCity.getState().setView({ name: 'city' }));
+    // S3 Lake at level 3: an Expert round with the harder catches and a shorter bite.
+    if (expertOpen('s3')) {
+      button(w / 2 - 150, '🎣 Play again', '#4a2e07', '#ffb84d', () => (setExpert(false), this.scene.restart()));
+      button(w / 2, '⚡ Expert', '#1b1200', '#f472b6', () => (setExpert(true), this.scene.restart()));
+      button(w / 2 + 150, '← City', '#ffffff', '#2d2144', leave);
+    } else {
+      button(w / 2 - 80, '🎣 Play again', '#4a2e07', '#ffb84d', () => (setExpert(false), this.scene.restart()));
+      button(w / 2 + 80, '← City', '#ffffff', '#2d2144', leave);
+    }
   }
 
   private reset(msg: string) {
-    this.player.play('player:idle:SE');
+    this.player.play(`${KAI_SHEET}:idle:SE`);
     this.tweens.killTweensOf(this.bobber);
     this.bobber.setVisible(false);
     this.state = 'ready';
@@ -273,6 +320,6 @@ export class FishingScene extends Phaser.Scene {
   }
 
   private updateHud() {
-    this.hud.setText(`Catches ${this.caught}/${ROUND} · Correct ${this.correct}`);
+    this.hud.setText(`${expert() ? '⚡ Expert · ' : ''}Catches ${this.caught}/${ROUND} · Correct ${this.correct}`);
   }
 }

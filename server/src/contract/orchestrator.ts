@@ -1,3 +1,4 @@
+import { docsBlock, type Knowledge, neutralise } from '../knowledge/mcp.js';
 import type Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import type { Llm } from '../agents/llm.js';
@@ -20,6 +21,7 @@ import {
   type TaskSubmit,
 } from '../world.js';
 import type { UploadStore } from './uploads.js';
+import { publicError } from '../log.js';
 
 export type Emit = (event: ServerEvent) => void;
 
@@ -57,8 +59,11 @@ const REPORT_TOOL = {
 };
 const Report = z.object({ serviceIds: z.array(z.string()).max(4), summary: z.string().max(600) });
 
-const describeContext = (c: PageContext) =>
-  [c.url && `url: ${c.url}`, c.title && `title: ${c.title}`, c.serviceId && `serviceId matched by the frontend: ${c.serviceId}`].filter(Boolean).join('\n');
+/** The page the player is on: any site's URL and title, so untrusted; wrapped and stripped of tag characters. */
+const describeContext = (c: PageContext) => {
+  const lines = [c.url && `url: ${neutralise(c.url)}`, c.title && `title: ${neutralise(c.title)}`, c.serviceId && `serviceId matched by the frontend: ${neutralise(c.serviceId)}`].filter(Boolean);
+  return lines.length ? `<page_context>\n${lines.join('\n')}\n</page_context>` : '';
+};
 
 const toolInput = <T>(msg: Anthropic.Message, name: string, schema: z.ZodType<T>): T | undefined => {
   const block = msg.content.find((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use' && b.name === name);
@@ -76,7 +81,11 @@ export const createOrchestrator = (deps: {
   llm: Llm;
   runner: AgentRunner;
   snapshot: () => Promise<WorldSnapshot>;
-  uploads: UploadStore;
+  uploads: Pick<UploadStore, 'get'>;
+  /** AWS documentation for grounded answers (the Knowledge MCP server); optional. */
+  knowledge?: Knowledge;
+  /** Whose screenshots this orchestrator may read (the signed-in player; 'local' for the local server). */
+  owner?: string;
   /** Time the agent gets to walk to its landmark before work starts (mock uses ~4.5 s). */
   walkMs?: number;
   paceMs?: number;
@@ -98,6 +107,8 @@ export const createOrchestrator = (deps: {
     const snapshot = await deps.snapshot();
     const msg = await deps.llm.create({
       max_tokens: 16000,
+      // Routing a request is a quick decision: low effort keeps thinking (and cost) small.
+      output_config: { effort: 'low' },
       system: CONCIERGE_PROMPT,
       tools: [PLAN_TOOL],
       messages: [
@@ -114,10 +125,12 @@ export const createOrchestrator = (deps: {
     return { agentId, steps: ['Taking a look at your request'], reply: `Sounds like a job for ${placeFor(agentId)?.agentName ?? agentId}!` };
   };
 
-  const submitTask = async (cmd: Omit<TaskSubmit, 'action'>, emit: Emit, approvals?: Approvals) => {
+  /** `signal`: aborted when the socket that asked closes, so the agent stops making model calls for nobody. */
+  const submitTask = async (cmd: Omit<TaskSubmit, 'action'>, emit: Emit, approvals?: Approvals, signal?: AbortSignal) => {
     const { taskId } = cmd;
     try {
       const p = await working(emit, 'concierge', 'bedrock', 'InvokeModel — routing your request', () => plan(cmd));
+      if (signal?.aborted) return;
       const agentId = serviceById(p.agentId) ? p.agentId : 'bedrock';
       const place = placeFor(agentId)?.place ?? serviceById(agentId)?.name ?? agentId;
 
@@ -148,7 +161,9 @@ export const createOrchestrator = (deps: {
           index++;
         },
         onText: (text) => emit({ type: 'agent.message', from: agentId, to: 'user', text }),
+        signal,
       });
+      if (signal?.aborted) return;
 
       const ok = !result.refused && result.toolCalls.every((c) => c.outcome === 'done');
       if (ok) {
@@ -161,17 +176,17 @@ export const createOrchestrator = (deps: {
       }
       if (result.refused) emit({ type: 'agent.message', from: agentId, to: 'user', text: result.reply });
 
-      const writes = result.toolCalls.filter((c) => c.outcome === 'done' && c.name !== 'describe_resource').length;
+      const writes = result.toolCalls.filter((c) => c.outcome === 'done' && c.name !== 'describe_resource' && c.name !== 'review_architecture').length;
       emit({
         type: 'task.done',
         taskId,
         ok,
         result: (result.reply || (ok ? 'Done.' : 'That did not work out.')).slice(0, 400),
         xp: [{ serviceId: agentId, amount: ok ? XP.task + XP.perWrite * writes : XP.attempted }],
+        ...(result.sources?.length ? { sources: result.sources } : {}),
       });
     } catch (err) {
-      console.error('[task]', err);
-      emit({ type: 'error', message: `Task failed: ${(err as Error).message}`, taskId });
+      emit({ type: 'error', message: `Task failed: ${publicError('task failed', err, { taskId })}`, taskId });
     }
   };
 
@@ -188,15 +203,16 @@ export const createOrchestrator = (deps: {
     emit({ type: 'agent.state', agentId, state: 'working', service: 'bedrock', detail: 'Answering your question' });
     let sent = false;
     try {
-      const snapshot = await deps.snapshot();
+      const [snapshot, docs] = await Promise.all([deps.snapshot(), deps.knowledge?.search(`${svc.name} ${cmd.question}`, 3) ?? []]);
       const msg = await deps.llm.stream(
         {
           max_tokens: 16000,
+          output_config: { effort: 'low' }, // a short spoken answer
           system: `${agentSystemPrompt(agentId)}\n\nYou are answering a question at ${district.hq}. Reply in plain text (no markdown headings), under 120 words.`,
           messages: [
             {
               role: 'user',
-              content: `<city_snapshot>${snapshotForModel(snapshot)}</city_snapshot>\n${describeContext(cmd.context)}\n\nQuestion: ${cmd.question}`,
+              content: `${docsBlock(docs)}<city_snapshot>${snapshotForModel(snapshot)}</city_snapshot>\n${describeContext(cmd.context)}\n\nQuestion: ${cmd.question}`,
             },
           ],
         },
@@ -209,11 +225,11 @@ export const createOrchestrator = (deps: {
         const text = msg.stop_reason === 'refusal' ? "Sorry, I can't answer that one." : 'Hmm, I have nothing to add.';
         emit({ type: 'chat.answer', requestId, districtId, agentId, delta: text, done: false });
       }
-      emit({ type: 'chat.answer', requestId, districtId, agentId, delta: '', done: true });
+      const sources = docs.map(({ title, url }) => ({ title, url }));
+      emit({ type: 'chat.answer', requestId, districtId, agentId, delta: '', done: true, ...(sources.length ? { sources } : {}) });
     } catch (err) {
-      console.error('[chat]', err);
       emit({ type: 'chat.answer', requestId, districtId, agentId, delta: '', done: true });
-      emit({ type: 'error', message: `Chat failed: ${(err as Error).message}`, requestId });
+      emit({ type: 'error', message: `Chat failed: ${publicError('chat failed', err, { requestId })}`, requestId });
     } finally {
       emit({ type: 'agent.state', agentId: 'bedrock', state: 'idle' });
       emit({ type: 'agent.state', agentId, state: 'idle' });
@@ -222,7 +238,7 @@ export const createOrchestrator = (deps: {
 
   const classifyPage = async (cmd: Omit<PageClassify, 'action'>, emit: Emit) => {
     const { requestId, context } = cmd;
-    const image = context.screenshotKey ? deps.uploads.get(context.screenshotKey) : undefined;
+    const image = context.screenshotKey ? await deps.uploads.get(context.screenshotKey, deps.owner ?? 'local') : undefined;
     if (!image && !context.url && !context.title) {
       return emit({ type: 'error', message: 'page.classify needs a screenshotKey (uploaded) or a url/title', requestId });
     }
@@ -231,7 +247,10 @@ export const createOrchestrator = (deps: {
         const content: Anthropic.ContentBlockParam[] = [];
         if (image) content.push({ type: 'image', source: { type: 'base64', media_type: image.contentType, data: image.bytes.toString('base64') } });
         content.push({ type: 'text', text: `${describeContext(context) || 'No URL or title.'}\n\nWhat is this page about?` });
-        const msg = await deps.llm.create({ max_tokens: 16000, system: lookoutPrompt, tools: [REPORT_TOOL], messages: [{ role: 'user', content }] });
+        const msg = await deps.llm.create(
+          { max_tokens: 16000, output_config: { effort: 'low' }, system: lookoutPrompt, tools: [REPORT_TOOL], messages: [{ role: 'user', content }] },
+          { light: true },
+        );
         return toolInput(msg, REPORT_TOOL.name, Report);
       });
 
@@ -239,12 +258,11 @@ export const createOrchestrator = (deps: {
       const serviceIds = (report?.serviceIds ?? (fallback ? [fallback] : [])).filter((id) => serviceById(id));
       const summary =
         report?.summary ??
-        (serviceIds[0] ? `This page is about ${serviceById(serviceIds[0])?.name}.` : "I don't see AWS on this page, but the Oracle can still answer questions about it.");
+        (serviceIds[0] ? `This page is about ${serviceById(serviceIds[0])?.name}.` : "I don't see AWS on this page, but the city's agents can still answer questions about it.");
       emit({ type: 'page.classified', requestId, url: context.url, serviceIds, summary });
       emit({ type: 'agent.message', from: 'lookout', to: serviceIds[0] ?? 'concierge', text: summary });
     } catch (err) {
-      console.error('[lookout]', err);
-      emit({ type: 'error', message: `Lookout failed: ${(err as Error).message}`, requestId });
+      emit({ type: 'error', message: `Lookout failed: ${publicError('lookout failed', err, { requestId })}`, requestId });
     }
   };
 

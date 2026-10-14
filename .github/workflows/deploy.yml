@@ -1,0 +1,77 @@
+name: deploy
+# main → staging automatically; prod after a manual approval on the "prod" GitHub environment.
+on:
+  workflow_run:
+    workflows: [ci]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  id-token: write # GitHub OIDC → AWSCityGitHubDeploy (infra/lib/ci-stack.ts); no stored AWS keys
+  contents: read
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+jobs:
+  staging:
+    # Only a successful CI run for a push to this repo's main deploys. `branches: [main]` matches the head
+    # branch *name*, which a fork's pull request can also be called, so check the event and the repository.
+    # A manual run must also be started from main (a dispatch can pick any branch).
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # Deploy exactly the commit CI tested (workflow_run otherwise checks out the latest main).
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: infra/package-lock.json }
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - run: npm ci
+        working-directory: infra
+      - run: npx cdk deploy --all -c env=staging --require-approval never --outputs-file outputs.json
+        working-directory: infra
+      - name: Hosted smoke test
+        run: node scripts/smoke-hosted.mjs infra/outputs.json staging
+      - name: Prod diff for the reviewers (shown in this run's summary before they approve prod)
+        working-directory: infra
+        run: |
+          {
+            echo '## What prod would change'
+            echo '```'
+            npx cdk diff -c env=prod 2>&1 | tail -n 400
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  prod:
+    needs: staging
+    # Already skipped when staging is; checked again so prod never deploys a non-main ref (for workflow_run,
+    # github.ref is the default branch).
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: prod # required reviewers configured on this environment
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # Deploy exactly the commit CI tested (workflow_run otherwise checks out the latest main).
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: infra/package-lock.json }
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - run: npm ci
+        working-directory: infra
+      - run: npx cdk deploy --all -c env=prod --require-approval never --outputs-file outputs.json
+        working-directory: infra
+      - run: node scripts/smoke-hosted.mjs infra/outputs.json prod

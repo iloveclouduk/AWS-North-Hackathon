@@ -24,16 +24,20 @@ describe('action service', () => {
   it('does not let parallel launches exceed the instance limit before AWS listings catch up', async () => {
     // The snapshot never shows the new instances (eventually consistent listing).
     const service = createActionService({ clients: {} as AwsClients, poller: pollerFor(), region: 'us-west-2' });
-    const outcomes = await Promise.all(Array.from({ length: LIMITS.instances + 3 }, (_, n) => service.submit('launch_instance', { name: `house ${n}` })));
+    const approve = async () => true;
+    const outcomes = await Promise.all(Array.from({ length: LIMITS.instances + 3 }, (_, n) => service.submit('launch_instance', { name: `house ${n}` }, { approve })));
     expect(outcomes.filter((o) => o.status === 'done')).toHaveLength(LIMITS.instances);
     expect(outcomes.filter((o) => o.status === 'denied')).toHaveLength(3);
   });
 
-  it('refuses destructive actions, since the contract has no approval step', async () => {
+  it('refuses every write without an approval channel; only reads run', async () => {
     executeAction.mockClear();
     const mine = instance('i-0000000000000001a', 'running');
     const service = createActionService({ clients: {} as AwsClients, poller: pollerFor(snapshot([mine])), region: 'us-west-2' });
     expect(await service.submit('terminate_instance', { instanceId: mine.id })).toEqual({ status: 'denied', reason: NEEDS_APPROVAL_REASON });
+    expect(await service.submit('launch_instance', { name: 'house' })).toEqual({ status: 'denied', reason: NEEDS_APPROVAL_REASON });
+    expect(await service.submit('create_table', { name: 'city-quest' })).toEqual({ status: 'denied', reason: NEEDS_APPROVAL_REASON });
+    expect(await service.submit('stop_instance', { instanceId: mine.id })).toEqual({ status: 'denied', reason: NEEDS_APPROVAL_REASON });
     expect(executeAction).not.toHaveBeenCalled();
   });
 

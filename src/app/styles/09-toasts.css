@@ -1,0 +1,84 @@
+/* ── toasts ── */
+.toasts {
+  position: absolute;
+  top: var(--s-4);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  z-index: var(--z-toast);
+  width: min(92%, 420px);
+  pointer-events: none;
+}
+/* The news ticker owns the top edge: toasts drop in just below it, never over it. */
+.stage:has(> .ticker) .toasts {
+  top: calc(var(--s-3) * 2 + 2.25rem);
+}
+.toast {
+  position: relative;
+  overflow: hidden;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  width: 100%;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: inset 4px 0 0 var(--accent), inset 0 0 0 1px var(--accent-line), var(--shadow-float);
+  padding: var(--s-4) var(--s-5) var(--s-4) var(--s-6);
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+  animation: pop var(--dur-3) var(--ease-step);
+}
+.toast-icon {
+  font-size: var(--fs-xl);
+  line-height: 1;
+}
+/* countdown: a thin bar drains along the bottom */
+.toast::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--accent);
+  opacity: 0.6;
+  transform-origin: left;
+  animation: drain var(--toast-ms, 5s) linear forwards;
+}
+.toast:hover::after {
+  animation-play-state: paused;
+}
+.toast.leaving {
+  animation: leave 180ms var(--ease-step) forwards;
+}
+.toast.error {
+  background: linear-gradient(var(--bad-soft), var(--bad-soft)), var(--panel);
+  box-shadow: inset 4px 0 0 var(--bad), inset 0 0 0 1px var(--bad-line), var(--shadow-float);
+  color: var(--bad-ink);
+}
+.toast.error::after {
+  background: var(--bad);
+}
+@keyframes pop {
+  from {
+    transform: translateY(-8px) scale(0.96);
+    opacity: 0;
+  }
+}
+@keyframes leave {
+  to {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+}
+@keyframes drain {
+  to {
+    transform: scaleX(0);
+  }
+}

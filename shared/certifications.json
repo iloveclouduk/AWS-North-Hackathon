@@ -1,0 +1,212 @@
+{
+ "source": "https://aws.amazon.com/certification/",
+ "exams": "https://aws.amazon.com/certification/exams/",
+ "asOf": "2026-10-10",
+ "note": "Current certifications only; AWS Certified Machine Learning – Specialty retired on March 31, 2026 and is excluded. Advanced Networking – Specialty (ANS-C01) retires December 31, 2026. Developer – Associate moves to DVA-C03 and Solutions Architect – Professional to SAP-C03 (registration opens October 27, 2026; last DVA-C02 sitting November 30, last SAP-C02 November 16). Machine Learning Engineer – Associate MLA-C02 (beta, registered as ME1-C02, English only; MLA-C01 in English ended September 28, 2026 and stays in Korean, Japanese and Simplified Chinese until MLA-C02 is generally available) and AI Business Strategist were beta exams when checked.",
+ "levels": [
+  {
+   "id": "foundational",
+   "name": "Foundational",
+   "tier": 1
+  },
+  {
+   "id": "business",
+   "name": "Business",
+   "tier": 1
+  },
+  {
+   "id": "associate",
+   "name": "Associate",
+   "tier": 2
+  },
+  {
+   "id": "professional",
+   "name": "Professional",
+   "tier": 3
+  },
+  {
+   "id": "specialty",
+   "name": "Specialty",
+   "tier": 4
+  }
+ ],
+ "certifications": [
+  {
+   "id": "cloud-practitioner",
+   "name": "AWS Certified Cloud Practitioner",
+   "code": "CLF-C02",
+   "level": "foundational",
+   "districts": [
+    "compute",
+    "storage",
+    "database",
+    "networking",
+    "security"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-cloud-practitioner/",
+   "source": "https://aws.amazon.com/certification/certified-cloud-practitioner/",
+   "asOf": "2026-10-10"
+  },
+  {
+   "id": "ai-practitioner",
+   "name": "AWS Certified AI Practitioner",
+   "code": "AIF-C01",
+   "level": "foundational",
+   "districts": [
+    "aiml"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-ai-practitioner/",
+   "source": "https://aws.amazon.com/certification/certified-ai-practitioner/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "ai-business-strategist",
+   "name": "AWS Certified AI Business Strategist",
+   "code": "AIB-C01",
+   "level": "business",
+   "districts": [
+    "aiml"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-ai-business-strategist/",
+   "source": "https://aws.amazon.com/certification/certified-ai-business-strategist/",
+   "asOf": "2026-10-10"
+  },
+  {
+   "id": "solutions-architect-associate",
+   "name": "AWS Certified Solutions Architect – Associate",
+   "code": "SAA-C03",
+   "level": "associate",
+   "districts": [
+    "compute",
+    "storage",
+    "database",
+    "networking",
+    "security"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-solutions-architect-associate/",
+   "source": "https://aws.amazon.com/certification/certified-solutions-architect-associate/",
+   "asOf": "2026-10-10"
+  },
+  {
+   "id": "developer-associate",
+   "name": "AWS Certified Developer – Associate",
+   "code": "DVA-C02",
+   "next": { "code": "DVA-C03", "from": "2026-10-27" },
+   "level": "associate",
+   "districts": [
+    "compute",
+    "database",
+    "security"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-developer-associate/",
+   "source": "https://aws.amazon.com/certification/certified-developer-associate/",
+   "asOf": "2026-10-10"
+  },
+  {
+   "id": "cloudops-engineer-associate",
+   "name": "AWS Certified CloudOps Engineer – Associate",
+   "code": "SOA-C03",
+   "level": "associate",
+   "districts": [
+    "compute",
+    "security",
+    "networking"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-cloudops-engineer-associate/",
+   "source": "https://aws.amazon.com/certification/certified-cloudops-engineer-associate/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "data-engineer-associate",
+   "name": "AWS Certified Data Engineer – Associate",
+   "code": "DEA-C01",
+   "level": "associate",
+   "districts": [
+    "storage",
+    "database"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-data-engineer-associate/",
+   "source": "https://aws.amazon.com/certification/certified-data-engineer-associate/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "machine-learning-engineer-associate",
+   "name": "AWS Certified Machine Learning Engineer – Associate",
+   "code": "MLA-C01",
+   "next": { "code": "MLA-C02", "from": "2027-01-14" },
+   "level": "associate",
+   "districts": [
+    "aiml",
+    "storage"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-machine-learning-engineer-associate/",
+   "source": "https://aws.amazon.com/certification/certified-machine-learning-engineer-associate/",
+   "asOf": "2026-10-10"
+  },
+  {
+   "id": "solutions-architect-professional",
+   "name": "AWS Certified Solutions Architect – Professional",
+   "code": "SAP-C02",
+   "next": { "code": "SAP-C03", "from": "2026-10-27" },
+   "level": "professional",
+   "districts": [
+    "compute",
+    "networking",
+    "database"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-solutions-architect-professional/",
+   "source": "https://aws.amazon.com/certification/certified-solutions-architect-professional/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "devops-engineer-professional",
+   "name": "AWS Certified DevOps Engineer – Professional",
+   "code": "DOP-C02",
+   "level": "professional",
+   "districts": [
+    "compute",
+    "security"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-devops-engineer-professional/",
+   "source": "https://aws.amazon.com/certification/certified-devops-engineer-professional/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "generative-ai-developer-professional",
+   "name": "AWS Certified Generative AI Developer – Professional",
+   "code": "AIP-C01",
+   "level": "professional",
+   "districts": [
+    "aiml",
+    "compute"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-generative-ai-developer-professional/",
+   "source": "https://aws.amazon.com/certification/certified-generative-ai-developer-professional/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "advanced-networking-specialty",
+   "name": "AWS Certified Advanced Networking – Specialty",
+   "code": "ANS-C01",
+   "level": "specialty",
+   "districts": [
+    "networking"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-advanced-networking-specialty/",
+   "source": "https://aws.amazon.com/certification/certified-advanced-networking-specialty/",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "security-specialty",
+   "name": "AWS Certified Security – Specialty",
+   "code": "SCS-C03",
+   "level": "specialty",
+   "districts": [
+    "security"
+   ],
+   "url": "https://aws.amazon.com/certification/certified-security-specialty/",
+   "source": "https://aws.amazon.com/certification/certified-security-specialty/",
+   "asOf": "2026-09-26"
+  }
+ ]
+}

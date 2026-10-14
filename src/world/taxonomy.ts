@@ -51,6 +51,15 @@ export interface PageMatch {
   serviceId?: string;
 }
 
+/** A malformed escape (say %zz) throws URIError: match on the raw path instead of losing the page. */
+const safeDecode = (s: string) => {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+};
+
 /** Map a browser URL to an AWS service. Longest matching path wins (so rds/aurora beats rds). */
 export function matchUrl(rawUrl: string): PageMatch {
   let url: URL;
@@ -59,9 +68,10 @@ export function matchUrl(rawUrl: string): PageMatch {
   } catch {
     return { kind: 'other' };
   }
-  if (url.protocol === 'chrome-extension:' || url.protocol === 'chrome:') return { kind: 'extension' };
+  // Browser-internal and extension pages (Chrome/Edge, Firefox, Safari) are never AWS pages.
+  if (['chrome-extension:', 'chrome:', 'edge:', 'moz-extension:', 'about:', 'safari-web-extension:'].includes(url.protocol)) return { kind: 'extension' };
   const host = url.hostname;
-  const path = decodeURIComponent(url.pathname).replace(/^\/+/, '');
+  const path = safeDecode(url.pathname).replace(/^\/+/, '');
   const hash = url.hash.replace(/^#\/?/, '');
 
   const best = (field: 'consolePaths' | 'docsPaths', candidate: string) => {
@@ -99,5 +109,15 @@ export function matchText(text: string): string | undefined {
   }
   return winner?.id;
 }
+
+/** First-visit requests on Home, each offered by the agent (service id) who'd do it. tests/taxonomy.test.ts checks the ids. */
+export const FEATURED_REQUESTS: { agent: string; ask: string; prompt: string }[] = [
+  { agent: 's3', ask: 'Got holiday photos? I can keep them somewhere cheap.', prompt: 'Store my holiday photos cheaply' },
+  { agent: 'lambda', ask: 'Want something to happen every time a file arrives?', prompt: 'Run code when a file is uploaded' },
+  { agent: 'iam', ask: 'Wondering who can open your bucket? I check the badges.', prompt: 'Who can access my bucket?' },
+];
+
+/** The console the Copilot opens when the player isn't on an AWS Console page yet. */
+export const DEFAULT_CONSOLE_SERVICE = 's3';
 
 export const hexColor = (n: number) => '#' + n.toString(16).padStart(6, '0');

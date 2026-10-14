@@ -1,0 +1,248 @@
+{
+  "source": "Written for AWS City. Facts in the lines follow AWS's docs (S3 durability 11 nines, Lambda pay-per-use, Multi-AZ standby, least privilege).",
+  "asOf": "2026-10-11",
+  "citizen": {
+    "any": [
+      "Hi!",
+      "Nice day for a deploy!",
+      "Have you seen S3 Lake?",
+      "I just learned about IAM roles!",
+      "Lambda cooks the best events.",
+      "Serverless is so relaxing.",
+      "Did you check CloudWatch?",
+      "Coffee at ElastiCache Café?",
+      "Multi-AZ or bust!",
+      "Least privilege, always.",
+      "My bucket has versioning on. Sleeping well.",
+      "Tag everything. Future you says thanks.",
+      "Who left that server running all weekend?",
+      "Encrypt it before you forget it.",
+      "Small changes, often. That's the way.",
+      "I read a Well-Architected tip today!"
+    ],
+    "morning": [
+      "Morning! First coffee, then CloudWatch.",
+      "Early bird gets the first look at last night's alarms.",
+      "Fresh day, fresh logs.",
+      "Good morning! Backups ran overnight, all green."
+    ],
+    "evening": [
+      "Long day. Did the deploy go out?",
+      "Time to scale in and head home.",
+      "Evening! Remember to stop the test servers.",
+      "Dinner at the Lambda Food Stall?"
+    ],
+    "night": [
+      "Night shift. The alarms will wake us if anything breaks.",
+      "The city never sleeps, but the dev servers should.",
+      "Quiet night. Just the backups humming.",
+      "Stars out, data centres humming."
+    ],
+    "findings": [
+      "A citizen found a problem. Shall we look?",
+      "Someone left something open, I heard.",
+      "There's a warning cone up. Better check it.",
+      "The caretakers are busy today."
+    ],
+    "outage": [
+      "AWS says a Region is having trouble. Glad our backups are elsewhere.",
+      "Storm over town. Good thing we're in more than one zone.",
+      "Is the dashboard red? Check the AWS Health line.",
+      "This is why we practise failover.",
+      "Hope everyone copied their data to a second Region."
+    ],
+    "drill": [
+      "It's only a practice drill. Stay calm and fail over!",
+      "Drill day! Watch the other zones keep serving.",
+      "Practice makes resilient."
+    ],
+    "grown": [
+      "Look how big the city's got!",
+      "New flats on our street. The city's growing.",
+      "More shops every week. Business is good.",
+      "Remember when this was all empty lots?"
+    ]
+  },
+  "replies": [
+    "Ha! Totally.",
+    "Same!",
+    "Tell me more!",
+    "Nice!",
+    "On my way.",
+    "Good call.",
+    "I'll check.",
+    "You're right!"
+  ],
+  "ambient": [
+    [
+      "lambda",
+      "s3",
+      "New file in your bucket? Ring my bell and I will cook it."
+    ],
+    [
+      "s3",
+      "cloudfront",
+      "Cleo, can you keep copies of these photos near the users (cache them)?"
+    ],
+    [
+      "ec2",
+      "vpc",
+      "Which part of the garden (subnet) should my new factory go in?"
+    ],
+    [
+      "iam",
+      "lambda",
+      "Your badge only lets you read S3. Nothing else!"
+    ],
+    [
+      "dynamodb",
+      "lambda",
+      "Card filed. Ask for it by the user’s number (userId) any time."
+    ],
+    [
+      "shield",
+      "cloudfront",
+      "Storm on the horizon. Keep the post offices at the edge ready."
+    ],
+    [
+      "route53",
+      "cloudfront",
+      "Visitors to www get sent to you now."
+    ],
+    [
+      "bedrock",
+      "rekognition",
+      "Rex, what is in this picture?"
+    ],
+    [
+      "rekognition",
+      "bedrock",
+      "A cat wearing sunglasses. 98% confident."
+    ],
+    [
+      "kms",
+      "s3",
+      "Your files are locked with the city’s key (alias/city)."
+    ],
+    [
+      "sagemaker",
+      "bedrock",
+      "I trained my own model. Want to compare notes?"
+    ],
+    [
+      "rds",
+      "aurora",
+      "Aurora, how do you keep six copies so tidy?"
+    ],
+    [
+      "efs",
+      "ecs",
+      "Every container can drink from my well at once."
+    ],
+    [
+      "ecs",
+      "ec2",
+      "Need more ships for these containers."
+    ],
+    [
+      "concierge",
+      "lookout",
+      "Luke, anything new on the user’s screen?"
+    ],
+    [
+      "cloudwatch",
+      "lambda",
+      "Your error count went up at noon. Want the logs?"
+    ],
+    [
+      "sqs",
+      "lambda",
+      "Twelve messages waiting. Take them in batches?"
+    ],
+    [
+      "eventbridge",
+      "sqs",
+      "Order placed! Passing it along the bus."
+    ],
+    [
+      "guardduty",
+      "iam",
+      "Someone tried a key from far away. Worth a look."
+    ],
+    [
+      "cognito",
+      "apigateway",
+      "This visitor signed in. Here's their token."
+    ],
+    [
+      "apigateway",
+      "lambda",
+      "Request at the front door. Your turn."
+    ],
+    [
+      "aurora",
+      "rds",
+      "Six copies across three zones. Practice, Ray."
+    ],
+    [
+      "elasticache",
+      "dynamodb",
+      "I'll remember that answer, so you don't have to look it up again."
+    ],
+    [
+      "glue",
+      "athena",
+      "The catalogue's updated. Ask away."
+    ],
+    [
+      "athena",
+      "s3",
+      "Scanning only the columns I need. Cheaper that way."
+    ],
+    [
+      "redshift",
+      "glue",
+      "Bring me the cleaned tables tonight, please."
+    ],
+    [
+      "neptune",
+      "dynamodb",
+      "Who knows whom? That's a question for my web."
+    ],
+    [
+      "textract",
+      "s3",
+      "Copied out every form field. Saving them now."
+    ],
+    [
+      "agentcore",
+      "bedrock",
+      "My agent remembers the last conversation now."
+    ],
+    [
+      "vpc",
+      "ec2",
+      "Private subnet for you. No doors to the internet."
+    ],
+    [
+      "ebs",
+      "ec2",
+      "Your locker's snapshot is done. Safe across the Region."
+    ],
+    [
+      "beanstalk",
+      "ec2",
+      "Planting two more servers for the lunch rush."
+    ],
+    [
+      "fargate",
+      "ecs",
+      "No ships needed. I'll carry the containers myself."
+    ],
+    [
+      "eks",
+      "ec2",
+      "The scheduler found room for three more pods on your nodes."
+    ]
+  ]
+}

@@ -17,7 +17,9 @@ export async function captureVisibleTab(windowId?: number): Promise<CaptureResul
     return { ok: true, dataUrl: await downscale(raw, 1280) };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (/chrome:\/\/|extensions gallery|cannot be scripted|webstore/i.test(message)) return { ok: false, reason: 'restricted', message };
+    // Pages browsers never let extensions capture (Chrome/Edge stores and internals, Firefox about: pages and AMO).
+    if (/chrome:\/\/|edge:\/\/|about:|extensions gallery|cannot be scripted|webstore|addons\.mozilla\.org/i.test(message))
+      return { ok: false, reason: 'restricted', message };
     if (/permission|activeTab|<all_urls>/i.test(message)) return { ok: false, reason: 'needs-permission', message };
     return { ok: false, reason: 'error', message };
   }

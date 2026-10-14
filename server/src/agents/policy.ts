@@ -36,6 +36,7 @@ export const checkAction = (action: Action, snapshot: WorldSnapshot, opts: { con
 
   switch (action.type) {
     case 'describe_resource':
+    case 'review_architecture':
       return { verdict: 'allow' };
 
     case 'launch_instance': {
@@ -112,5 +113,7 @@ export const describeAction = (action: Action): string => {
       return `Delete S3 bucket "${action.name}"`;
     case 'describe_resource':
       return `Describe ${action.id}`;
+    case 'review_architecture':
+      return 'Well-Architected review of the city';
   }
 };

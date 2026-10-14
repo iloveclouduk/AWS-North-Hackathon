@@ -1,34 +1,35 @@
 {
+  "asOf": "2026-10-11",
   "pillars": [
     {
       "id": "operational",
       "name": "Operational Excellence",
-      "summary": "Run and monitor systems to deliver value, and continually improve processes: automate changes, observe everything, learn from failure."
+      "summary": "Build software correctly and keep delivering a great customer experience. Automate safely, make small reversible changes, observe everything and learn from failure."
     },
     {
       "id": "security",
       "name": "Security",
-      "summary": "Protect data, systems and assets: strong identity with least privilege, traceability, encryption in transit and at rest, and defence in depth."
+      "summary": "Protect data, systems and assets with strong identity and least privilege, traceability, encryption in transit and at rest, and defence in depth."
     },
     {
       "id": "reliability",
       "name": "Reliability",
-      "summary": "A workload performs its intended function correctly and consistently: recover automatically from failure, scale horizontally, and avoid single points of failure."
+      "summary": "A reliable workload does its intended job correctly and consistently. It recovers from failure automatically, scales horizontally and has no single point of failure."
     },
     {
       "id": "performance",
       "name": "Performance Efficiency",
-      "summary": "Use computing resources efficiently to meet requirements as demand changes: pick the right resource types, go global in minutes, and prefer managed and serverless."
+      "summary": "Use computing resources efficiently to meet requirements, even as demand changes. Pick the right resource types, go global in minutes, and prefer managed and serverless services."
     },
     {
       "id": "cost",
       "name": "Cost Optimization",
-      "summary": "Deliver business value at the lowest price point: pay only for what you use, right-size, measure spend, and stop paying for idle resources."
+      "summary": "Deliver business value at the lowest price point. Pay only for what you use, right-size, measure spend and stop paying for idle resources."
     },
     {
       "id": "sustainability",
       "name": "Sustainability",
-      "summary": "Minimise the environmental impact of running cloud workloads: maximise utilisation, use managed services, and reduce data stored and moved."
+      "summary": "Minimise the environmental impact of running cloud workloads. Keep utilisation high, use managed services, and store and move less data."
     }
   ],
   "puzzles": [
@@ -41,7 +42,7 @@
       "requirements": [
         "Store original photos durably",
         "Create a thumbnail automatically whenever a photo is uploaded",
-        "Pay nothing when nobody is uploading"
+        "Pay nothing for compute when nobody is uploading"
       ],
       "required": [
         "s3",
@@ -63,13 +64,14 @@
         "s3",
         "lambda"
       ],
-      "why": "An S3 event notification invokes a Lambda function on each upload; the function resizes the image and writes the thumbnail to a separate bucket or prefix (never the source prefix, to avoid a recursive loop). Lambda scales with uploads and costs nothing when idle, unlike an always-on EC2 server.",
+      "why": "An S3 event notification invokes a Lambda function on each upload. The function resizes the image and writes the thumbnail to a separate bucket or prefix. Never write back to the source prefix, or each thumbnail triggers the function again in a recursive loop. Lambda scales with uploads and costs nothing when idle, unlike an always-on EC2 server.",
+      "simpleWhy": "Each upload wakes Lambda to make a small copy, saved somewhere else so it doesn't loop forever. No uploads, no bill.",
       "pillarBonus": {
         "operational": {
           "services": [
             "cloudwatch"
           ],
-          "tip": "Alarm on Lambda errors and duration so failed thumbnails are noticed, not discovered by users."
+          "tip": "Alarm on Lambda errors and duration so you notice failed thumbnails before users do."
         },
         "security": {
           "services": [
@@ -94,7 +96,7 @@
             "lambda",
             "s3"
           ],
-          "tip": "Serverless pay-per-use plus S3 lifecycle rules on originals keeps idle cost near zero."
+          "tip": "Lambda costs nothing between uploads; S3 lifecycle rules move old originals to cheaper storage classes."
         },
         "sustainability": {
           "services": [
@@ -102,14 +104,144 @@
           ],
           "tip": "Event-driven compute runs only when there is work, so no servers sit idle burning energy."
         }
-      }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 3,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 2
+          }
+        ],
+        "nodes": [
+          {
+            "id": "club",
+            "actor": "users",
+            "x": 0,
+            "y": 0,
+            "role": "Photo club"
+          },
+          {
+            "id": "originals",
+            "service": "s3",
+            "x": 1,
+            "y": 0,
+            "role": "Keep originals"
+          },
+          {
+            "id": "buffer",
+            "service": "sqs",
+            "x": 2,
+            "y": 0,
+            "role": "Upload buffer"
+          },
+          {
+            "id": "resize",
+            "service": "lambda",
+            "x": 3,
+            "y": 0,
+            "role": "Make thumbnails"
+          },
+          {
+            "id": "thumbs",
+            "service": "s3",
+            "x": 4,
+            "y": 0,
+            "role": "Keep thumbnails"
+          },
+          {
+            "id": "labels",
+            "service": "rekognition",
+            "x": 3,
+            "y": 1,
+            "role": "Auto-tag photos"
+          },
+          {
+            "id": "role",
+            "service": "iam",
+            "side": true,
+            "x": 1,
+            "y": 2,
+            "role": "Permissions"
+          },
+          {
+            "id": "logs",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 2,
+            "y": 2,
+            "role": "Watch and alert"
+          }
+        ],
+        "edges": [
+          {
+            "from": "club",
+            "to": "originals",
+            "label": "Upload",
+            "caption": "A member uploads a photo to the originals bucket.",
+            "step": 1
+          },
+          {
+            "from": "originals",
+            "to": "buffer",
+            "label": "Event notification",
+            "caption": "S3 sends an event notification when a new photo arrives.",
+            "step": 2
+          },
+          {
+            "from": "buffer",
+            "to": "resize",
+            "label": "Batch of events",
+            "caption": "Lambda polls the queue and picks up the new uploads in a batch.",
+            "step": 3
+          },
+          {
+            "from": "resize",
+            "to": "thumbs",
+            "label": "Save thumbnail",
+            "caption": "The thumbnail goes in a second bucket. In the first, it would trigger the function again.",
+            "step": 4
+          },
+          {
+            "from": "resize",
+            "to": "labels",
+            "label": "Detect labels",
+            "caption": "Rekognition tags what's in the photo.",
+            "step": 4
+          }
+        ],
+        "rejects": {
+          "ec2": "A server bills all week, even when nobody uploads. Lambda only runs when a photo arrives.",
+          "ebs": "EBS is a block disk for EC2 servers. Photos belong in S3, which needs no server.",
+          "redshift": "Redshift is a data warehouse for analytics, not a place to keep photos.",
+          "efs": "EFS is a shared file system you mount. S3 stores photos for less and sends upload events."
+        }
+      },
+      "unneeded": [
+        "rekognition"
+      ]
     },
     {
       "id": "static-site",
       "title": "The City Brochure Site",
       "districtId": "networking",
       "tier": 1,
-      "story": "The tourist office needs a fast website at www.awscity.example for visitors worldwide. It is plain HTML, CSS and images with no server code.",
+      "story": "The tourist office needs a fast website at www.awscity.example for visitors worldwide. It is just web pages, style sheets and images, with no server code.",
       "requirements": [
         "Host static files cheaply and durably",
         "Serve visitors from locations near them over HTTPS",
@@ -137,7 +269,8 @@
         "cloudfront",
         "s3"
       ],
-      "why": "Route 53 resolves the domain with an alias record to a CloudFront distribution, which caches content at edge locations and fetches from a private S3 bucket using Origin Access Control. No servers are needed, S3 Block Public Access stays on, and caching makes it both fast and cheap.",
+      "why": "Route 53 resolves the domain to a CloudFront distribution with an alias record. CloudFront caches content at edge locations and fetches it from a private S3 bucket using Origin Access Control. No servers are needed, S3 Block Public Access stays on, and caching makes the site fast and cheap.",
+      "simpleWhy": "Route 53 points the name at CloudFront, whose post offices keep copies of the site from a private S3 bucket. No servers needed.",
       "pillarBonus": {
         "operational": {
           "services": [
@@ -157,26 +290,140 @@
             "s3",
             "route53"
           ],
-          "tip": "S3 is designed for 11 nines durability and Route 53 is a highly available DNS service."
+          "tip": "S3 is designed for 11 nines (99.999999999%) durability, and Route 53 is a highly available DNS service."
         },
         "performance": {
           "services": [
             "cloudfront"
           ],
-          "tip": "Edge caching serves users from nearby locations; version asset file names for long TTLs."
+          "tip": "Edge caching serves users from nearby locations. Put a version in asset file names so you can cache them with long TTLs."
         },
         "cost": {
           "services": [
             "cloudfront",
             "s3"
           ],
-          "tip": "No servers to pay for; cache hits reduce origin requests, and origin-to-CloudFront transfer from S3 is free."
+          "tip": "There are no servers to pay for. Cache hits cut origin requests, and data transfer from S3 to CloudFront is free."
         },
         "sustainability": {
           "services": [
             "cloudfront"
           ],
           "tip": "Caching near users cuts repeated long-distance data transfer and origin work."
+        }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 3,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 4,
+            "y": 0,
+            "w": 1,
+            "h": 2
+          }
+        ],
+        "nodes": [
+          {
+            "id": "visitors",
+            "actor": "users",
+            "x": 0,
+            "y": 1,
+            "role": "Visitors"
+          },
+          {
+            "id": "dns",
+            "service": "route53",
+            "x": 1,
+            "y": 0,
+            "role": "Find the domain"
+          },
+          {
+            "id": "cdn",
+            "service": "cloudfront",
+            "x": 2,
+            "y": 1,
+            "role": "Serve from nearby"
+          },
+          {
+            "id": "waf",
+            "service": "shield",
+            "attachTo": "cdn",
+            "x": 0,
+            "y": 0,
+            "role": "Block attacks",
+            "shows": "waf"
+          },
+          {
+            "id": "site",
+            "service": "s3",
+            "x": 4,
+            "y": 1,
+            "role": "Store the files"
+          },
+          {
+            "id": "metrics",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 1,
+            "y": 2,
+            "role": "Watch and alert"
+          },
+          {
+            "id": "policy",
+            "service": "iam",
+            "side": true,
+            "x": 3,
+            "y": 2,
+            "role": "Who may read"
+          }
+        ],
+        "edges": [
+          {
+            "from": "visitors",
+            "to": "dns",
+            "label": "Look up name",
+            "caption": "The browser asks Route 53 where the city's domain points.",
+            "step": 1
+          },
+          {
+            "from": "visitors",
+            "to": "cdn",
+            "label": "HTTPS request",
+            "caption": "The browser connects to the nearest CloudFront edge location over HTTPS.",
+            "step": 2
+          },
+          {
+            "from": "cdn",
+            "to": "site",
+            "label": "Origin fetch (OAC)",
+            "caption": "On a miss, CloudFront fetches the file. OAC means only CloudFront can read the bucket.",
+            "step": 3
+          },
+          {
+            "from": "policy",
+            "to": "site",
+            "label": "Allows CloudFront",
+            "dashed": true
+          }
+        ],
+        "rejects": {
+          "ec2": "No server needed: S3 holds the files and CloudFront serves them.",
+          "beanstalk": "Elastic Beanstalk runs app servers. Static files don't need one.",
+          "rds": "A static site has no database. The files live in S3.",
+          "apigateway": "API Gateway fronts APIs. CloudFront serves static files straight from S3."
         }
       }
     },
@@ -202,13 +449,14 @@
         "iam",
         "kms",
         "cloudwatch",
-        "shield"
+        "shield",
+        "guardduty"
       ],
       "distractors": [
         "ec2",
         "rds",
         "vpc",
-        "guardduty"
+        "redshift"
       ],
       "flow": [
         "cognito",
@@ -216,7 +464,8 @@
         "lambda",
         "dynamodb"
       ],
-      "why": "Cognito user pools authenticate members and issue JWTs; an API Gateway JWT or Cognito authorizer validates the token before Lambda runs. Lambda uses the user ID from the token claims as the DynamoDB partition key, so each member only ever reads their own items.",
+      "why": "Cognito user pools authenticate members and issue JWTs (sign-in tokens). A Cognito authorizer on the API Gateway REST API validates the token before Lambda runs. Lambda takes the user ID from the token's claims and uses it as the DynamoDB partition key, so each member only ever reads their own items.",
+      "simpleWhy": "Cognito checks who members are and hands them a pass. The gateway checks the pass, so each member only sees their own things.",
       "pillarBonus": {
         "operational": {
           "services": [
@@ -230,7 +479,7 @@
             "kms",
             "cognito"
           ],
-          "tip": "Validate tokens at the API, give Lambda a least-privilege role, and encrypt the table with KMS."
+          "tip": "Validate tokens at the API and give Lambda a least-privilege role. DynamoDB encrypts at rest by default; use a customer managed KMS key when you need to control and audit the key."
         },
         "reliability": {
           "services": [
@@ -243,21 +492,172 @@
             "dynamodb",
             "apigateway"
           ],
-          "tip": "Key by user ID for single-digit millisecond lookups; HTTP APIs add less latency than REST APIs."
+          "tip": "Key by user ID for single-digit millisecond lookups; let API Gateway reject bad tokens so invalid calls never invoke Lambda."
         },
         "cost": {
           "services": [
             "lambda",
             "dynamodb"
           ],
-          "tip": "Everything is pay-per-request: on-demand DynamoDB and Lambda cost almost nothing when idle."
+          "tip": "On-demand DynamoDB, Lambda and API Gateway bill per request, and Cognito bills per monthly active user. With no servers, an idle app costs almost nothing."
         },
         "sustainability": {
           "services": [
             "lambda",
             "dynamodb"
           ],
-          "tip": "Fully managed serverless services share infrastructure efficiently instead of idle dedicated servers."
+          "tip": "Fully managed serverless services share infrastructure efficiently, so no dedicated servers sit idle."
+        }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 3,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 2
+          }
+        ],
+        "nodes": [
+          {
+            "id": "app",
+            "actor": "client",
+            "x": 0,
+            "y": 1,
+            "role": "Reading app"
+          },
+          {
+            "id": "auth",
+            "service": "cognito",
+            "x": 1,
+            "y": 0,
+            "role": "Sign-in"
+          },
+          {
+            "id": "api",
+            "service": "apigateway",
+            "x": 2,
+            "y": 1,
+            "role": "Front door"
+          },
+          {
+            "id": "waf",
+            "service": "shield",
+            "attachTo": "api",
+            "x": 0,
+            "y": 0,
+            "role": "Block bad traffic",
+            "shows": "waf"
+          },
+          {
+            "id": "fn",
+            "service": "lambda",
+            "x": 3,
+            "y": 1,
+            "role": "Run code per call"
+          },
+          {
+            "id": "db",
+            "service": "dynamodb",
+            "x": 4,
+            "y": 1,
+            "role": "Reading lists"
+          },
+          {
+            "id": "key",
+            "service": "kms",
+            "x": 4,
+            "y": 0,
+            "role": "Encryption key"
+          },
+          {
+            "id": "threats",
+            "service": "guardduty",
+            "side": true,
+            "x": 1,
+            "y": 2,
+            "role": "Spot threats"
+          },
+          {
+            "id": "logs",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 2,
+            "y": 2,
+            "role": "Watch and alert"
+          },
+          {
+            "id": "roles",
+            "service": "iam",
+            "side": true,
+            "x": 3,
+            "y": 2,
+            "role": "Permissions"
+          }
+        ],
+        "edges": [
+          {
+            "from": "app",
+            "to": "auth",
+            "label": "Sign in",
+            "caption": "The user signs in, and Cognito returns a signed token (a JWT) proving who they are.",
+            "step": 1
+          },
+          {
+            "from": "app",
+            "to": "api",
+            "label": "Request + token",
+            "caption": "The app sends each API call with the token attached, in the Authorization header.",
+            "step": 2
+          },
+          {
+            "from": "api",
+            "to": "auth",
+            "label": "Check token",
+            "caption": "API Gateway checks the token against the Cognito user pool and rejects bad ones.",
+            "step": 3,
+            "bend": "v"
+          },
+          {
+            "from": "api",
+            "to": "fn",
+            "label": "Invoke",
+            "caption": "A request with a valid token runs the Lambda function.",
+            "step": 4
+          },
+          {
+            "from": "fn",
+            "to": "db",
+            "label": "Read and write",
+            "caption": "The function reads and writes the user's reading list in DynamoDB.",
+            "step": 5
+          },
+          {
+            "from": "key",
+            "to": "db",
+            "label": "Encrypts",
+            "dashed": true
+          }
+        ],
+        "rejects": {
+          "ec2": "The brief says no servers. Lambda runs the business logic.",
+          "rds": "RDS runs on database instances. DynamoDB is serverless and fits these simple lookups.",
+          "vpc": "Lambda, API Gateway and DynamoDB don't need a VPC of your own here.",
+          "redshift": "Redshift is for analytics, not the app's reading lists."
         }
       }
     },
@@ -297,7 +697,8 @@
         "lambda",
         "dynamodb"
       ],
-      "why": "API Gateway writes each order to an SQS queue and returns immediately, decoupling customers from processing speed. Lambda polls the queue in batches and writes to DynamoDB; messages that fail repeatedly move to a dead-letter queue instead of blocking the line. Make processing idempotent because standard queues deliver at least once.",
+      "why": "API Gateway writes each order to an SQS queue and returns immediately, so customers never wait on processing. Lambda polls the queue in batches and writes to DynamoDB. Messages that fail repeatedly move to a dead-letter queue instead of blocking the line. Standard queues deliver each message at least once, so make processing idempotent (safe to run twice).",
+      "simpleWhy": "Orders wait in a queue, so customers never wait. Lambda works through them, and broken ones are set aside instead of blocking the line.",
       "pillarBonus": {
         "operational": {
           "services": [
@@ -316,7 +717,7 @@
           "services": [
             "sqs"
           ],
-          "tip": "A DLQ with a sensible maxReceiveCount and a visibility timeout longer than processing time prevents lost or looping orders."
+          "tip": "Add a DLQ with maxReceiveCount of at least 5. Set the visibility timeout to at least six times the function timeout. Give the DLQ a longer retention period than the source queue, so failed orders aren't lost or retried forever."
         },
         "performance": {
           "services": [
@@ -338,7 +739,171 @@
           ],
           "tip": "Buffering smooths demand so fewer resources run at higher utilisation."
         }
-      }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 3,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          }
+        ],
+        "nodes": [
+          {
+            "id": "shop",
+            "actor": "client",
+            "x": 0,
+            "y": 1,
+            "role": "Shop website"
+          },
+          {
+            "id": "api",
+            "service": "apigateway",
+            "x": 1,
+            "y": 1,
+            "role": "Take orders"
+          },
+          {
+            "id": "queue",
+            "service": "sqs",
+            "x": 2,
+            "y": 1,
+            "role": "Hold orders"
+          },
+          {
+            "id": "worker",
+            "service": "lambda",
+            "x": 3,
+            "y": 1,
+            "role": "Process order"
+          },
+          {
+            "id": "orders",
+            "service": "dynamodb",
+            "x": 4,
+            "y": 1,
+            "role": "Store orders"
+          },
+          {
+            "id": "dlq",
+            "service": "sqs",
+            "x": 2,
+            "y": 2,
+            "role": "Park failed orders"
+          },
+          {
+            "id": "events",
+            "service": "eventbridge",
+            "x": 4,
+            "y": 0,
+            "role": "Tell other teams"
+          },
+          {
+            "id": "key",
+            "service": "kms",
+            "x": 2,
+            "y": 0,
+            "role": "Encryption key"
+          },
+          {
+            "id": "roles",
+            "service": "iam",
+            "side": true,
+            "x": 1,
+            "y": 2,
+            "role": "Permissions"
+          },
+          {
+            "id": "alarm",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 3,
+            "y": 2,
+            "role": "Alert on failures"
+          }
+        ],
+        "edges": [
+          {
+            "from": "shop",
+            "to": "api",
+            "label": "Place order",
+            "caption": "The shop sends the order to the API.",
+            "step": 1
+          },
+          {
+            "from": "api",
+            "to": "queue",
+            "label": "Send message",
+            "caption": "API Gateway puts the order on the SQS queue and answers straight away.",
+            "step": 2
+          },
+          {
+            "from": "queue",
+            "to": "worker",
+            "label": "Poll a batch",
+            "caption": "Lambda polls the queue and processes orders in batches.",
+            "step": 3
+          },
+          {
+            "from": "worker",
+            "to": "orders",
+            "label": "Save order",
+            "caption": "The function writes the processed order to DynamoDB.",
+            "step": 4
+          },
+          {
+            "from": "worker",
+            "to": "events",
+            "label": "OrderPlaced",
+            "caption": "It also publishes an OrderPlaced event that other services can react to.",
+            "step": 4,
+            "bend": "v"
+          },
+          {
+            "from": "queue",
+            "to": "dlq",
+            "label": "After too many tries",
+            "caption": "An order that fails too many times moves to the dead-letter queue, ready to inspect.",
+            "step": 5
+          },
+          {
+            "from": "key",
+            "to": "queue",
+            "label": "Encrypts",
+            "dashed": true
+          },
+          {
+            "from": "dlq",
+            "to": "alarm",
+            "label": "Alarm",
+            "dashed": true
+          }
+        ],
+        "rejects": {
+          "ec2": "Lambda processes the queue with no servers to manage.",
+          "redshift": "Redshift is for analytics. Processed orders go in DynamoDB.",
+          "efs": "EFS stores files, not records. Orders are items looked up by key, so DynamoDB fits.",
+          "route53": "Route 53 is DNS. It doesn't buffer or process orders."
+        }
+      },
+      "unneeded": [
+        "eventbridge"
+      ]
     },
     {
       "id": "data-lake-query",
@@ -375,7 +940,8 @@
         "glue",
         "athena"
       ],
-      "why": "S3 holds the data, a Glue crawler infers schemas into the Glue Data Catalog, and Athena queries the files in place with SQL. Lake Formation grants table and column permissions centrally, so analysts see receipts but not restricted columns, and Athena enforces those grants.",
+      "why": "S3 holds the data, a Glue crawler works out the schemas and writes them to the Glue Data Catalog, and Athena queries the files in place with SQL. Lake Formation grants table and column permissions centrally, so analysts see receipts but not restricted columns, and Athena enforces those grants.",
+      "simpleWhy": "Receipts sit in S3, Glue labels them, Athena answers questions right where they are, and Lars decides who sees which columns.",
       "pillarBonus": {
         "operational": {
           "services": [
@@ -402,14 +968,14 @@
             "glue",
             "athena"
           ],
-          "tip": "Convert CSV to partitioned Parquet with Glue or CTAS so queries read less data."
+          "tip": "Convert CSV to partitioned Parquet with Glue or an Athena CTAS (CREATE TABLE AS SELECT) query so queries read less data."
         },
         "cost": {
           "services": [
             "athena",
             "glue"
           ],
-          "tip": "Athena bills by data scanned: partition, compress and use columnar formats; set workgroup scan limits."
+          "tip": "Athena bills by data scanned. Partition, compress and use columnar formats to scan less, and set workgroup scan limits."
         },
         "sustainability": {
           "services": [
@@ -418,17 +984,169 @@
           ],
           "tip": "Query in place instead of copying data, and lifecycle old raw files to colder storage."
         }
-      }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 3,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          }
+        ],
+        "nodes": [
+          {
+            "id": "apps",
+            "actor": "sources",
+            "x": 0,
+            "y": 0,
+            "role": "Apps and logs"
+          },
+          {
+            "id": "analyst",
+            "actor": "users",
+            "x": 0,
+            "y": 2,
+            "role": "Analyst"
+          },
+          {
+            "id": "lake",
+            "service": "s3",
+            "x": 1,
+            "y": 0,
+            "role": "Store raw files"
+          },
+          {
+            "id": "crawl",
+            "service": "glue",
+            "x": 2,
+            "y": 0,
+            "role": "Find the schema"
+          },
+          {
+            "id": "perms",
+            "service": "lakeformation",
+            "x": 2,
+            "y": 1,
+            "role": "Limit columns"
+          },
+          {
+            "id": "sql",
+            "service": "athena",
+            "x": 2,
+            "y": 2,
+            "role": "Query with SQL"
+          },
+          {
+            "id": "warehouse",
+            "service": "redshift",
+            "x": 3,
+            "y": 2,
+            "role": "Heavy analytics"
+          },
+          {
+            "id": "key",
+            "service": "kms",
+            "side": true,
+            "x": 4,
+            "y": 0,
+            "role": "Encryption key"
+          },
+          {
+            "id": "logs",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 4,
+            "y": 1,
+            "role": "Watch and alert"
+          },
+          {
+            "id": "roles",
+            "service": "iam",
+            "side": true,
+            "x": 4,
+            "y": 2,
+            "role": "Permissions"
+          }
+        ],
+        "edges": [
+          {
+            "from": "apps",
+            "to": "lake",
+            "label": "Land files",
+            "caption": "Apps drop raw files into the S3 data lake.",
+            "step": 1
+          },
+          {
+            "from": "lake",
+            "to": "crawl",
+            "label": "Crawl",
+            "caption": "A Glue crawler reads the files and works out their schema.",
+            "step": 2
+          },
+          {
+            "from": "crawl",
+            "to": "perms",
+            "label": "Govern tables",
+            "caption": "The tables go in the Data Catalog, and Lake Formation controls access to them.",
+            "step": 3
+          },
+          {
+            "from": "analyst",
+            "to": "sql",
+            "label": "Run query",
+            "caption": "An analyst runs SQL in Athena, with no servers to manage.",
+            "step": 4
+          },
+          {
+            "from": "sql",
+            "to": "perms",
+            "label": "Check columns",
+            "caption": "Lake Formation lets Athena read only the columns this analyst may see.",
+            "step": 5
+          },
+          {
+            "from": "sql",
+            "to": "lake",
+            "label": "Scan files",
+            "caption": "Athena scans the files in S3. On-demand pricing charges for the data each query scans.",
+            "step": 6
+          }
+        ],
+        "rejects": {
+          "rds": "RDS needs a database instance. Athena queries the files in S3 directly.",
+          "dynamodb": "DynamoDB is for fast key lookups, not SQL analytics over files.",
+          "ec2": "Glue and Athena are serverless. No EC2 needed.",
+          "ebs": "EBS is a block disk for EC2 servers. The lake lives in S3."
+        }
+      },
+      "unneeded": [
+        "redshift"
+      ]
     },
     {
       "id": "hr-assistant",
-      "title": "Ask HR Helper",
+      "title": "Ask the Staff Helper",
       "districtId": "aiml",
       "tier": 3,
-      "story": "City Hall staff keep asking HR the same policy questions. Build a signed-in assistant that answers from the official HR handbook, remembers each employee's context and can file leave requests.",
+      "story": "City Hall staff keep asking the people team the same policy questions. Build a signed-in assistant that answers from the official staff handbook, remembers each employee's context and can file leave requests.",
       "requirements": [
         "Only employees can use the assistant",
-        "Answers are grounded in HR documents with citations",
+        "Answers come from the staff handbook, with citations",
         "The agent remembers context across conversations",
         "The agent can call an internal leave API as a tool",
         "Answers avoid off-limits topics and personal data leaks"
@@ -455,10 +1173,11 @@
       "flow": [
         "cognito",
         "agentcore",
-        "bedrock",
-        "s3"
+        "s3",
+        "bedrock"
       ],
-      "why": "Employees sign in with Cognito, and AgentCore Identity validates their tokens before the agent runs in an isolated AgentCore Runtime session. The agent retrieves handbook passages from a Bedrock Knowledge Base (documents in S3) for grounded answers, uses AgentCore Memory for context, and calls the leave API exposed as an MCP tool via AgentCore Gateway (e.g. a Lambda target). Bedrock Guardrails filter topics and sensitive data.",
+      "why": "Employees sign in with Cognito. AgentCore Identity validates their tokens, then the agent runs in an isolated AgentCore Runtime session. For grounded answers, it retrieves handbook passages from a Bedrock Knowledge Base built on documents in S3. AgentCore Memory keeps each employee's context. AgentCore Gateway exposes the leave API (for example, a Lambda target) as an MCP tool the agent can call. Bedrock Guardrails filter off-limits topics and sensitive data.",
+      "simpleWhy": "Staff sign in, then a safe agent looks up answers in the handbook, remembers each person, can use the leave tool and stays on topic.",
       "pillarBonus": {
         "operational": {
           "services": [
@@ -480,13 +1199,13 @@
             "agentcore",
             "bedrock"
           ],
-          "tip": "Managed runtime and model endpoints remove servers to fail; handle throttling with retries and backoff."
+          "tip": "Managed runtime and model endpoints leave no servers of yours to fail. Handle throttling with retries and backoff."
         },
         "performance": {
           "services": [
             "bedrock"
           ],
-          "tip": "Retrieve only relevant chunks and pick the smallest model that meets quality in evaluations."
+          "tip": "Retrieve only relevant chunks and pick the smallest model that passes your quality evaluations."
         },
         "cost": {
           "services": [
@@ -500,6 +1219,175 @@
             "bedrock"
           ],
           "tip": "RAG over existing documents avoids training or fine-tuning a custom model."
+        }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 4,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          }
+        ],
+        "nodes": [
+          {
+            "id": "staff",
+            "actor": "users",
+            "x": 0,
+            "y": 1,
+            "role": "Employee"
+          },
+          {
+            "id": "signin",
+            "service": "cognito",
+            "x": 1,
+            "y": 0,
+            "role": "Staff sign-in"
+          },
+          {
+            "id": "agent",
+            "service": "agentcore",
+            "x": 2,
+            "y": 1,
+            "role": "Host the agent"
+          },
+          {
+            "id": "model",
+            "service": "bedrock",
+            "x": 3,
+            "y": 1,
+            "role": "Generate answers"
+          },
+          {
+            "id": "kb",
+            "fixed": "kb",
+            "x": 3,
+            "y": 0,
+            "role": "Knowledge base"
+          },
+          {
+            "id": "docs",
+            "service": "s3",
+            "x": 4,
+            "y": 0,
+            "role": "Staff handbook"
+          },
+          {
+            "id": "tool",
+            "service": "lambda",
+            "x": 3,
+            "y": 2,
+            "role": "Leave API tool"
+          },
+          {
+            "id": "leave",
+            "service": "dynamodb",
+            "x": 4,
+            "y": 2,
+            "role": "Leave records"
+          },
+          {
+            "id": "key",
+            "service": "kms",
+            "x": 4,
+            "y": 1,
+            "role": "Encryption key"
+          },
+          {
+            "id": "roles",
+            "service": "iam",
+            "side": true,
+            "x": 1,
+            "y": 3,
+            "role": "Permissions"
+          },
+          {
+            "id": "traces",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 2,
+            "y": 3,
+            "role": "Watch and trace"
+          }
+        ],
+        "edges": [
+          {
+            "from": "staff",
+            "to": "signin",
+            "label": "Sign in",
+            "caption": "Employees sign in through Cognito. Nobody else can.",
+            "step": 1
+          },
+          {
+            "from": "staff",
+            "to": "agent",
+            "label": "Question + token",
+            "caption": "The question and the employee's token go to the agent, hosted on AgentCore Runtime.",
+            "step": 2
+          },
+          {
+            "from": "agent",
+            "to": "kb",
+            "label": "Retrieve passages",
+            "caption": "The agent queries a Bedrock knowledge base and gets passages with their sources.",
+            "step": 3,
+            "bend": "v"
+          },
+          {
+            "from": "agent",
+            "to": "model",
+            "label": "Prompt",
+            "caption": "It sends the question, passages and memory to a Bedrock model with guardrails on.",
+            "step": 4
+          },
+          {
+            "from": "agent",
+            "to": "tool",
+            "label": "Call tool",
+            "caption": "To check leave, the agent calls a Lambda tool through AgentCore Gateway.",
+            "step": 5,
+            "bend": "v"
+          },
+          {
+            "from": "tool",
+            "to": "leave",
+            "label": "Look up leave",
+            "caption": "The tool reads the employee's leave balance from DynamoDB.",
+            "step": 6
+          },
+          {
+            "from": "key",
+            "to": "docs",
+            "label": "Encrypts",
+            "dashed": true
+          },
+          {
+            "from": "kb",
+            "to": "docs",
+            "label": "Indexed from",
+            "dashed": true
+          }
+        ],
+        "rejects": {
+          "sagemaker": "SageMaker AI is a full ML platform. Here Bedrock's ready models, called by API, do the job.",
+          "rekognition": "Rekognition analyses images and video, not staff questions.",
+          "redshift": "Redshift is a data warehouse. The handbook documents live in S3.",
+          "ec2": "AgentCore Runtime hosts the agent, so there are no servers to manage."
         }
       }
     },
@@ -517,20 +1405,20 @@
       ],
       "required": [
         "route53",
+        "apigateway",
+        "lambda",
         "dynamodb"
       ],
       "optional": [
         "aurora",
         "cloudwatch",
-        "lambda",
-        "apigateway",
-        "kms"
+        "kms",
+        "elasticache"
       ],
       "distractors": [
         "ebs",
         "efs",
-        "redshift",
-        "elasticache"
+        "redshift"
       ],
       "flow": [
         "route53",
@@ -538,7 +1426,8 @@
         "lambda",
         "dynamodb"
       ],
-      "why": "DynamoDB global tables keep multi-active replicas in each Region, so apps read and write locally. Route 53 latency or failover routing with health checks sends users to the nearest healthy Region. For relational needs, Aurora Global Database offers one writer Region with low-lag read replicas in others and managed cross-Region failover.",
+      "why": "DynamoDB global tables keep multi-active replicas in each Region, so apps read and write locally. By default they use eventual consistency (MREC), where the last write wins, so two Regions could book the same room at once. To prevent that, create the table with multi-Region strong consistency (MRSC), or send each hotel's bookings to one home Region. MRSC uses exactly three Regions: three replicas, or two replicas and a witness. Route 53 latency routing with health checks sends users to the lowest-latency healthy Region. Failover routing is the alternative: it sends users to a standby Region when the primary fails. For relational data, Aurora Global Database has one writer Region and low-lag read replicas in others. It offers a managed cross-Region failover that you start, and that typically completes within minutes. ElastiCache Global Datastore can add a cross-Region cache for faster reads. It is a cache, not the booking system of record, and you promote its Region manually.",
+      "simpleWhy": "Copies of the bookings live on both continents, so everyone books nearby. Careful rules stop two people booking the same room.",
       "pillarBonus": {
         "operational": {
           "services": [
@@ -558,7 +1447,7 @@
             "route53",
             "aurora"
           ],
-          "tip": "Multi-Region data plus health-checked DNS failover removes the Region as a single point of failure."
+          "tip": "Multi-Region data plus health-checked DNS failover removes the Region as a single point of failure. With MRSC, a Region failover loses no confirmed bookings."
         },
         "performance": {
           "services": [
@@ -571,15 +1460,212 @@
           "services": [
             "dynamodb"
           ],
-          "tip": "Replicate only tables that truly need multi-Region; replicated writes and transfer cost extra."
+          "tip": "Replicate only the tables that truly need more than one Region. Replicated writes and data transfer cost extra."
         },
         "sustainability": {
           "services": [
             "dynamodb"
           ],
-          "tip": "Serverless, on-demand tables avoid idle standby capacity in the secondary Region."
+          "tip": "Serverless, on-demand replicas scale with each Region's traffic, so no Region sits on idle provisioned capacity."
         }
-      }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 4,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          },
+          {
+            "id": "regionA",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 2,
+            "y": 0,
+            "w": 3,
+            "h": 2
+          },
+          {
+            "id": "regionB",
+            "kind": "region",
+            "label": "Second Region",
+            "x": 2,
+            "y": 2,
+            "w": 3,
+            "h": 1
+          }
+        ],
+        "nodes": [
+          {
+            "id": "users",
+            "actor": "users",
+            "x": 0,
+            "y": 1,
+            "role": "Two continents"
+          },
+          {
+            "id": "dns",
+            "service": "route53",
+            "x": 1,
+            "y": 1,
+            "role": "Route to a Region"
+          },
+          {
+            "id": "api",
+            "service": "apigateway",
+            "x": 2,
+            "y": 0,
+            "role": "Front door"
+          },
+          {
+            "id": "fn",
+            "service": "lambda",
+            "x": 3,
+            "y": 0,
+            "role": "Booking logic"
+          },
+          {
+            "id": "table",
+            "service": "dynamodb",
+            "x": 4,
+            "y": 0,
+            "role": "Store bookings"
+          },
+          {
+            "id": "cache",
+            "service": "elasticache",
+            "x": 3,
+            "y": 1,
+            "role": "Speed up reads"
+          },
+          {
+            "id": "sql",
+            "service": "aurora",
+            "x": 2,
+            "y": 1,
+            "role": "Relational data"
+          },
+          {
+            "id": "api2",
+            "mirrorOf": "api",
+            "x": 2,
+            "y": 2,
+            "role": "Front door"
+          },
+          {
+            "id": "fn2",
+            "mirrorOf": "fn",
+            "x": 3,
+            "y": 2,
+            "role": "Booking logic"
+          },
+          {
+            "id": "replica",
+            "service": "dynamodb",
+            "x": 4,
+            "y": 2,
+            "role": "Copy of bookings"
+          },
+          {
+            "id": "key",
+            "service": "kms",
+            "side": true,
+            "x": 1,
+            "y": 3,
+            "role": "Encryption key"
+          },
+          {
+            "id": "alarms",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 2,
+            "y": 3,
+            "role": "Watch and alert"
+          }
+        ],
+        "edges": [
+          {
+            "from": "users",
+            "to": "dns",
+            "label": "Look up",
+            "caption": "Users on both continents look up the app's name in Route 53.",
+            "step": 1
+          },
+          {
+            "from": "dns",
+            "to": "api",
+            "label": "Lowest-latency healthy",
+            "caption": "Latency routing sends each user to the healthy Region with the lowest latency.",
+            "step": 2,
+            "bend": "v"
+          },
+          {
+            "from": "dns",
+            "to": "api2",
+            "label": "Lowest-latency healthy",
+            "caption": "Latency routing sends each user to the healthy Region with the lowest latency.",
+            "step": 2,
+            "bend": "v"
+          },
+          {
+            "from": "api",
+            "to": "fn",
+            "label": "Invoke",
+            "caption": "API Gateway runs the booking function in that Region.",
+            "step": 3
+          },
+          {
+            "from": "api2",
+            "to": "fn2",
+            "label": "Invoke",
+            "caption": "API Gateway runs the booking function in that Region.",
+            "step": 3
+          },
+          {
+            "from": "fn",
+            "to": "table",
+            "label": "Write booking",
+            "caption": "Each Region's function writes bookings to its own copy of the table.",
+            "step": 4
+          },
+          {
+            "from": "fn2",
+            "to": "replica",
+            "label": "Write booking",
+            "caption": "Each Region's function writes bookings to its own copy of the table.",
+            "step": 4
+          },
+          {
+            "from": "table",
+            "to": "replica",
+            "label": "Replicate",
+            "caption": "Global tables replicate both ways: a write in either Region reaches the other.",
+            "step": 5,
+            "twoWay": true
+          },
+          {
+            "from": "fn",
+            "to": "cache",
+            "label": "Cache reads",
+            "dashed": true
+          }
+        ],
+        "rejects": {
+          "ebs": "An EBS volume lives in one Availability Zone. It isn't a multi-Region database.",
+          "efs": "EFS is a shared file system, not a database for bookings.",
+          "redshift": "Redshift is for analytics, not fast bookings from two continents."
+        }
+      },
+      "unneeded": [
+        "aurora",
+        "elasticache"
+      ]
     },
     {
       "id": "ddos-ready",
@@ -590,25 +1676,25 @@
       "requirements": [
         "Absorb network-layer floods far from the origin",
         "Block SQL injection and abusive request rates",
-        "DNS stays up under attack",
-        "Origin only accepts traffic from the edge"
+        "Keep DNS up under attack",
+        "Let the origin accept traffic only from the edge"
       ],
       "required": [
         "cloudfront",
         "shield",
-        "route53"
+        "route53",
+        "apigateway",
+        "lambda"
       ],
       "optional": [
-        "apigateway",
         "cloudwatch",
-        "lambda",
-        "guardduty"
+        "ec2"
       ],
       "distractors": [
-        "ec2",
-        "sqs",
-        "glue",
-        "neptune"
+        "guardduty",
+        "elasticache",
+        "kms",
+        "redshift"
       ],
       "flow": [
         "route53",
@@ -617,20 +1703,21 @@
         "apigateway",
         "lambda"
       ],
-      "why": "Route 53 and CloudFront spread traffic across AWS's global edge, where Shield Standard mitigates common network and transport layer attacks automatically. AWS WAF on the distribution adds managed rules and rate-based rules for application-layer abuse, and the origin accepts only CloudFront traffic. Shield Advanced adds the response team and cost protection for high-stakes events.",
+      "why": "Route 53 and CloudFront spread traffic across AWS's global edge, where Shield Standard mitigates common network and transport layer attacks automatically. AWS WAF on the distribution adds managed rules, including the Anti-DDoS rule group, and rate-based rules for application-layer abuse. The origin accepts only CloudFront traffic. Shield Advanced adds service credits for attack-driven cost spikes. With Business Support+, Enterprise Support or Unified Operations, it also gives access to the Shield Response Team.",
+      "simpleWhy": "Worldwide front gates soak up floods for free, guard rules catch the sneaky attacks, and the app only lets CloudFront in.",
       "pillarBonus": {
         "operational": {
           "services": [
             "cloudwatch"
           ],
-          "tip": "Dashboard WAF blocked-request metrics and alarm on traffic spikes."
+          "tip": "Put WAF blocked-request metrics on a dashboard and alarm on traffic spikes."
         },
         "security": {
           "services": [
             "shield",
             "cloudfront"
           ],
-          "tip": "Start with AWS Managed Rules plus a rate-based rule, then tune in count mode before blocking."
+          "tip": "Start with AWS Managed Rules plus a rate-based rule. Tune them in count mode before you switch them to block."
         },
         "reliability": {
           "services": [
@@ -650,7 +1737,7 @@
             "shield",
             "cloudfront"
           ],
-          "tip": "Filtering at the edge stops attack traffic before it scales up (and bills) your backend."
+          "tip": "Filtering at the edge stops attack traffic before it scales up your backend and your bill."
         },
         "sustainability": {
           "services": [
@@ -658,7 +1745,147 @@
           ],
           "tip": "Dropping bad traffic early avoids wasted compute on requests that should never run."
         }
-      }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 3,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          },
+          {
+            "id": "edge",
+            "kind": "edge",
+            "label": "Edge locations",
+            "x": 1,
+            "y": 0,
+            "w": 2,
+            "h": 2
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 3,
+            "y": 0,
+            "w": 2,
+            "h": 3
+          }
+        ],
+        "nodes": [
+          {
+            "id": "crowd",
+            "actor": "internet",
+            "x": 0,
+            "y": 1,
+            "role": "Visitors and bots"
+          },
+          {
+            "id": "dns",
+            "service": "route53",
+            "x": 1,
+            "y": 0,
+            "role": "Answer DNS"
+          },
+          {
+            "id": "cdn",
+            "service": "cloudfront",
+            "x": 2,
+            "y": 1,
+            "role": "Absorb at the edge"
+          },
+          {
+            "id": "waf",
+            "service": "shield",
+            "attachTo": "cdn",
+            "x": 0,
+            "y": 0,
+            "role": "Block attacks",
+            "shows": "waf"
+          },
+          {
+            "id": "api",
+            "service": "apigateway",
+            "x": 3,
+            "y": 1,
+            "role": "Front door"
+          },
+          {
+            "id": "fn",
+            "service": "lambda",
+            "x": 4,
+            "y": 1,
+            "role": "Run the app"
+          },
+          {
+            "id": "legacy",
+            "service": "ec2",
+            "x": 3,
+            "y": 2,
+            "role": "Old server"
+          },
+          {
+            "id": "metrics",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 4,
+            "y": 2,
+            "role": "Watch the attack"
+          }
+        ],
+        "edges": [
+          {
+            "from": "crowd",
+            "to": "dns",
+            "label": "Look up",
+            "caption": "Route 53 answers DNS queries from AWS's global edge network, which Shield protects.",
+            "step": 1
+          },
+          {
+            "from": "crowd",
+            "to": "cdn",
+            "label": "Requests",
+            "caption": "Traffic lands at CloudFront edges. Shield absorbs floods and WAF blocks bad requests.",
+            "step": 2
+          },
+          {
+            "from": "cdn",
+            "to": "api",
+            "label": "Origin request",
+            "caption": "CloudFront adds a secret header, and a WAF rule on the REST API lets only those in.",
+            "step": 3
+          },
+          {
+            "from": "api",
+            "to": "fn",
+            "label": "Invoke",
+            "caption": "API Gateway runs the app's Lambda function.",
+            "step": 4
+          },
+          {
+            "from": "cdn",
+            "to": "legacy",
+            "label": "Other origin",
+            "dashed": true,
+            "bend": "v"
+          }
+        ],
+        "rejects": {
+          "guardduty": "GuardDuty detects threats and reports findings. It doesn't absorb or block a flood.",
+          "elasticache": "A cache behind the origin speeds up reads, but a flood still reaches it. Stop it at the edge.",
+          "kms": "KMS manages encryption keys. It doesn't filter or absorb traffic.",
+          "redshift": "Redshift runs analytics. It plays no part in surviving an attack."
+        }
+      },
+      "unneeded": [
+        "ec2"
+      ]
     },
     {
       "id": "event-audit",
@@ -674,19 +1901,20 @@
       ],
       "required": [
         "cloudwatch",
+        "s3",
         "guardduty",
         "eventbridge",
-        "lambda"
+        "lambda",
+        "sqs"
       ],
       "optional": [
-        "s3",
-        "sqs",
         "kms",
-        "iam"
+        "iam",
+        "athena"
       ],
       "distractors": [
-        "rekognition",
-        "athena",
+        "shield",
+        "cognito",
         "ecs",
         "cloudfront"
       ],
@@ -694,9 +1922,11 @@
         "cloudwatch",
         "guardduty",
         "eventbridge",
-        "lambda"
+        "lambda",
+        "sqs"
       ],
-      "why": "CloudTrail records API activity (stored in S3 for long retention), and GuardDuty analyses CloudTrail, VPC Flow Logs and DNS logs to raise findings. Findings flow to EventBridge, where rules match high-severity types and invoke a Lambda responder that deactivates keys or isolates resources and notifies the team via SNS.",
+      "why": "CloudTrail records API activity, and a trail stores it in S3 for long retention. GuardDuty analyses CloudTrail, VPC Flow Logs and DNS logs to raise findings. Findings flow to EventBridge, where rules match high-severity types and invoke a Lambda responder. The responder deactivates keys or isolates resources and notifies the team via SNS.",
+      "simpleWhy": "CloudTrail keeps the diary, GuardDuty spots trouble in it, and EventBridge wakes a Lambda that locks things down and tells the team.",
       "pillarBonus": {
         "operational": {
           "services": [
@@ -738,6 +1968,176 @@
           ],
           "tip": "Event-driven responders run only when something happens, not on constant polling."
         }
+      },
+      "diagram": {
+        "cols": 6,
+        "rows": 3,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          }
+        ],
+        "nodes": [
+          {
+            "id": "activity",
+            "actor": "admin",
+            "x": 0,
+            "y": 0,
+            "role": "Account activity"
+          },
+          {
+            "id": "trail",
+            "service": "cloudwatch",
+            "x": 1,
+            "y": 0,
+            "role": "Record API calls",
+            "shows": "cloudtrail"
+          },
+          {
+            "id": "archive",
+            "service": "s3",
+            "x": 2,
+            "y": 0,
+            "role": "Archive the logs"
+          },
+          {
+            "id": "query",
+            "service": "athena",
+            "x": 3,
+            "y": 0,
+            "role": "Query the trail"
+          },
+          {
+            "id": "detect",
+            "service": "guardduty",
+            "x": 1,
+            "y": 1,
+            "role": "Spot threats"
+          },
+          {
+            "id": "bus",
+            "service": "eventbridge",
+            "x": 2,
+            "y": 1,
+            "role": "Route findings"
+          },
+          {
+            "id": "respond",
+            "service": "lambda",
+            "x": 3,
+            "y": 1,
+            "role": "Auto-respond"
+          },
+          {
+            "id": "notify",
+            "service": "sqs",
+            "x": 4,
+            "y": 1,
+            "role": "Send the alert",
+            "shows": "sns"
+          },
+          {
+            "id": "team",
+            "actor": "users",
+            "x": 5,
+            "y": 1,
+            "role": "Security team"
+          },
+          {
+            "id": "key",
+            "service": "kms",
+            "side": true,
+            "x": 1,
+            "y": 2,
+            "role": "Encryption key"
+          },
+          {
+            "id": "roles",
+            "service": "iam",
+            "side": true,
+            "x": 2,
+            "y": 2,
+            "role": "Permissions"
+          }
+        ],
+        "edges": [
+          {
+            "from": "activity",
+            "to": "trail",
+            "label": "API calls",
+            "caption": "CloudTrail records who did what in the account, and when (its management events).",
+            "step": 1
+          },
+          {
+            "from": "trail",
+            "to": "archive",
+            "label": "Archive",
+            "caption": "The trail delivers its log files to an S3 bucket, which keeps the audit record.",
+            "step": 2
+          },
+          {
+            "from": "trail",
+            "to": "detect",
+            "label": "Analyse",
+            "caption": "GuardDuty reads CloudTrail management events itself. It doesn't need your trail.",
+            "step": 2
+          },
+          {
+            "from": "detect",
+            "to": "bus",
+            "label": "Finding",
+            "caption": "GuardDuty sends each finding to EventBridge as an event.",
+            "step": 3
+          },
+          {
+            "from": "bus",
+            "to": "respond",
+            "label": "Rule match",
+            "caption": "An EventBridge rule matches the finding and runs the responder function.",
+            "step": 4
+          },
+          {
+            "from": "respond",
+            "to": "notify",
+            "label": "Alert",
+            "caption": "The function publishes an alert to an SNS topic.",
+            "step": 5
+          },
+          {
+            "from": "notify",
+            "to": "team",
+            "label": "Notify",
+            "caption": "The security team gets the alert, and the trail keeps the record.",
+            "step": 6
+          },
+          {
+            "from": "archive",
+            "to": "query",
+            "label": "Query",
+            "dashed": true
+          }
+        ],
+        "rejects": {
+          "shield": "Shield absorbs DDoS floods. It doesn't record or review what happens in the account.",
+          "cognito": "Cognito signs users in to your apps. It doesn't record API calls in the account.",
+          "ecs": "ECS runs containers. A Lambda function already handles the response.",
+          "cloudfront": "CloudFront delivers content to visitors. It plays no part in auditing the account."
+        }
       }
     },
     {
@@ -749,7 +2149,7 @@
       "requirements": [
         "Run containers without managing servers",
         "Expose the API securely to the internet",
-        "Use a managed relational database with high availability",
+        "Move PostgreSQL to Aurora, with Multi-AZ high availability",
         "Cache hot catalogue reads"
       ],
       "required": [
@@ -757,10 +2157,10 @@
         "fargate",
         "apigateway",
         "aurora",
-        "elasticache"
+        "elasticache",
+        "vpc"
       ],
       "optional": [
-        "vpc",
         "cloudwatch",
         "iam",
         "kms",
@@ -779,14 +2179,15 @@
         "elasticache",
         "aurora"
       ],
-      "why": "An ECS service runs the API as tasks on Fargate in private subnets, so there are no servers to patch. API Gateway reaches the tasks privately through a VPC link, Aurora PostgreSQL provides a multi-AZ managed database, and ElastiCache serves hot catalogue reads from memory using cache-aside, taking load off Aurora.",
+      "why": "An ECS service runs the API as tasks on Fargate, so there are no servers to patch. API Gateway reaches the tasks privately through a VPC link to an internal load balancer in front of them. With an HTTP API, Cloud Map service discovery can replace the load balancer. Aurora PostgreSQL provides a managed Multi-AZ database. ElastiCache serves hot catalogue reads from memory using cache-aside, which takes load off Aurora. The backend runs inside a VPC: the tasks, Aurora and ElastiCache sit in private subnets across two AZs.",
+      "simpleWhy": "Containers run on Fargate with no servers to patch. A cache serves popular items fast, and everything stays in private rooms.",
       "pillarBonus": {
         "operational": {
           "services": [
             "cloudwatch",
             "ecs"
           ],
-          "tip": "Use rolling or blue/green ECS deployments with the circuit breaker and Container Insights."
+          "tip": "Use rolling deployments with the circuit breaker (or ECS blue/green for quick rollback) and Container Insights."
         },
         "security": {
           "services": [
@@ -815,7 +2216,7 @@
             "fargate",
             "elasticache"
           ],
-          "tip": "Right-size task vCPU/memory, consider Fargate Spot for tolerant work, and let caching shrink the database."
+          "tip": "Right-size task vCPU and memory, use Fargate Spot for work that can handle interruptions, and let caching shrink the database."
         },
         "sustainability": {
           "services": [
@@ -823,6 +2224,488 @@
             "aurora"
           ],
           "tip": "Managed, right-sized capacity and Aurora Serverless v2 scaling avoid idle over-provisioning."
+        }
+      },
+      "diagram": {
+        "cols": 7,
+        "rows": 4,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          {
+            "id": "region",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 2,
+            "y": 0,
+            "w": 5,
+            "h": 4
+          },
+          {
+            "id": "vpc",
+            "kind": "vpc",
+            "label": "VPC, private subnets",
+            "x": 3,
+            "y": 1,
+            "w": 4,
+            "h": 2,
+            "service": "vpc"
+          },
+          {
+            "id": "aza",
+            "kind": "az",
+            "label": "AZ a",
+            "x": 4,
+            "y": 1,
+            "w": 3,
+            "h": 1
+          },
+          {
+            "id": "azb",
+            "kind": "az",
+            "label": "AZ b",
+            "x": 4,
+            "y": 2,
+            "w": 3,
+            "h": 1
+          }
+        ],
+        "nodes": [
+          {
+            "id": "shoppers",
+            "actor": "users",
+            "x": 0,
+            "y": 1,
+            "role": "Shoppers"
+          },
+          {
+            "id": "cdn",
+            "service": "cloudfront",
+            "x": 1,
+            "y": 1,
+            "role": "Serve from nearby"
+          },
+          {
+            "id": "api",
+            "service": "apigateway",
+            "x": 2,
+            "y": 1,
+            "role": "Front door"
+          },
+          {
+            "id": "service",
+            "service": "ecs",
+            "x": 2,
+            "y": 0,
+            "role": "Keep tasks running"
+          },
+          {
+            "id": "lb",
+            "fixed": "alb",
+            "x": 3,
+            "y": 1,
+            "role": "Load balancer"
+          },
+          {
+            "id": "tasks",
+            "service": "fargate",
+            "x": 4,
+            "y": 1,
+            "role": "Run containers"
+          },
+          {
+            "id": "tasks2",
+            "mirrorOf": "tasks",
+            "x": 4,
+            "y": 2,
+            "role": "Run containers"
+          },
+          {
+            "id": "cache",
+            "service": "elasticache",
+            "x": 5,
+            "y": 2,
+            "role": "Speed up reads"
+          },
+          {
+            "id": "db",
+            "service": "aurora",
+            "x": 6,
+            "y": 1,
+            "role": "Main database"
+          },
+          {
+            "id": "standby",
+            "mirrorOf": "db",
+            "x": 6,
+            "y": 2,
+            "role": "Replica (other AZ)"
+          },
+          {
+            "id": "key",
+            "service": "kms",
+            "side": true,
+            "x": 2,
+            "y": 3,
+            "role": "Encryption key"
+          },
+          {
+            "id": "roles",
+            "service": "iam",
+            "side": true,
+            "x": 3,
+            "y": 3,
+            "role": "Permissions"
+          },
+          {
+            "id": "logs",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 4,
+            "y": 3,
+            "role": "Watch and alert"
+          }
+        ],
+        "edges": [
+          {
+            "from": "shoppers",
+            "to": "cdn",
+            "label": "HTTPS",
+            "caption": "Shoppers' requests reach CloudFront first.",
+            "step": 1
+          },
+          {
+            "from": "cdn",
+            "to": "api",
+            "label": "Forward",
+            "caption": "CloudFront forwards API calls to API Gateway.",
+            "step": 2
+          },
+          {
+            "from": "api",
+            "to": "lb",
+            "label": "VPC link",
+            "caption": "A VPC link takes the call privately to the load balancer inside the VPC.",
+            "step": 3
+          },
+          {
+            "from": "lb",
+            "to": "tasks",
+            "label": "Route",
+            "caption": "The load balancer sends each request to a healthy task, in either AZ.",
+            "step": 4
+          },
+          {
+            "from": "lb",
+            "to": "tasks2",
+            "label": "Route",
+            "caption": "The load balancer sends each request to a healthy task, in either AZ.",
+            "step": 4,
+            "bend": "v"
+          },
+          {
+            "from": "tasks",
+            "to": "cache",
+            "label": "Cache lookup",
+            "caption": "The app checks ElastiCache first for hot catalogue reads.",
+            "step": 5
+          },
+          {
+            "from": "tasks",
+            "to": "db",
+            "label": "Query on a miss",
+            "caption": "On a cache miss, it queries the Aurora PostgreSQL writer.",
+            "step": 6
+          },
+          {
+            "from": "service",
+            "to": "tasks",
+            "label": "Runs tasks",
+            "dashed": true
+          },
+          {
+            "from": "db",
+            "to": "standby",
+            "label": "Multi-AZ",
+            "dashed": true
+          }
+        ],
+        "rejects": {
+          "ec2": "The brief says no servers to manage. Fargate runs the containers.",
+          "ebs": "EBS is block storage for a server or task. Aurora manages its own storage for the catalogue.",
+          "beanstalk": "Elastic Beanstalk manages apps on EC2. Here ECS on Fargate runs the containers.",
+          "neptune": "Neptune is a graph database. The brief moves PostgreSQL to Aurora."
+        }
+      }
+    },
+    {
+      "id": "region-down",
+      "title": "When a Region Goes Dark",
+      "districtId": "networking",
+      "tier": 3,
+      "story": "In 2026 a whole AWS Region was damaged, and AWS said data kept only in that Region could not be brought back. The city's order app runs in one Region today. Make sure that if its Region goes dark, customers are sent somewhere safe and no orders are lost for good.",
+      "requirements": [
+        "Copies of the data in a second Region before anything breaks",
+        "Customers sent to the second Region automatically",
+        "The app can run in the second Region",
+        "The order table can be rebuilt from the copies"
+      ],
+      "required": [
+        "route53",
+        "apigateway",
+        "lambda",
+        "dynamodb",
+        "s3"
+      ],
+      "optional": [
+        "cloudwatch",
+        "kms"
+      ],
+      "distractors": [
+        "elasticache",
+        "ebs"
+      ],
+      "flow": [
+        "route53",
+        "apigateway",
+        "lambda",
+        "dynamodb",
+        "s3"
+      ],
+      "why": "Multi-AZ protects you when one building fails; only copies in another Region protect you when a whole Region is lost. When AWS's Bahrain Region was damaged in 2026, AWS told customers to recover from backups kept in other Regions. Export or back up the table to S3 and replicate that bucket to a second Region (or copy backups there with AWS Backup). Keep the app as code so it can be deployed again in minutes. Route 53 failover routing with health checks then answers with the second Region when the first one stops responding.",
+      "simpleWhy": "Two zones save you when one building fails. Losing a whole Region needs backups in another Region, ready to switch to.",
+      "pillarBonus": {
+        "operational": {
+          "services": [
+            "cloudwatch"
+          ],
+          "tip": "Practise the failover on a calm day (a game day), so the first time isn't the real disaster."
+        },
+        "security": {
+          "services": [
+            "kms"
+          ],
+          "tip": "Encrypt the backup copies with a key that also exists in the second Region, or you can't read them there."
+        },
+        "reliability": {
+          "services": [
+            "s3",
+            "route53",
+            "dynamodb"
+          ],
+          "tip": "Copies in another Region plus health-checked failover remove the Region as a single point of failure."
+        },
+        "performance": {
+          "services": [
+            "route53"
+          ],
+          "tip": "Health checks every few seconds mean customers are moved within minutes, not hours."
+        },
+        "cost": {
+          "services": [
+            "s3",
+            "lambda"
+          ],
+          "tip": "Backup and restore is the cheapest recovery plan: you pay for stored copies, not for a second app running all the time."
+        },
+        "sustainability": {
+          "services": [
+            "lambda",
+            "s3"
+          ],
+          "tip": "Serverless code in the second Region uses no energy until it's needed."
+        }
+      },
+      "diagram": {
+        "cols": 5,
+        "rows": 4,
+        "groups": [
+          {
+            "id": "cloud",
+            "kind": "cloud",
+            "label": "AWS Cloud",
+            "x": 1,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          },
+          {
+            "id": "regionA",
+            "kind": "region",
+            "label": "{cityRegion}",
+            "x": 2,
+            "y": 0,
+            "w": 3,
+            "h": 1
+          },
+          {
+            "id": "regionB",
+            "kind": "region",
+            "label": "Second Region",
+            "x": 2,
+            "y": 2,
+            "w": 3,
+            "h": 2
+          }
+        ],
+        "nodes": [
+          {
+            "id": "users",
+            "actor": "users",
+            "x": 0,
+            "y": 1,
+            "role": "Customers"
+          },
+          {
+            "id": "dns",
+            "service": "route53",
+            "x": 1,
+            "y": 1,
+            "role": "Fail over"
+          },
+          {
+            "id": "api",
+            "service": "apigateway",
+            "x": 2,
+            "y": 0,
+            "role": "Front door"
+          },
+          {
+            "id": "fn",
+            "service": "lambda",
+            "x": 3,
+            "y": 0,
+            "role": "Order logic"
+          },
+          {
+            "id": "table",
+            "service": "dynamodb",
+            "x": 4,
+            "y": 0,
+            "role": "Orders"
+          },
+          {
+            "id": "api2",
+            "mirrorOf": "api",
+            "x": 2,
+            "y": 2,
+            "role": "Front door"
+          },
+          {
+            "id": "fn2",
+            "mirrorOf": "fn",
+            "x": 3,
+            "y": 2,
+            "role": "Order logic"
+          },
+          {
+            "id": "restored",
+            "service": "dynamodb",
+            "x": 4,
+            "y": 2,
+            "role": "Restored orders"
+          },
+          {
+            "id": "backups",
+            "service": "s3",
+            "x": 4,
+            "y": 3,
+            "role": "Backup copies"
+          },
+          {
+            "id": "alarms",
+            "service": "cloudwatch",
+            "side": true,
+            "x": 1,
+            "y": 3,
+            "role": "Watch and alert"
+          },
+          {
+            "id": "key",
+            "service": "kms",
+            "side": true,
+            "x": 1,
+            "y": 2,
+            "role": "Encryption key"
+          }
+        ],
+        "edges": [
+          {
+            "from": "users",
+            "to": "dns",
+            "label": "Look up",
+            "caption": "Customers look up the app's name in Route 53.",
+            "step": 1
+          },
+          {
+            "from": "dns",
+            "to": "api",
+            "label": "Healthy: first Region",
+            "caption": "While the first Region passes its health checks, Route 53 answers with it.",
+            "step": 2,
+            "bend": "v"
+          },
+          {
+            "from": "dns",
+            "to": "api2",
+            "label": "Failover",
+            "caption": "When the health checks fail, failover routing answers with the second Region.",
+            "step": 3,
+            "bend": "v"
+          },
+          {
+            "from": "api",
+            "to": "fn",
+            "label": "Invoke",
+            "caption": "API Gateway runs the order function in the first Region.",
+            "step": 4
+          },
+          {
+            "from": "api2",
+            "to": "fn2",
+            "label": "Invoke",
+            "caption": "The same code, deployed again, runs in the second Region.",
+            "step": 4
+          },
+          {
+            "from": "fn",
+            "to": "table",
+            "label": "Write order",
+            "caption": "Orders are written to the table in the first Region.",
+            "step": 5
+          },
+          {
+            "from": "fn2",
+            "to": "restored",
+            "label": "Read and write",
+            "caption": "After failover, the app uses the table restored in the second Region.",
+            "step": 5
+          },
+          {
+            "from": "table",
+            "to": "backups",
+            "label": "Copy backups",
+            "caption": "Backups are copied to a bucket in the second Region before anything breaks.",
+            "step": 6
+          },
+          {
+            "from": "backups",
+            "to": "restored",
+            "label": "Restore",
+            "caption": "After the disaster, the order table is rebuilt from those copies.",
+            "step": 7
+          }
+        ],
+        "rejects": {
+          "elasticache": "A cache keeps copies for speed, not safety: it disappears with its Region.",
+          "ebs": "An EBS volume lives in one Availability Zone; it can't carry data to another Region by itself."
         }
       }
     }

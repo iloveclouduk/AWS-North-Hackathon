@@ -27,15 +27,17 @@ export interface Place {
   activity: ActivityKind;
   /** One-line hook shown on the landmark card. */
   blurb: string;
-  /** Concepts the landmark teaches, Foundation → Expert. */
+  /** One kid-readable sentence, metaphor first: what the service is. */
+  simple: string;
+  /** Concepts the landmark teaches, Novice → Master. */
   teaches: string[];
-  /** What unlocking each tier means: [Foundation, Associate, Professional, Expert]. */
+  /** What unlocking each tier means: [Novice, Practitioner, Expert, Master]. */
   tiers: string[];
   /** Mini-game id, if the place is playable. */
   game?: GameId;
 }
 
-export type GameId = 'fishing' | 'shield' | 'route53' | 'lambda';
+export type GameId = 'fishing' | 'shield' | 'route53' | 'lambda' | 'ec2' | 'dynamodb';
 
 export const PLACES: Place[] = world.services.map((s) => ({
   serviceId: s.id,
@@ -44,6 +46,7 @@ export const PLACES: Place[] = world.services.map((s) => ({
   agentName: s.agentName,
   activity: s.activity as ActivityKind,
   blurb: s.blurb,
+  simple: (s as { simple?: string }).simple ?? s.blurb,
   teaches: s.teaches,
   tiers: s.tiers,
   game: (s as { game?: string }).game as GameId | undefined,

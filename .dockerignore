@@ -1,0 +1,14 @@
+**/node_modules
+**/.output
+**/.cache
+**/.wxt
+**/dist
+.git
+.claude
+server/.data
+*.log
+# Local secrets and settings never go into an image (server/.env too: the Dockerfile copies server/).
+# The committed .env.example is matched as well; nothing in the image needs it.
+**/.env*
+aws-city.config.json
+**/cdk.out

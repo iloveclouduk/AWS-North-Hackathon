@@ -16,6 +16,9 @@ export const fakeLlm = (responses: Anthropic.Message[], streamText = 'Use EFS wh
   const calls: Params[] = [];
   const llm = {
     model: 'test',
+    client: undefined,
+    gate: async () => undefined,
+    canFallBack: (opts: { fallback?: boolean } = {}) => !opts.fallback,
     create: vi.fn(async (p: Params) => {
       // Snapshot the request, since the runner keeps appending to the same array.
       calls.push(structuredClone(p));

@@ -1,0 +1,238 @@
+/* AWS City UI — the agentic-city prototype's purple/orange look, on a small token set.
+   Every colour, size, gap and radius below comes from these tokens. */
+:root {
+  /* surfaces: warm graphite, so the pixel city carries the colour and the UI recedes */
+  --bg: #15171b;
+  --bg-deep: #0f1114;
+  --glow-1: #1b1e23;
+  --glow-2: #181a1f;
+  --panel: #1e2126;
+  --panel-2: #24282e;
+  --panel-3: #191c20;
+  --panel-hi: #2c3138;
+  --line: #2c3038;
+  --line-strong: #3a3f48;
+  --sunken: rgba(0, 0, 0, 0.25);
+  --scrim: rgba(8, 9, 11, 0.66);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --black: #000;
+
+  /* ink */
+  --ink: #e6e2d8;
+  --ink-hi: #fff8ee;
+  --ink-soft: #c9c4b8;
+  --muted: #8b8f98; /* 5.3:1 on --panel */
+
+  /* accent (amber): one per screen */
+  --accent: #f0a63a;
+  --accent-ink: #2a1a04;
+  --accent-soft: rgba(240, 166, 58, 0.13);
+  --accent-line: rgba(240, 166, 58, 0.45);
+
+  /* semantic */
+  --good: #5db39e;
+  --good-ink: #bfe8dc;
+  --warn: #e8c15a;
+  --bad: #e5676b;
+  --bad-ink: #f6c9ca;
+  --bad-soft: rgba(229, 103, 107, 0.13);
+  --bad-line: rgba(229, 103, 107, 0.5);
+  --info: #8fb8e8;
+  --info-ink: #d6e4f5;
+  --code: #9fd4c6;
+  --highlight: #f6e7c1;
+  --quote: #f3dfb5;
+  --quote-ink: #1f1608;
+  --meter-lo: #c9862b;
+  --meter-hi: #f0a63a;
+  --plaza-a: #2a2f37;
+  --plaza-b: #22262c;
+
+  /* paper (flashcards, agent bubbles) */
+  /* parchment sits below the city in brightness */
+  --paper: #d9cfba;
+  --paper-back: #d2c7b0;
+
+  /* AWS Architecture Icon category colours (district colours; exact values from the official icon package) */
+  --aws-compute: #ed7100;
+  --aws-storage: #7aa116;
+  --aws-database: #c925d1;
+  --aws-networking: #8c4fff;
+  --aws-security: #dd344c;
+  --aws-aiml: #01a88d;
+  --gold: #ffc233;
+  --gold-hi: #fff1b8;
+  --gold-deep: #b7791f;
+  --paper-ink: #1b1200;
+  --paper-meta: #92400e;
+  --paper-hint: #6b7280;
+  --bubble: #fff;
+  --bubble-ink: #111;
+  --role-ok: #047857;
+  --map-sea: #0b2440;
+  --map-land: #2f6f4f;
+
+  /* type: 12px is the floor for body text; 11px only for non-essential labels */
+  --font-ui: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-pixel: 'Press Start 2P', 'Nunito', sans-serif;
+  --font-mono: ui-monospace, Menlo, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-lg: 15px;
+  --fs-xl: 17px;
+  /* Press Start 2P is drawn on an 8px grid: only these sizes stay crisp */
+  --fs-pixel: 11px;
+  --fs-pixel-lg: 15px;
+
+  /* spacing */
+  --s-1: 2px;
+  --s-2: 4px;
+  --s-3: 6px;
+  --s-4: 8px;
+  --s-5: 12px;
+  --s-6: 16px;
+
+  /* radii: tight, so panels read as tiles of the pixel city */
+  --r-sm: 2px;
+  --r-md: 4px;
+  --r-lg: 6px;
+  --r-pill: 999px;
+
+  /* elevation: soft and low; the pixel city is the only hard-edged thing */
+  --shadow-pixel: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-pixel-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-float: 0 12px 32px var(--shadow);
+
+  /* motion: short, and stepped like sprite frames */
+  --dur-1: 80ms;
+  --dur-2: 160ms;
+  --dur-3: 320ms;
+  --ease-step: steps(3, end);
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* layers */
+  --z-toast: 10;
+  --z-tour: 100;
+
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  color: var(--ink);
+  background: var(--bg);
+  color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* Nunito + Press Start 2P are also drawn into Phaser text, so they must be loaded before first paint. */
+@font-face {
+  font-family: 'Nunito';
+  src: url('/assets/fonts/Nunito.ttf') format('truetype');
+  font-weight: 200 1000;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('/assets/fonts/PressStart2P.ttf') format('truetype');
+  font-display: block;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+/* Chromium's extension-page UA sheet sets body { font-size: 75% } — restate the base on body. */
+body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  background: var(--bg);
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+input,
+select {
+  font: inherit;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--code);
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.muted {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.empty {
+  color: var(--muted);
+  text-align: center;
+  padding: var(--s-6) var(--s-4);
+  line-height: 1.5;
+}
+/* Empty state: a pixel sprite, one line, one action. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-6) var(--s-4);
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state .sprite {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  animation: bob 1.6s ease-in-out infinite;
+}
+.empty-state b {
+  color: var(--ink);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+}
+@keyframes bob {
+  50% {
+    transform: translateY(-2px);
+  }
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border: 2px solid var(--panel);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,183 @@
+/* ── quests ── */
+.quests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.quest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.quest-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.quest-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.quest-title b {
+  font-size: var(--fs-lg);
+  line-height: 1.25;
+}
+.xp-chip {
+  flex: none;
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.quest-intro {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+.quest .btn.primary {
+  align-self: flex-start;
+}
+.segs-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.segs-row .segs {
+  flex: 1;
+}
+.segs-count {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: var(--fs-pixel);
+  color: var(--muted);
+}
+.quest-steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+}
+.quest-steps .ico.n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--muted);
+  border: 1px solid var(--line-strong);
+}
+.quest-steps .ico.n.done {
+  color: var(--bg);
+  background: var(--good);
+  border-color: var(--good);
+}
+.quest-steps .ico.n.running {
+  color: var(--accent-ink);
+  background: var(--district, var(--accent));
+  border-color: transparent;
+}
+.quest-steps .step-text {
+  flex: 1;
+  min-width: 0;
+}
+.quest-steps li.running {
+  background: var(--panel-2);
+}
+.quest-steps li.running .btn {
+  margin-left: 0;
+}
+/* a finished quest: one folded line with a stamp */
+.quest.done {
+  padding-top: var(--s-3);
+  padding-bottom: var(--s-3);
+  opacity: 0.85;
+}
+.quest.done[open] {
+  opacity: 1;
+}
+.quest.done summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  cursor: pointer;
+  list-style: none;
+}
+.quest.done summary::-webkit-details-marker {
+  display: none;
+}
+.quest.done summary .quest-head {
+  flex: 1;
+}
+.stamp {
+  font-size: var(--fs-xl);
+  transform: rotate(-12deg);
+  filter: drop-shadow(0 2px 0 var(--black));
+  animation: stamp var(--dur-3) var(--ease-step);
+}
+@keyframes stamp {
+  from {
+    transform: rotate(-12deg) scale(2);
+    opacity: 0;
+  }
+}
+
+/* A finished quest's one big moment (src/ui/Celebrate.tsx). */
+.celebrate {
+  text-align: center;
+}
+.celebrate-burst {
+  font-size: 40px;
+  line-height: 1;
+  margin: var(--s-2) 0 var(--s-3);
+  animation: celebrate-pop 600ms cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.celebrate h3 {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-pixel);
+  color: var(--accent);
+}
+.celebrate-name {
+  margin: var(--s-2) 0 0;
+  font-weight: 800;
+}
+.celebrate-stars {
+  margin: var(--s-3) 0;
+  font-size: var(--fs-xl);
+  font-weight: 900;
+}
+.celebrate-say {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  text-align: left;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.celebrate-say p {
+  margin: 0;
+}
+.celebrate-actions {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+@keyframes celebrate-pop {
+  from {
+    transform: scale(0.3) rotate(-12deg);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-burst {
+    animation: none;
+  }
+}

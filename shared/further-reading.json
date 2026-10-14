@@ -1,0 +1,53 @@
+{
+  "asOf": "2026-10-12",
+  "note": "Learn more: free, public reading from AWS's learning partners, linked (never copied) from each building's card (src/ui/ReadingShelf.tsx). Every link was opened and checked on asOf. Our own cards restate facts in our words and cite AWS docs.",
+  "partners": {
+    "tutorialsdojo": { "name": "Tutorials Dojo", "kind": "Cheat sheet", "home": "https://tutorialsdojo.com/aws-cheat-sheets/", "free": true },
+    "awsfundamentals": { "name": "AWS Fundamentals", "kind": "Articles", "home": "https://awsfundamentals.com/blog", "free": true },
+    "oreilly": { "name": "O'Reilly", "kind": "Book", "home": "https://www.oreilly.com/", "free": false }
+  },
+  "books": [
+    { "id": "aws-fundamentals", "title": "AWS Fundamentals", "authors": "Tobias Schmidt and Sandro Volpicella", "publisher": "AWS Fundamentals", "url": "https://awsfundamentals.com/books/aws-fundamentals", "free": false, "freeSample": true, "services": ["ec2", "lambda", "ecs", "s3", "dynamodb", "rds", "vpc", "route53", "cloudfront", "apigateway", "sqs", "eventbridge", "iam", "cognito", "cloudwatch"] },
+    { "id": "aws-cookbook", "title": "AWS Cookbook", "authors": "John Culkin and Mike Zazon", "publisher": "O'Reilly", "year": 2021, "isbn": "9781492092599", "url": "https://www.oreilly.com/library/view/aws-cookbook/9781492092599/", "free": false, "services": ["ec2", "ecs", "fargate", "lambda", "s3", "ebs", "efs", "rds", "aurora", "dynamodb", "vpc", "route53", "iam", "kms", "cloudwatch", "athena", "glue", "rekognition", "textract"] },
+    { "id": "serverless-development", "title": "Serverless Development on AWS", "authors": "Sheen Brisals and Luke Hedger", "publisher": "O'Reilly", "year": 2024, "isbn": "9781098141929", "url": "https://www.oreilly.com/library/view/serverless-development-on/9781098141929/", "free": false, "services": ["lambda", "apigateway", "dynamodb", "sqs", "eventbridge", "cognito", "cloudwatch"] },
+    { "id": "generative-ai-on-aws", "title": "Generative AI on AWS", "authors": "Chris Fregly, Antje Barth and Shelbee Eigenbrode", "publisher": "O'Reilly", "year": 2023, "isbn": "9781098159214", "url": "https://www.oreilly.com/library/view/generative-ai-on/9781098159214/", "free": false, "services": ["bedrock", "sagemaker"] }
+  ],
+  "services": {
+    "ec2": { "cheatSheet": "https://tutorialsdojo.com/amazon-elastic-compute-cloud-amazon-ec2/", "articles": "https://awsfundamentals.com/blog/service/ec2" },
+    "lambda": { "cheatSheet": "https://tutorialsdojo.com/aws-lambda/", "articles": "https://awsfundamentals.com/blog/service/lambda" },
+    "ecs": { "cheatSheet": "https://tutorialsdojo.com/amazon-elastic-container-service-amazon-ecs/", "articles": "https://awsfundamentals.com/blog/service/ecs" },
+    "fargate": { "cheatSheet": "https://tutorialsdojo.com/aws-fargate/", "articles": "https://awsfundamentals.com/blog/ecs-on-fargate" },
+    "eks": { "cheatSheet": "https://tutorialsdojo.com/amazon-elastic-kubernetes-service-eks/", "articles": "https://awsfundamentals.com/blog/service/eks" },
+    "beanstalk": { "cheatSheet": "https://tutorialsdojo.com/aws-elastic-beanstalk/", "articles": "https://awsfundamentals.com/blog/service/elastic-beanstalk" },
+    "s3": { "cheatSheet": "https://tutorialsdojo.com/amazon-s3/", "articles": "https://awsfundamentals.com/blog/service/s3" },
+    "ebs": { "cheatSheet": "https://tutorialsdojo.com/amazon-ebs/" },
+    "efs": { "cheatSheet": "https://tutorialsdojo.com/amazon-efs/" },
+    "glue": { "cheatSheet": "https://tutorialsdojo.com/aws-glue/" },
+    "athena": { "cheatSheet": "https://tutorialsdojo.com/amazon-athena/", "articles": "https://awsfundamentals.com/blog/service/athena" },
+    "lakeformation": { "cheatSheet": "https://tutorialsdojo.com/aws-lake-formation/" },
+    "dynamodb": { "cheatSheet": "https://tutorialsdojo.com/amazon-dynamodb/", "articles": "https://awsfundamentals.com/blog/service/dynamodb" },
+    "rds": { "cheatSheet": "https://tutorialsdojo.com/amazon-relational-database-service-amazon-rds/", "articles": "https://awsfundamentals.com/blog/service/rds" },
+    "aurora": { "cheatSheet": "https://tutorialsdojo.com/amazon-aurora/" },
+    "elasticache": { "cheatSheet": "https://tutorialsdojo.com/amazon-elasticache/" },
+    "redshift": { "cheatSheet": "https://tutorialsdojo.com/amazon-redshift/" },
+    "neptune": { "cheatSheet": "https://tutorialsdojo.com/amazon-neptune/" },
+    "vpc": { "cheatSheet": "https://tutorialsdojo.com/amazon-vpc/", "articles": "https://awsfundamentals.com/blog/service/vpc" },
+    "route53": { "cheatSheet": "https://tutorialsdojo.com/amazon-route-53/", "articles": "https://awsfundamentals.com/blog/service/route53" },
+    "cloudfront": { "cheatSheet": "https://tutorialsdojo.com/amazon-cloudfront/", "articles": "https://awsfundamentals.com/blog/service/cloudfront" },
+    "apigateway": { "cheatSheet": "https://tutorialsdojo.com/amazon-api-gateway/", "articles": "https://awsfundamentals.com/blog/service/api-gateway" },
+    "sqs": { "cheatSheet": "https://tutorialsdojo.com/amazon-sqs/", "articles": "https://awsfundamentals.com/blog/service/sqs" },
+    "eventbridge": { "cheatSheet": "https://tutorialsdojo.com/amazon-eventbridge/", "articles": "https://awsfundamentals.com/blog/service/eventbridge" },
+    "iam": { "cheatSheet": "https://tutorialsdojo.com/aws-identity-and-access-management-iam/", "articles": "https://awsfundamentals.com/blog/service/iam" },
+    "cognito": { "cheatSheet": "https://tutorialsdojo.com/amazon-cognito/", "articles": "https://awsfundamentals.com/blog/service/cognito" },
+    "kms": { "cheatSheet": "https://tutorialsdojo.com/aws-key-management-service-aws-kms/" },
+    "shield": { "cheatSheet": "https://tutorialsdojo.com/aws-shield/" },
+    "guardduty": { "cheatSheet": "https://tutorialsdojo.com/amazon-guardduty/" },
+    "cloudwatch": { "cheatSheet": "https://tutorialsdojo.com/amazon-cloudwatch/", "articles": "https://awsfundamentals.com/blog/service/cloudwatch" },
+    "bedrock": { "cheatSheet": "https://tutorialsdojo.com/amazon-bedrock/", "articles": "https://awsfundamentals.com/blog/service/bedrock" },
+    "agentcore": { "cheatSheet": "https://tutorialsdojo.com/amazon-bedrock-agentcore/" },
+    "sagemaker": { "cheatSheet": "https://tutorialsdojo.com/amazon-sagemaker/" },
+    "q": { "cheatSheet": "https://tutorialsdojo.com/amazon-q/", "articles": "https://awsfundamentals.com/blog/service/amazon-q" },
+    "rekognition": { "cheatSheet": "https://tutorialsdojo.com/amazon-rekognition/" },
+    "textract": { "cheatSheet": "https://tutorialsdojo.com/amazon-textract/" }
+  }
+}

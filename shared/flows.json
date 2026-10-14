@@ -1,0 +1,95 @@
+{
+ "source": "https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/welcome.html",
+ "asOf": "2026-09-26",
+ "flows": [
+  {
+   "id": "serverless-api",
+   "name": "Serverless web API",
+   "serviceIds": [
+    "route53",
+    "cloudfront",
+    "apigateway",
+    "lambda",
+    "dynamodb"
+   ],
+   "explain": "DNS sends visitors to the edge, which forwards API calls to API Gateway. API Gateway invokes a function, and the function reads and writes a table.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-dynamo-db.html",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "static-site",
+   "name": "Static website",
+   "serviceIds": [
+    "route53",
+    "cloudfront",
+    "s3"
+   ],
+   "explain": "A website's files live in an S3 bucket, and CloudFront caches them close to visitors.",
+   "source": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.SimpleDistribution.html",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "signed-in-api",
+   "name": "Signed-in API",
+   "serviceIds": [
+    "cognito",
+    "apigateway",
+    "lambda",
+    "dynamodb"
+   ],
+   "explain": "Users sign in with Cognito; API Gateway checks their token before calling the backend.",
+   "source": "https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "event-driven",
+   "name": "Event-driven upload processing",
+   "serviceIds": [
+    "s3",
+    "eventbridge",
+    "lambda",
+    "sqs"
+   ],
+   "explain": "Once EventBridge is turned on for the bucket, each new object raises an event. A rule routes it to a function that queues follow-up work.",
+   "source": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventBridge.html",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "data-lake",
+   "name": "Data lake analytics",
+   "serviceIds": [
+    "s3",
+    "glue",
+    "athena"
+   ],
+   "explain": "Glue catalogues the files in S3 so Athena can query them with SQL where they lie.",
+   "source": "https://docs.aws.amazon.com/athena/latest/ug/data-sources-glue.html",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "genai-app",
+   "name": "Generative AI app",
+   "serviceIds": [
+    "apigateway",
+    "lambda",
+    "bedrock"
+   ],
+   "explain": "An API calls a function that asks a foundation model on Bedrock and returns the answer.",
+   "source": "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html",
+   "asOf": "2026-09-26"
+  },
+  {
+   "id": "containers",
+   "name": "Container service",
+   "serviceIds": [
+    "route53",
+    "ecs",
+    "fargate",
+    "rds"
+   ],
+   "explain": "DNS points at a load balancer that spreads requests across the tasks of an ECS service on Fargate. The tasks keep their data in a managed RDS database.",
+   "source": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-load-balancing.html",
+   "asOf": "2026-09-26"
+  }
+ ]
+}

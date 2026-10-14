@@ -14,5 +14,8 @@ export function review(prev: CardState | undefined, grade: Grade, now = Date.now
 
 export const isDue = (s: CardState | undefined, now = Date.now()) => !s || s.due <= now;
 
-/** XP for a review: learning something new is worth more than re-confirming it. */
-export const xpFor = (prev: CardState | undefined, grade: Grade) => (grade === 'again' ? 1 : prev?.reps ? 2 : 4);
+/**
+ * XP for a review: learning something new is worth more than re-confirming it. "New" means never reviewed before, not
+ * reps = 0: Again resets reps, and rating a card Again then Good used to pay the new-card stars over and over.
+ */
+export const xpFor = (prev: CardState | undefined, grade: Grade) => (grade === 'again' ? 1 : prev ? 2 : 4);

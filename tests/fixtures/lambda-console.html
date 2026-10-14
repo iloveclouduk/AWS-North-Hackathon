@@ -1,0 +1,75 @@
+<!doctype html>
+<html><head><meta charset="utf-8" /><title>Functions - Lambda</title>
+<!-- A stand-in for Lambda "Create function": radio tiles (Author from scratch / blueprint / container),
+     a Cloudscape-like custom select for the runtime, and the form footer rendered inside an OPEN shadow
+     root (so the Copilot has to find and act on an element there). -->
+<link rel="stylesheet" href="/awscity-fixture/cloudscape.css" />
+</head>
+<body>
+<header>aws · Lambda</header>
+<main id="app">
+  <div class="col"><div class="awsui_container_x1"><h1>Functions (0)</h1>
+    <p>There is no data to display.</p>
+    <button class="awsui_button_x4 secondary" type="button" data-risky>Delete</button>
+    <button class="awsui_button_x4" id="create-start" type="button">Create function</button>
+  </div></div>
+</main>
+<script src="/awscity-fixture/cloudscape.js"></script>
+<script>
+const app = document.getElementById('app');
+
+customElements.define('lambda-form-footer', class extends HTMLElement {
+  connectedCallback() {
+    const root = this.attachShadow({ mode: 'open' });
+    root.innerHTML = `<link rel="stylesheet" href="/awscity-fixture/cloudscape.css" />
+      <div style="display:flex;gap:8px;justify-content:flex-end;max-width:780px">
+        <button class="awsui_button_x4 secondary" type="button">Cancel</button>
+        <button class="awsui_button_x4" id="create" type="button">Create function</button>
+      </div>`;
+    root.getElementById('create').addEventListener('click', () => this.dispatchEvent(new CustomEvent('create', { bubbles: true })));
+  }
+});
+
+document.getElementById('create-start').addEventListener('click', () => {
+  history.pushState({}, '', '/lambda/home?region=us-west-2#/create/function');
+  app.innerHTML = `
+  <div class="col">
+    <h1>Create function</h1>
+    <div class="awsui_container_x1"><h2>Choose one of the following options to create your function.</h2>
+      <div class="awsui_tiles_xa" role="radiogroup" aria-label="Create function options">
+        <label class="awsui_tile-container_xb" style="width:220px"><input class="awsui_radio-native_xc" type="radio" name="how" /> Author from scratch<span class="awsui_description_x9">Start with a simple Hello World example.</span></label>
+        <label class="awsui_tile-container_xb" style="width:220px"><input class="awsui_radio-native_xc" type="radio" name="how" checked /> Use a blueprint<span class="awsui_description_x9">Build a Lambda application from sample code.</span></label>
+        <label class="awsui_tile-container_xb" style="width:220px"><input class="awsui_radio-native_xc" type="radio" name="how" /> Container image<span class="awsui_description_x9">Select a container image to deploy.</span></label>
+      </div>
+    </div>
+    <div class="awsui_container_x1"><h2>Basic information</h2>
+      <div class="awsui_form-field_x2"><label id="fn-label" for="fn">Function name</label>
+        <input class="awsui_input_x3" id="fn" aria-labelledby="fn-label" placeholder="myFunctionName" /></div>
+      <div id="rt-field"></div>
+      <div class="awsui_tiles_xa" role="radiogroup" aria-label="Architecture">
+        <label class="awsui_tile-container_xb"><input class="awsui_radio-native_xc" type="radio" name="arch" checked /> x86_64</label>
+        <label class="awsui_tile-container_xb"><input class="awsui_radio-native_xc" type="radio" name="arch" /> arm64</label>
+      </div>
+    </div>
+    <lambda-form-footer></lambda-form-footer>
+  </div>`;
+  customSelect(document.getElementById('rt-field'), { id: 'rt', label: 'Runtime', value: 'Python 3.13', options: [
+    { label: 'Node.js 24.x', description: 'Latest supported' }, { label: 'Node.js 22.x' },
+    { label: 'Python 3.13' }, { label: 'Python 3.12' }, { label: 'Java 21' }, { label: 'Ruby 3.3' },
+  ] });
+  app.querySelector('lambda-form-footer').addEventListener('create', () => {
+    const name = document.getElementById('fn').value;
+    const runtime = document.getElementById('rt-field').dataset.value;
+    const how = [...document.querySelectorAll('input[name=how]')].findIndex((r) => r.checked);
+    if (!name) return alert('Function name is required');
+    app.innerHTML = '<div class="col"><div class="awsui_container_x1"><span class="awsui_spinner_xf">⏳</span> Creating the function ' + name + '…</div></div>';
+    setTimeout(() => {
+      history.pushState({}, '', '/lambda/home?region=us-west-2#/functions/' + name);
+      document.body.dataset.created = name + ' (' + runtime + (how === 0 ? ', from scratch' : ', NOT from scratch') + ')';
+      app.innerHTML = '<div class="col"><div class="awsui_flash_xd">Successfully created the function ' + name + '. You can now change its code and configuration.</div>' +
+        '<div class="awsui_container_x1"><h1>' + name + '</h1><p id="created">Runtime ' + runtime + '</p></div></div>';
+    }, 900);
+  });
+});
+</script>
+</body></html>

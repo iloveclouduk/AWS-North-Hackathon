@@ -1,0 +1,6492 @@
+{
+ "source": "https://knowledge-mcp.global.api.aws (AWS Knowledge MCP Server: https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-availability-zones.html, https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html, tool aws___get_regional_availability)",
+ "docs": {
+  "azs": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-availability-zones.html",
+  "overrides": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html https://docs.aws.amazon.com/neptune/latest/userguide/limits.html",
+  "regions": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html",
+  "availability": "https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/",
+  "azIds": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/az-ids.html"
+ },
+ "asOf": "2026-10-10",
+ "note": "AZ IDs are the same physical place in every account; AZ names (us-east-1a) may map to different AZ IDs per account in the oldest Regions. Regions outside the commercial partition (GovCloud, European Sovereign Cloud) have no published AZ ID table: azIds is empty and the city draws the documented minimum of three. Service status: available, planned (with a launch quarter), considering, not-planned, or outside-partition. Where a service's own Regions page disagrees with the tool, the page wins (docs.overrides).",
+ "global": [
+  "iam",
+  "route53",
+  "cloudfront"
+ ],
+ "products": {
+  "ec2": [
+   "Amazon Elastic Compute Cloud (EC2)"
+  ],
+  "lambda": [
+   "AWS Lambda"
+  ],
+  "ecs": [
+   "Amazon Elastic Container Service (ECS)"
+  ],
+  "fargate": [
+   "AWS Fargate"
+  ],
+  "eks": [
+   "Amazon Elastic Kubernetes Service (EKS)"
+  ],
+  "beanstalk": [
+   "AWS Elastic Beanstalk"
+  ],
+  "s3": [
+   "Amazon Simple Storage Service (S3)"
+  ],
+  "ebs": [
+   "Amazon Elastic Block Store (EBS)"
+  ],
+  "efs": [
+   "Amazon Elastic File System (EFS)"
+  ],
+  "glue": [
+   "AWS Glue"
+  ],
+  "athena": [
+   "Amazon Athena"
+  ],
+  "lakeformation": [
+   "AWS Lake Formation"
+  ],
+  "dynamodb": [
+   "Amazon DynamoDB"
+  ],
+  "rds": [
+   "Amazon Relational Database Service (RDS)"
+  ],
+  "aurora": [
+   "Amazon Aurora",
+   "Amazon Aurora DSQL"
+  ],
+  "elasticache": [
+   "Amazon ElastiCache"
+  ],
+  "redshift": [
+   "Amazon Redshift"
+  ],
+  "neptune": [
+   "Amazon Neptune"
+  ],
+  "vpc": [
+   "Amazon Virtual Private Cloud (VPC)"
+  ],
+  "route53": [
+   "Amazon Route 53"
+  ],
+  "cloudfront": [
+   "Amazon CloudFront"
+  ],
+  "apigateway": [
+   "Amazon API Gateway"
+  ],
+  "sqs": [
+   "Amazon Simple Queue Service (SQS)",
+   "Amazon Simple Notification Service (SNS)"
+  ],
+  "eventbridge": [
+   "Amazon EventBridge"
+  ],
+  "iam": [
+   "AWS Identity and Access Management (IAM)"
+  ],
+  "cognito": [
+   "Amazon Cognito"
+  ],
+  "kms": [
+   "AWS Key Management Service (KMS)"
+  ],
+  "shield": [
+   "AWS Shield",
+   "AWS WAF"
+  ],
+  "guardduty": [
+   "Amazon GuardDuty"
+  ],
+  "cloudwatch": [
+   "Amazon CloudWatch",
+   "AWS CloudTrail"
+  ],
+  "bedrock": [
+   "Amazon Bedrock"
+  ],
+  "agentcore": [
+   "Amazon Bedrock AgentCore"
+  ],
+  "sagemaker": [
+   "Amazon SageMaker AI"
+  ],
+  "q": [
+   "Amazon Q Developer",
+   "Amazon Q Business"
+  ],
+  "rekognition": [
+   "Amazon Rekognition"
+  ],
+  "textract": [
+   "Amazon Textract"
+  ]
+ },
+ "regions": {
+  "af-south-1": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "South Africa",
+   "azIds": [
+    "afs1-az1",
+    "afs1-az2",
+    "afs1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-east-1": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Hong Kong",
+   "azIds": [
+    "ape1-az1",
+    "ape1-az2",
+    "ape1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "considering"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-east-2": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Taiwan",
+   "azIds": [
+    "ape2-az1",
+    "ape2-az2",
+    "ape2-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "not-planned"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "considering",
+     "launch": "2027 Q1"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "not-planned",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "not-planned"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ]
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-northeast-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Japan",
+   "azIds": [
+    "apne1-az1",
+    "apne1-az2",
+    "apne1-az3",
+    "apne1-az4"
+   ],
+   "independentNames": true,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-northeast-2": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "South Korea",
+   "azIds": [
+    "apne2-az1",
+    "apne2-az2",
+    "apne2-az3",
+    "apne2-az4"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "ap-northeast-3": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Japan",
+   "azIds": [
+    "apne3-az1",
+    "apne3-az2",
+    "apne3-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-south-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "India",
+   "azIds": [
+    "aps1-az1",
+    "aps1-az2",
+    "aps1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "ap-south-2": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "India",
+   "azIds": [
+    "aps2-az1",
+    "aps2-az2",
+    "aps2-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available",
+     "source": "https://docs.aws.amazon.com/neptune/latest/userguide/limits.html"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-southeast-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Singapore",
+   "azIds": [
+    "apse1-az1",
+    "apse1-az2",
+    "apse1-az3"
+   ],
+   "independentNames": true,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "ap-southeast-2": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Australia",
+   "azIds": [
+    "apse2-az1",
+    "apse2-az2",
+    "apse2-az3"
+   ],
+   "independentNames": true,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "available"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "ap-southeast-3": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Indonesia",
+   "azIds": [
+    "apse3-az1",
+    "apse3-az2",
+    "apse3-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-southeast-4": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Australia",
+   "azIds": [
+    "apse4-az1",
+    "apse4-az2",
+    "apse4-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available",
+     "source": "https://docs.aws.amazon.com/neptune/latest/userguide/limits.html"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-southeast-5": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Malaysia",
+   "azIds": [
+    "apse5-az1",
+    "apse5-az2",
+    "apse5-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available",
+     "source": "https://docs.aws.amazon.com/neptune/latest/userguide/limits.html"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-southeast-6": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "New Zealand",
+   "azIds": [
+    "apse6-az1",
+    "apse6-az2",
+    "apse6-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "considering",
+     "launch": "2027 Q1"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "not-planned",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "not-planned"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ]
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ap-southeast-7": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Thailand",
+   "azIds": [
+    "apse7-az1",
+    "apse7-az2",
+    "apse7-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "considering"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "ca-central-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Canada",
+   "azIds": [
+    "cac1-az1",
+    "cac1-az2",
+    "cac1-az4"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "ca-west-1": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Canada",
+   "azIds": [
+    "caw1-az1",
+    "caw1-az2",
+    "caw1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available",
+     "source": "https://docs.aws.amazon.com/neptune/latest/userguide/limits.html"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "eu-central-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Germany",
+   "azIds": [
+    "euc1-az1",
+    "euc1-az2",
+    "euc1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ]
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "eu-central-2": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Switzerland",
+   "azIds": [
+    "euc2-az1",
+    "euc2-az2",
+    "euc2-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "considering"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "eu-north-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Sweden",
+   "azIds": [
+    "eun1-az1",
+    "eun1-az2",
+    "eun1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "eu-south-1": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Italy",
+   "azIds": [
+    "eus1-az1",
+    "eus1-az2",
+    "eus1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "considering",
+     "launch": "2027 Q1"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "eu-south-2": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Spain",
+   "azIds": [
+    "eus2-az1",
+    "eus2-az2",
+    "eus2-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available",
+     "source": "https://docs.aws.amazon.com/neptune/latest/userguide/limits.html"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "eu-west-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Ireland",
+   "azIds": [
+    "euw1-az1",
+    "euw1-az2",
+    "euw1-az3"
+   ],
+   "independentNames": true,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "available"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "eu-west-2": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "United Kingdom",
+   "azIds": [
+    "euw2-az1",
+    "euw2-az2",
+    "euw2-az3",
+    "euw2-az4"
+   ],
+   "regionsTableAzCount": 3,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "eu-west-3": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "France",
+   "azIds": [
+    "euw3-az1",
+    "euw3-az2",
+    "euw3-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "eusc-de-east-1": {
+   "partition": "aws-eusc",
+   "optIn": false,
+   "azIds": [],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "planned",
+     "launch": "2027 Q1"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "considering"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "planned",
+     "launch": "2026 Q4"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "not-planned",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "not-planned"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ]
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "il-central-1": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Israel",
+   "azIds": [
+    "ilc1-az1",
+    "ilc1-az2",
+    "ilc1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "me-central-1": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "United Arab Emirates",
+   "azIds": [
+    "mec1-az1",
+    "mec1-az2",
+    "mec1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "me-south-1": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Bahrain",
+   "azIds": [
+    "mes1-az1",
+    "mes1-az2",
+    "mes1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "mx-central-1": {
+   "partition": "aws",
+   "optIn": true,
+   "geography": "Mexico",
+   "azIds": [
+    "mxc1-az1",
+    "mxc1-az2",
+    "mxc1-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "not-planned"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "considering",
+     "launch": "2027 Q1"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "considering"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "note": "Free tier only in opt-in Regions",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "sa-east-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "Brazil",
+   "azIds": [
+    "sae1-az1",
+    "sae1-az2",
+    "sae1-az3"
+   ],
+   "independentNames": true,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "not-planned"
+    }
+   }
+  },
+  "us-east-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "United States of America",
+   "azIds": [
+    "use1-az1",
+    "use1-az2",
+    "use1-az3",
+    "use1-az4",
+    "use1-az5",
+    "use1-az6"
+   ],
+   "independentNames": true,
+   "comingAzs": [
+    {
+     "year": 2026,
+     "geography": "Maryland, United States of America"
+    }
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "available"
+      }
+     ]
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "us-east-2": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "United States of America",
+   "azIds": [
+    "use2-az1",
+    "use2-az2",
+    "use2-az3"
+   ],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "us-gov-east-1": {
+   "partition": "aws-us-gov",
+   "optIn": false,
+   "azIds": [],
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "outside-partition",
+     "source": "https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/setting-up-cloudfront.html"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "planned",
+     "launch": "2027 Q1"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ]
+    },
+    "rekognition": {
+     "status": "not-planned"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "us-gov-west-1": {
+   "partition": "aws-us-gov",
+   "optIn": false,
+   "azIds": [],
+   "independentNames": true,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "outside-partition",
+     "source": "https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/setting-up-cloudfront.html"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ]
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "us-west-1": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "United States of America",
+   "azIds": [
+    "usw1-az1",
+    "usw1-az2",
+    "usw1-az3"
+   ],
+   "fewerForNewAccounts": true,
+   "independentNames": true,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "considering"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "not-planned"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  },
+  "us-west-2": {
+   "partition": "aws",
+   "optIn": false,
+   "geography": "United States of America",
+   "azIds": [
+    "usw2-az1",
+    "usw2-az2",
+    "usw2-az3",
+    "usw2-az4"
+   ],
+   "independentNames": true,
+   "services": {
+    "ec2": {
+     "status": "available"
+    },
+    "lambda": {
+     "status": "available"
+    },
+    "ecs": {
+     "status": "available"
+    },
+    "fargate": {
+     "status": "available"
+    },
+    "eks": {
+     "status": "available"
+    },
+    "beanstalk": {
+     "status": "available"
+    },
+    "s3": {
+     "status": "available"
+    },
+    "ebs": {
+     "status": "available"
+    },
+    "efs": {
+     "status": "available"
+    },
+    "glue": {
+     "status": "available"
+    },
+    "athena": {
+     "status": "available"
+    },
+    "lakeformation": {
+     "status": "available"
+    },
+    "dynamodb": {
+     "status": "available"
+    },
+    "rds": {
+     "status": "available"
+    },
+    "aurora": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Aurora",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Aurora DSQL",
+       "status": "available"
+      }
+     ]
+    },
+    "elasticache": {
+     "status": "available"
+    },
+    "redshift": {
+     "status": "available"
+    },
+    "neptune": {
+     "status": "available"
+    },
+    "vpc": {
+     "status": "available"
+    },
+    "route53": {
+     "status": "available"
+    },
+    "cloudfront": {
+     "status": "available"
+    },
+    "apigateway": {
+     "status": "available"
+    },
+    "sqs": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Simple Queue Service (SQS)",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Simple Notification Service (SNS)",
+       "status": "available"
+      }
+     ]
+    },
+    "eventbridge": {
+     "status": "available"
+    },
+    "iam": {
+     "status": "available"
+    },
+    "cognito": {
+     "status": "available"
+    },
+    "kms": {
+     "status": "available"
+    },
+    "shield": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "AWS Shield",
+       "status": "available"
+      },
+      {
+       "product": "AWS WAF",
+       "status": "available"
+      }
+     ]
+    },
+    "guardduty": {
+     "status": "available"
+    },
+    "cloudwatch": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon CloudWatch",
+       "status": "available"
+      },
+      {
+       "product": "AWS CloudTrail",
+       "status": "available"
+      }
+     ]
+    },
+    "bedrock": {
+     "status": "available"
+    },
+    "agentcore": {
+     "status": "available"
+    },
+    "sagemaker": {
+     "status": "available"
+    },
+    "q": {
+     "status": "available",
+     "extra": [
+      {
+       "product": "Amazon Q Developer",
+       "status": "available"
+      },
+      {
+       "product": "Amazon Q Business",
+       "status": "available"
+      }
+     ],
+     "source": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/regions.html"
+    },
+    "rekognition": {
+     "status": "available"
+    },
+    "textract": {
+     "status": "available"
+    }
+   }
+  }
+ }
+}

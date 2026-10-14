@@ -1,0 +1,58 @@
+/* Accessibility settings (⋯ → Accessibility), set on <html> by App.tsx. They only override tokens, so every
+   area of the UI follows without its own rules. The city's own labels follow the text size in CityScene. */
+
+/* Text size. The pixel font stays on its 8px grid (11 → 15 px), so headings grow one step, not by a fraction. */
+:root[data-text='125'] {
+  --fs-xs: 13px;
+  --fs-sm: 15px;
+  --fs-md: 16px;
+  --fs-lg: 19px;
+  --fs-xl: 21px;
+  --fs-pixel: 15px;
+}
+:root[data-text='150'] {
+  --fs-xs: 16px;
+  --fs-sm: 18px;
+  --fs-md: 20px;
+  --fs-lg: 22px;
+  --fs-xl: 25px;
+  --fs-pixel: 15px;
+  --fs-pixel-lg: 19px;
+}
+
+/* High contrast: muted text near the body ink (≥ 10:1 on --panel), lines you can see, a thicker gold focus ring. */
+:root[data-contrast='high'] {
+  --muted: #d6d1c6;
+  --ink-soft: #f1ede4;
+  --ink: #fff8ee;
+  --line: #6b7280;
+  --line-strong: #9ca3af;
+  --accent-line: rgba(240, 166, 58, 0.85);
+}
+:root[data-contrast='high'] :focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Easy-read font: one plain, wide, widely installed sans-serif for everything, the pixel headings included. */
+:root[data-font='easy'] {
+  --font-ui: Verdana, 'Segoe UI', system-ui, sans-serif;
+  --font-pixel: Verdana, 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* ⋯ → Sound captions (SoundCaptions.tsx): a small pill above the bottom edge, never over the controls' focus. */
+.sound-caption {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--s-6) * 2);
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: var(--s-1) var(--s-3);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink-hi);
+  border: 2px solid var(--line);
+  font-size: var(--fs-sm);
+  pointer-events: none;
+}
