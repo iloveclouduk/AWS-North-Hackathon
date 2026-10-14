@@ -1016,10 +1016,18 @@ def build_landmarks(world):
     colors = {d["id"]: rgb(d["color"]) for d in world["districts"]}
     for fw, fh in ((3, 3), (2, 2), (1, 1)):
         add(f"construction{fw}x{fh}", construction(fw, fh), lights=False)
+    import growth_art
     for s in world["services"]:
         draw = drawer_for(s)
         for tier in (1, 2, 3, 4):
-            add(f"lm:{s['id']}:{tier}", draw(3, 3, tier, colors[s["districtId"]], f"{s['id']}{tier}"))
+            # the bespoke landmark in front of its knowledge tower (growth_art), with the empty sky trimmed
+            tower = growth_art.knowledge_tower(s["districtId"], tier, f"kt:{s['id']}")
+            img, anchor, lit = growth_art.with_tower(draw(3, 3, tier, colors[s["districtId"]], f"{s['id']}{tier}").finish(),
+                                                     tower.finish() if tower else None)
+            name = f"lm:{s['id']}:{tier}"
+            add(name, *growth_art.crop(img, anchor))
+            if lit is not None:
+                add(name + "@lights", *growth_art.crop(lit, anchor))
     for d in world["districts"]:
         add(f"hq:{d['id']}", hq(colors[d["id"]], d["id"]))
     add("spheres", spheres())
@@ -1133,6 +1141,8 @@ def main():
     signatures_art.build(add)
     import park_art
     park_art.build(add)
+    import legend_art
+    legend_art.build(add)
     build_landmarks(world)
     build_interior()
 

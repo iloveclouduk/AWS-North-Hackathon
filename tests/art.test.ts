@@ -109,6 +109,43 @@ describe('generated atlas (npm run art)', () => {
   });
 });
 
+describe('knowledge towers (art/tiles/growth_art.py)', () => {
+  type Anchor = { ax: number; ay: number; w: number; h: number };
+  const sprites = (JSON.parse(fs.readFileSync(path.resolve(__dirname, '../public/assets/city/sprites.json'), 'utf8')) as { sprites: Record<string, Anchor> }).sprites;
+  const pages = (JSON.parse(fs.readFileSync(path.resolve(__dirname, '../public/assets/city/atlas.json'), 'utf8')) as { textures: { size: { w: number; h: number } }[] }).textures;
+
+  it.each(world.services.map((s) => s.id))('%s rises with every level, Master far above its Novice building', (id) => {
+    // ay = how far the drawing reaches above the lot's N corner (the empty sky is trimmed)
+    const up = [1, 2, 3, 4].map((t) => sprites[`lm:${id}:${t}`]!.ay);
+    for (let t = 1; t < 4; t++) expect(up[t], `lm:${id}:${t + 1}`).toBeGreaterThan(up[t - 1]!);
+    expect(up[3]).toBeGreaterThanOrEqual(Math.max(2.5 * up[0]!, up[0]! + 100));
+  });
+
+  it('each night-lights layer sits on its building (same anchor at the lot corner; only a beacon\'s glow above the roof)', () => {
+    for (const [name, a] of Object.entries(sprites)) {
+      if (!name.startsWith('lm:') || !name.endsWith('@lights')) continue;
+      const img = sprites[name.replace('@lights', '')]!;
+      expect(a.ax, name).toBe(img.ax);
+      expect(a.ay, name).toBeLessThanOrEqual(img.ay + 4);
+    }
+  });
+
+  it('has the three legend crowns (art/tiles/legend_art.py), each with its night glow', () => {
+    for (const n of [1, 2, 3]) {
+      expect(sprites[`legend:${n}`], `legend:${n}`).toBeDefined();
+      expect(sprites[`legend:${n}@lights`], `legend:${n}@lights`).toBeDefined();
+    }
+    // each crown holds the ones below it, so each is taller
+    expect(sprites['legend:2']!.h).toBeGreaterThan(sprites['legend:1']!.h);
+    expect(sprites['legend:3']!.h).toBeGreaterThan(sprites['legend:2']!.h);
+  });
+
+  it('the atlas stays within 3 pages of 2048 px (safe on every GPU, light in the side panel)', () => {
+    expect(pages.length).toBeLessThanOrEqual(3);
+    for (const p of pages) expect(Math.max(p.size.w, p.size.h)).toBeLessThanOrEqual(2048);
+  });
+});
+
 describe('crowd-size characters (art/characters/crowd_small.py)', () => {
   const CHARS = path.resolve(__dirname, '../public/assets/characters');
   const index = JSON.parse(fs.readFileSync(path.join(CHARS, 'index.json'), 'utf8')) as Record<string, { role: string; anims: string[]; frame?: number[]; of?: string }>;
