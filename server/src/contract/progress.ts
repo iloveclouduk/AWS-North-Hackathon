@@ -10,7 +10,7 @@ const bounded = <T extends z.ZodType>(value: T, max: number, what: string) =>
 
 const landmark = z.object({ discovered: z.boolean(), xp: z.number().int().min(0).max(1_000_000) }).strict();
 
-/** Mirrors Progress in src/backend/contract.ts (v1 and v2, with the v2.3 citizens and fixes, the v2.4 streak, the v2.5 bill switch and the v2.7 cities). Strict: unknown fields fail. */
+/** Mirrors Progress in src/backend/contract.ts (v1 and v2, with the v2.3 citizens and fixes, the v2.4 streak, the v2.5 bill switch, the v2.7 cities and the v2.9 finds). Strict: unknown fields fail. */
 export const ProgressSchema = z
   .object({
     version: z.union([z.literal(1), z.literal(2)]),
@@ -41,6 +41,8 @@ export const ProgressSchema = z
     /** v2.5: the bill switch. */
     bill: z.boolean().optional(),
     flow: z.boolean().optional(),
+    /** v2.9: golden tokens found, token id → local date. */
+    finds: bounded(z.string().regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/), 1_000, 'finds').optional(),
     updatedAt: z.iso.datetime({ offset: true }),
   })
   .strict();

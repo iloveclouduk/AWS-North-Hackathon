@@ -1,4 +1,4 @@
-# Backend contract v2.8
+# Backend contract v2.9
 
 **Source of truth:** `src/backend/contract.ts`. If this doc and that file disagree, the file wins,
 so fix this doc. Both backends import or mirror that file:
@@ -173,4 +173,10 @@ Agents act in the player's live, logged-in AWS console, one visible step at a ti
 - The city drives request cars for these rates (`carsPerMinute`, log-scaled, at most 6 a minute per source, inside
   the data-carrier cap): from the highway to the AZ islands that served the load balancer's requests, and to each
   other service's building.
+
+**v2.9 additions, golden tokens (optional):**
+
+- `Progress.finds?: {[tokenId]: 'YYYY-MM-DD'}`: the golden tokens the player found walking round their cities
+  (`src/world/tokens.ts`, six per city, ids `<regionCode>:<n>`), with the local date each was found. Merged as a union;
+  the earlier date wins. The server stores it like the rest of `Progress` (at most 1,000 entries).
 

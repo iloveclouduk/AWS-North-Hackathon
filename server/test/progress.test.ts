@@ -52,6 +52,15 @@ describe('progress the client actually sends (contract v2 / v2.3)', () => {
     expect((await store.put({ ...v2, bill: { on: true } })).ok).toBe(false);
   });
 
+  it('stores golden tokens found (v2.9) as local dates only', async () => {
+    const store = createProgressStore(file());
+    const finds = { 'us-west-2:0': '2026-10-13', 'eu-west-2:5': '2026-10-01' };
+    expect(await store.put({ ...v2, finds })).toEqual({ ok: true });
+    expect((await store.get())?.finds).toEqual(finds);
+    expect((await store.put({ ...v2, finds: { 'us-west-2:0': 'yesterday' } })).ok).toBe(false);
+    expect((await store.put({ ...v2, finds: { 'us-west-2:0': true } })).ok).toBe(false);
+  });
+
   it('still accepts v1, and rejects unknown fields or out-of-range values', async () => {
     const store = createProgressStore(file());
     expect(await store.put({ version: 1, landmarks: {}, updatedAt: '2026-01-01T00:00:00.000Z' })).toEqual({ ok: true });

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// AWS City ⇄ backend contract v2.8. SOURCE OF TRUTH — docs/backend-contract.md mirrors this, and the
+// AWS City ⇄ backend contract v2.9. SOURCE OF TRUTH — docs/backend-contract.md mirrors this, and the
 // server (server/) imports it, so drift breaks its build.
 //
 // Transport: ONE WebSocket to the AWS City server (server/src/http.ts): ws://127.0.0.1:<port>/ws locally,
@@ -15,7 +15,7 @@
 // the pixel agents visibly work.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const CONTRACT_VERSION = 2.8;
+export const CONTRACT_VERSION = 2.9;
 
 // ── Console Copilot shapes (also used by the content script in src/console/) ──
 export type ConsoleAction = 'click' | 'type' | 'select' | 'point' | 'done';
@@ -716,6 +716,8 @@ export interface Progress {
   bill?: boolean;
   /** v2.8: the player turned live traffic on (CloudWatch reads, at most every 5 minutes while open). Absent = off. */
   flow?: boolean;
+  /** v2.9: golden tokens found around the cities (src/world/tokens.ts), by token id → the local date found (YYYY-MM-DD). */
+  finds?: Record<string, string>;
   updatedAt: string; // ISO; newest wins between server and chrome.storage
 }
 
